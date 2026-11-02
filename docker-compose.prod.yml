@@ -1,0 +1,13 @@
+services:
+  backend:
+    environment:
+      ENVIRONMENT: production
+      FRONTEND_URL: ${FRONTEND_URL:?Set HTTPS public origin}
+      SMTP_HOST: ${SMTP_HOST:?Set production SMTP host}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USE_TLS: "true"
+      SMTP_USERNAME: ${SMTP_USERNAME:?Set SMTP username}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:?Set SMTP password}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:?Set sender email}
+  nginx:
+    ports: !override ["127.0.0.1:8080:80"]
