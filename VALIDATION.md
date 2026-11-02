@@ -30,3 +30,8 @@ Updated startup Bash grammar and Compose/CI YAML parsing passed locally. A real 
 ## Mounted-secret permission regression
 
 The reported backend startup failed before database connection because the non-root API could not read /run/secrets/app_db_password. Added an operator check/repair for the three configured direct files under secrets/, preserving values and refusing external/missing sources. The production deployment helper checks permissions before proceeding; backend read failures now identify the repair command without printing values. Seven targeted tests passed (three permission regressions plus four settings/encryption/adapter tests). Actual UID/file access on the Oracle VM must be verified with a one-off non-root backend shell; Docker is unavailable locally.
+
+
+## Startup dependency diagnostics
+
+The next VM attachment ended at lifespan.py without the final exception message. No database/Redis root cause can be inferred from that truncated trace. Startup checks now distinguish PostgreSQL authentication/authorization/missing database/privilege/connectivity failures, privileged runtime roles, and Redis authentication/connectivity failures without exposing driver messages or values. Added backend/check_startup.py. Seven targeted diagnostic tests passed locally. Actual VM dependency checks remain pending its diagnostic output.
