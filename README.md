@@ -57,3 +57,12 @@ The project follows the requested GNK-ALGO monorepo layout. Frontend components 
 Migrations: `database/migrations`. Operational images: `infrastructure/docker`. Reverse proxy: `infrastructure/nginx`. Integration tests: `tests/integration`. Root Compose commands remain unchanged after the reorganization.
 
 See ARCHITECTURE.md for dependency rules and module ownership.
+
+
+## Service commands on Ubuntu
+
+Use `./deploy/gnk-service.sh start|stop|build|deploy|status|logs|health|urls`.
+The new service/ directory owns the implementation and operational instructions.
+See service/README.md for setup, production mode, log filtering and exit codes.
+All commands preserve persistent database volumes. Production still requires
+operator-configured HTTPS and SMTP. No command enables live trading.

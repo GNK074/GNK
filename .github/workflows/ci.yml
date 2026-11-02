@@ -25,3 +25,12 @@ jobs:
       - run: python -m pytest ../tests -q
         env:
           PYTHONPATH: .
+
+  service-controls:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: bash -n deploy/gnk-service.sh service/gnk-service.sh
+      - run: python -m unittest discover -s tests/unit -p test_service_script.py -v

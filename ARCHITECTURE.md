@@ -66,8 +66,13 @@ Future path: authorized feed -> strategy intent -> risk decision -> approved bro
 - database/schemas is reserved for schema documentation; database/seeds is reserved for idempotent non-secret seed data. Administrator setup remains the interactive backend/bootstrap.py command.
 - infrastructure/docker owns the frontend/backend Dockerfiles. Compose builds from the repository root so backend migrations are included.
 - infrastructure/nginx owns the application reverse proxy. monitoring and deployment are reserved for actual operational configuration.
-- tests/integration contains existing isolated authentication flow tests. unit, security and end_to_end are reserved for meaningful additions; empty folders do not constitute coverage.
+- tests/integration contains isolated authentication flow tests. tests/unit contains service-manager contract tests using mocked Docker/curl on Ubuntu. security and end_to_end remain reserved for meaningful additions; empty folders do not constitute coverage.
 
 ## Current capability boundary
 
 Identity and account workflows are implemented. Twelve brokers are candidates, not supported integrations. No live feed, AI predictor, quantitative engine, backtester, strategy execution or trading worker is implemented. No order endpoint exists. Review README.md for remaining production requirements and VALIDATION.md for actual verification evidence.
+
+
+## Service control layer
+
+`deploy/gnk-service.sh` delegates to `service/gnk-service.sh`. Commands construct Compose argument arrays, never execute .env contents, preserve volumes, and return nonzero for failed commands or failed health checks. Development uses the base Compose file; production adds the production override. Application and admin URLs are displayed without claiming unauthenticated access to protected routes. Docker readiness probes cover PostgreSQL, Redis, backend, frontend and Nginx; Mailpit currently has no container probe and is reported as a warning. Real SMTP delivery and external HTTPS require separate verification.
