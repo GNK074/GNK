@@ -74,15 +74,19 @@ export function Auth({
         <Logo />
         <div>
           <div className="pill">INTELLIGENCE BEHIND EVERY TRADE</div>
-          <h1>
-            A clearer view.
-            <br />A smarter beginning.
-          </h1>
-          <p>
-            Your strategies. Your decisions.
-            <br />
-            One secure workspace.
-          </p>
+          {path !== "/login" && (
+            <>
+              <h1>
+                A clearer view.
+                <br />A smarter beginning.
+              </h1>
+              <p>
+                Your strategies. Your decisions.
+                <br />
+                One secure workspace.
+              </p>
+            </>
+          )}
           <img
             className="auth-brand-art"
             src="/brand/gnkalgo-brand.jpg"
