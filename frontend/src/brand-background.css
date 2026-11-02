@@ -1,0 +1,100 @@
+/* Original GnKAlgo artwork, shared by every route without intercepting input. */
+:root {
+  --brand-wash: linear-gradient(110deg, rgb(9 9 15 / 83%), rgb(9 9 15 / 62%) 55%, rgb(9 9 15 / 76%));
+}
+:root[data-theme="royal_blue"] {
+  --brand-wash: linear-gradient(110deg, rgb(8 15 35 / 85%), rgb(8 15 35 / 64%) 55%, rgb(8 15 35 / 78%));
+}
+:root[data-theme="light"] {
+  --brand-wash: linear-gradient(110deg, rgb(240 239 245 / 92%), rgb(240 239 245 / 82%) 55%, rgb(240 239 245 / 90%));
+}
+body {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: var(--brand-wash), url("/brand/gnkalgo-brand.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.app,
+.gnk-auth,
+.contact-page {
+  background: transparent;
+}
+.gnk-auth {
+  padding: 24px;
+  gap: 24px;
+}
+.gnk-auth .auth-art {
+  background: linear-gradient(135deg, rgb(9 9 15 / 72%), rgb(9 9 15 / 24%));
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 20px;
+}
+.gnk-auth .auth-brand-art {
+  display: none;
+}
+.gnk-auth .auth-form {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: 0 20px 70px rgb(0 0 0 / 20%);
+  padding: 36px;
+}
+.contact-topnav,
+.contact-footer {
+  background: var(--surface);
+}
+.contact-hero,
+.contact-columns,
+.contact-social,
+.contact-regulatory,
+.landing .hero,
+.landing .about,
+.landing #features {
+  background: color-mix(in srgb, var(--page) 85%, transparent);
+}
+.public-awareness {
+  background: var(--surface);
+}
+.auth-wrap,
+.loading {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  margin: 32px auto;
+  width: min(760px, calc(100% - 32px));
+}
+@media (max-width: 700px) {
+  /* Cover the viewport without stretching the supplied landscape artwork. */
+  body::before {
+    background-position: 50% 35%;
+  }
+  .gnk-auth {
+    padding: 18px 14px;
+  }
+  .gnk-auth .auth-form {
+    padding: 26px 22px;
+  }
+  .auth-wrap,
+  .loading {
+    padding: 32px 22px;
+    overflow-wrap: anywhere;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --brand-wash: linear-gradient(rgb(9 9 15 / 94%), rgb(9 9 15 / 94%));
+  }
+  :root[data-theme="light"] {
+    --brand-wash: linear-gradient(rgb(240 239 245 / 97%), rgb(240 239 245 / 97%));
+  }
+}
