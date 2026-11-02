@@ -37,6 +37,8 @@ class Settings(BaseSettings):
     enable_mfa: bool = False
     secure_cookies: bool = False
     https_only: bool = False
+    individual_broker_setup_enabled: bool = True
+    broker_egress_ip: str = ''
     trading_enabled: bool = False
     paper_trading_enabled: bool = True
     live_trading_enabled: bool = False

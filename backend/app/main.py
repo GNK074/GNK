@@ -4,6 +4,7 @@ from app.core.config import ORIGIN, PROD, settings
 from app.core.lifespan import lifespan
 from app.models import trading
 from app.brokers.gateway import router as broker_gateway
+from app.brokers.individual.routes import router as individual_brokers
 from app.brokers.approval.routes import router as approvals
 from app.execution.routes import router as execution
 from app.security.mfa import router as mfa
@@ -40,3 +41,13 @@ app.include_router(broker_gateway)
 app.include_router(approvals)
 app.include_router(execution)
 app.include_router(mfa)
+
+app.include_router(individual_brokers)
+
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+
+@app.exception_handler(RequestValidationError)
+async def sanitized_validation_error(request,error):
+    # Never echo raw inputs: broker API tokens/passwords can appear in validation input.
+    return JSONResponse(status_code=422,content={'detail':[{'loc':list(item['loc']),'msg':item['msg'],'type':item['type']} for item in error.errors()]})

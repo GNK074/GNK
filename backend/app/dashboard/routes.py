@@ -1,8 +1,14 @@
-from fastapi import Depends
+from fastapi import Depends,APIRouter
+from sqlalchemy.orm import Session
+from sqlalchemy import select
 from app.security.authentication import auth
-from fastapi import APIRouter
-router = APIRouter()
-
+from app.database.session import db
+from app.models.trading import Strategy
+from app.brokers.gateway import connections
+router=APIRouter()
 @router.get('/api/v1/dashboard')
-def dashboard(u=Depends(auth)):
-    return {'mode': 'disconnected', 'live_trading': False, 'connections': 0, 'portfolio': None, 'strategies': [], 'market_data': None}
+def dashboard(u=Depends(auth),s:Session=Depends(db)):
+    accounts=connections(u,s)
+    count=sum(a['status']=='connected' for a in accounts)
+    strategies=[{'id':x.id,'name':x.name,'approved':x.approved} for x in s.scalars(select(Strategy).where(Strategy.user_id==u.id))]
+    return {'mode':'broker_connected' if count else 'disconnected','live_trading':False,'connections':count,'broker_accounts':accounts,'portfolio':None,'strategies':strategies,'market_data':None,'connection_scope':'identity_validation_only'}

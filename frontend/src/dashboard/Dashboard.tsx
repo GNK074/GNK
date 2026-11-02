@@ -34,6 +34,13 @@ export function Dashboard({
   user: User;
   notify: (s: string) => void;
 }) {
+  const [summary, setSummary] = useState<any>(null);
+  useEffect(() => {
+    api("/dashboard")
+      .then(setSummary)
+      .catch((e) => notify(e.message));
+  }, []);
+  const count = summary?.connections ?? 0;
   return (
     <>
       <div className="page-heading">
@@ -54,17 +61,32 @@ export function Dashboard({
         <div>
           <b>You're in control. Always.</b>
           <p>
-            Your workspace is ready. Broker integrations are awaiting
-            verification; live trading is disabled.
+            {count > 0
+              ? `${count} broker account${count === 1 ? "" : "s"} connected. Live execution is separately disabled.`
+              : "Your workspace is ready. Connect your own broker API session to verify your account. Live execution remains disabled."}
           </p>
         </div>
-        <span className="tag">DISCONNECTED</span>
+        <span className="tag">
+          {count > 0 ? "BROKER CONNECTED" : "NO ACCOUNT CONNECTED"}
+        </span>
       </div>
       <div className="stats">
         {[
-          ["Connected brokers", "0", "Connect your first account", Cable],
+          [
+            "Connected brokers",
+            summary ? String(count) : "—",
+            count > 0
+              ? "Individual credentials verified"
+              : "Connect your own account",
+            Cable,
+          ],
           ["Portfolio value", "—", "No broker data available", BarChart3],
-          ["Active strategies", "0", "Strategy module coming soon", Blocks],
+          [
+            "Research strategies",
+            summary ? String(summary.strategies.length) : "—",
+            "Saved paper research strategies",
+            Blocks,
+          ],
           ["Risk status", "Protected", "Live execution disabled", ShieldCheck],
         ].map(([label, value, sub, Icon]: any) => (
           <article key={label}>
@@ -89,9 +111,9 @@ export function Dashboard({
               <BarChart3 size={32} />
               <h3>Your portfolio starts here</h3>
               <p>
-                Connect an approved broker to view your holdings
+                Broker identity verification is available. Holdings
                 <br />
-                and account performance.
+                synchronization is not implemented yet.
               </p>
               <Link className="text-link" to="/user/broker-and-exchanges">
                 Explore broker integrations <ArrowRight size={16} />
@@ -102,7 +124,7 @@ export function Dashboard({
         <article className="panel">
           <div className="panel-title">
             <h3>Getting started</h3>
-            <span className="muted">1 of 3</span>
+            <span className="muted">{count > 0 ? "2" : "1"} of 3</span>
           </div>
           <div className="steps">
             <div>

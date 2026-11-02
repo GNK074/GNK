@@ -19,6 +19,8 @@ def client(monkeypatch):
     from app.brokers import gateway
     monkeypatch.setattr(mfa,'limit',lambda *args:None)
     monkeypatch.setattr(gateway,'limit',lambda *args:None)
+    from app.brokers.individual import routes as individual_routes
+    monkeypatch.setattr(individual_routes,'limit',lambda *args:None)
     delivered=[]
     monkeypatch.setattr(accounts,'send_email',lambda email,title,link:delivered.append(link))
     with TestClient(m.app) as c:

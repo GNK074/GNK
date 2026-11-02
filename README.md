@@ -23,8 +23,11 @@ Backend: Python 3.12+, install backend/requirements.txt, set PYTHONPATH=backend 
 
 ## Important capability limits
 
-Live execution is unavailable and cannot be activated through an environment flag or evidence count. Upstox authentication has mocked HTTP tests, not a verified live customer integration; all other requested broker adapters are pending. There is no live feed, licensed market-data distribution, real portfolio synchronization, order reconciliation, broker-side emergency cancellation or production worker implementation. Paper fills use manually entered prices and omit margin, fees and slippage.
+Live execution is unavailable and cannot be activated through an environment flag or evidence count. Seven individual account validators have mocked HTTP tests, not verified real-customer integrations. Only Upstox has the separate automatic OAuth adapter; remaining catalog candidates and other complete OAuth flows are pending. There is no live feed, licensed market-data distribution, real portfolio synchronization, order reconciliation, broker-side emergency cancellation or production worker implementation. Paper fills use manually entered prices and omit margin, fees and slippage.
 
 Oracle VM deployment, DNS/TLS, real SMTP, actual PostgreSQL/Redis operation, restored backups, external security/compliance review and official broker approvals have not been verified from this environment. Do not describe this build as production-ready or approved for real-money trading. IMPLEMENTATION_STATUS.md separates implemented code from remaining external and development work.
 
 Read TECHNICAL_AUDIT.md, MULTI_USER_ARCHITECTURE.md, ENVIRONMENT_VARIABLES.md, BROKER_INTEGRATION.md, SECURITY_CONFIGURATION.md and PRODUCTION_GO_LIVE_CHECKLIST.md before deployment.
+
+## Connect individual broker accounts
+Use your own API application/session credentials through the broker setup forms. Seven provider-specific identity validation handlers are available; see INDIVIDUAL_BROKER_SETUP.md for exact fields, documentation, operator requirements and unimplemented catalog candidates. Connected status requires successful provider validation and does not enable live execution. The dashboard uses actual per-user connection records.

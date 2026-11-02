@@ -35,3 +35,12 @@ The reported backend startup failed before database connection because the non-r
 ## Startup dependency diagnostics
 
 The next VM attachment ended at lifespan.py without the final exception message. No database/Redis root cause can be inferred from that truncated trace. Startup checks now distinguish PostgreSQL authentication/authorization/missing database/privilege/connectivity failures, privileged runtime roles, and Redis authentication/connectivity failures without exposing driver messages or values. Added backend/check_startup.py. Seven targeted diagnostic tests passed locally. Actual VM dependency checks remain pending its diagnostic output.
+
+
+## Individual broker setup update
+
+Implemented account-inspection handlers for Dhan, Zerodha, Upstox, Angel One, FYERS, 5paisa and ICICI Direct. Documentation references and per-provider required fields are in INDIVIDUAL_BROKER_SETUP.md. No customer credentials were available or used during development. No real provider connection or order was made by these tests.
+
+Full local backend suite: 53 passed, 14 skipped. Twenty initial targeted tests cover seven HTTP contracts and failures, token expiry, operator IP requirements, per-user encrypted saves, identity/consent rejection, secret redaction and operator disable. Added a regression for unreadable saved sessions to require reauthorization instead of being counted connected. The dashboard, legacy connection listing and current connection listing use user-owned records.
+
+Frontend TypeScript/Vite production build passed after the new forms and dynamic dashboard. Existing schema 0002 is unchanged; no migration is introduced by this update. Fourteen environment-dependent Linux/PostgreSQL tests remain skipped locally; their CI results have not been observed. Live execution remains disabled. Five non-primary catalog candidates still lack implemented validators. Deployment of this update to the public VM has not yet been performed.
