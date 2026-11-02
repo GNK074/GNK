@@ -16,6 +16,7 @@ services:
   redis:
     mem_limit: ${REDIS_MEMORY_LIMIT:-512m}
     command: ["sh", "/opt/gnk/redis-secure.sh"]
+    tmpfs: ["/tmp:rw,noexec,nosuid,nodev,size=16m"]
     volumes:
       - ./infrastructure/docker/redis-secure.sh:/opt/gnk/redis-secure.sh:ro
     secrets: [redis_password]

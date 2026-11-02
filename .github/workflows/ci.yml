@@ -55,3 +55,10 @@ jobs:
         env:
           PYTHONPATH: backend
           GNK_TEST_POSTGRES_URL: postgresql://gnk:ci-test-only@localhost:5432/gnk_test
+
+  redis-startup-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash -n infrastructure/docker/redis-secure.sh tests/end_to_end/redis-startup.sh
+      - run: bash tests/end_to_end/redis-startup.sh

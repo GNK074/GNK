@@ -18,3 +18,10 @@ Skipped/not executed:
 - One Starlette/httpx deprecation warning remains in test infrastructure; it did not fail the tests.
 
 No real-money order was submitted. Infrastructure readiness is not live-trading approval. See IMPLEMENTATION_STATUS.md for remaining work and PRODUCTION_DEPLOYMENT.md before modifying an existing server.
+
+
+## Redis startup regression fix
+
+The original secure startup assumed su-exec and reused a chowned config path. The reported VM logs proved that assumption invalid. The fix delegates privilege dropping to the official image entrypoint and creates a unique private config directory per start; production Redis mounts /tmp as tmpfs. No persistent volume is removed.
+
+Updated startup Bash grammar and Compose/CI YAML parsing passed locally. A real Redis container smoke test now checks unauthenticated rejection, authenticated PING, restart and data persistence in Ubuntu CI using an isolated disposable test volume. That Docker test has not run locally; its CI outcome has not been observed.
