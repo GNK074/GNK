@@ -1,30 +1,20 @@
+import { SignOutDialog } from "../components/SignOutDialog";
+import { applyTheme } from "../services/theme";
 import { MfaEnrollment } from "../pages/MfaEnrollment";
 import { PaperWorkspace } from "../strategies/PaperWorkspace";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  BrowserRouter,
-  Link,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
-import {
-  Activity,
-  ArrowUpRight,
   ArrowRight,
   BarChart3,
   Blocks,
   Cable,
   ChevronRight,
   CircleHelp,
-  Command,
   Gauge,
   LayoutDashboard,
-  LockKeyhole,
-  Search,
   Settings,
   ShieldCheck,
-  Square,
-  Zap,
 } from "lucide-react";
 import { api } from "../services/api";
 import type { User } from "../store/session";
@@ -41,11 +31,16 @@ export function App() {
   const [user, setUser] = useState<User | null>(null),
     [loading, setLoading] = useState(true),
     [note, setNote] = useState("");
+  const [signOutOpen, setSignOutOpen] = useState(false);
+  function updateUser(u: User) {
+    setUser(u);
+    applyTheme(u.theme || "carbon_black");
+  }
   const loc = useLocation(),
     nav = useNavigate();
   useEffect(() => {
     api("/users/me")
-      .then((d) => setUser(d.user))
+      .then((d) => updateUser(d.user))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -59,12 +54,24 @@ export function App() {
     "/forgot-password",
     "/reset",
     "/verify",
+    "/confirm-email-change",
   ].includes(loc.pathname);
   if (loc.pathname === "/mfa") return <MfaEnrollment />;
   if (loading)
     return <div className="loading">GNK ALGO · Loading workspace…</div>;
   return (
     <>
+      {signOutOpen && (
+        <SignOutDialog
+          onClose={() => setSignOutOpen(false)}
+          onSignedOut={() => {
+            setUser(null);
+            setSignOutOpen(false);
+            nav("/login");
+          }}
+          onError={notify}
+        />
+      )}
       {note && (
         <div role="status" className="toast" onClick={() => setNote("")}>
           {note}
@@ -74,7 +81,7 @@ export function App() {
       {isAuth ? (
         <Auth
           onLogin={(u) => {
-            setUser(u);
+            updateUser(u);
             nav("/user/broker-and-exchanges");
           }}
           notify={notify}
@@ -133,22 +140,17 @@ export function App() {
                   <small>Secure, encrypted sessions</small>
                 </div>
               </div>
-              <button
-                className="profile"
-                onClick={async () => {
-                  try {
-                    await api("/auth/logout", "POST");
-                    setUser(null);
-                    nav("/login");
-                  } catch (e) {
-                    notify((e as Error).message);
-                  }
-                }}
-              >
-                <span className="avatar">{user.name[0]}</span>
+              <button className="profile" onClick={() => setSignOutOpen(true)}>
+                <span className="avatar">
+                  {user.avatar_url ? (
+                    <img src={user.avatar_url} alt="" />
+                  ) : (
+                    user.name[0]
+                  )}
+                </span>
                 <div>
                   {user.name}
-                  <small>Sign out of all devices ↗</small>
+                  <small>Account & sign out ↗</small>
                 </div>
               </button>
             </div>
@@ -160,21 +162,34 @@ export function App() {
                 <b>
                   {loc.pathname.includes("broker")
                     ? "Brokers & exchanges"
-                    : "Overview"}
+                    : loc.pathname.includes("settings")
+                      ? "Profile & settings"
+                      : "Overview"}
                 </b>
               </span>
               <div>
                 <span className="status-dot" />
                 Trading disabled <span className="header-divider">│</span>
                 <CircleHelp size={18} />
-                <span className="avatar">{user.name[0]}</span>
+                <span className="avatar">
+                  {user.avatar_url ? (
+                    <img src={user.avatar_url} alt="" />
+                  ) : (
+                    user.name[0]
+                  )}
+                </span>
               </div>
             </header>
             <div className="content">
               {loc.pathname.includes("broker") ? (
                 <Brokers notify={notify} />
               ) : loc.pathname === "/user/settings" ? (
-                <SettingsPage user={user} notify={notify} />
+                <SettingsPage
+                  user={user}
+                  notify={notify}
+                  onUpdate={updateUser}
+                  onSignOut={() => setSignOutOpen(true)}
+                />
               ) : loc.pathname === "/user/security" ? (
                 <Security notify={notify} />
               ) : loc.pathname === "/admin" ? (

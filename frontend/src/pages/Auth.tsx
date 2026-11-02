@@ -1,31 +1,9 @@
-import React, { useEffect, useState } from "react";
-import {
-  BrowserRouter,
-  Link,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
-import {
-  Activity,
-  ArrowUpRight,
-  ArrowRight,
-  BarChart3,
-  Blocks,
-  Cable,
-  ChevronRight,
-  CircleHelp,
-  Command,
-  Gauge,
-  LayoutDashboard,
-  LockKeyhole,
-  Search,
-  Settings,
-  ShieldCheck,
-  Square,
-  Zap,
-} from "lucide-react";
+import React, { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { ArrowRight, LockKeyhole } from "lucide-react";
 import { api } from "../services/api";
 import type { User } from "../store/session";
+import { PasswordStrength } from "../components/PasswordStrength";
 import { Logo } from "../components/Logo";
 
 export function Auth({
@@ -37,13 +15,15 @@ export function Auth({
 }) {
   const loc = useLocation(),
     path = loc.pathname;
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState(false),
+    [password, setPassword] = useState("");
   const titles: Record<string, string> = {
     "/login": "Welcome back.",
     "/register": "Your next chapter starts here.",
     "/forgot-password": "Reset your password.",
     "/reset": "Set a new password.",
     "/verify": "Verify your email.",
+    "/confirm-email-change": "Confirm your new email.",
   };
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -58,11 +38,13 @@ export function Auth({
           ? "login"
           : path === "/register"
             ? "register"
-            : path === "/verify"
-              ? "verify-email"
-              : path === "/reset"
-                ? "reset-password"
-                : "forgot-password";
+            : path === "/confirm-email-change"
+              ? "confirm-email-change"
+              : path === "/verify"
+                ? "verify-email"
+                : path === "/reset"
+                  ? "reset-password"
+                  : "forgot-password";
       const body =
         path === "/register"
           ? { ...data, terms: !!data.terms, privacy: !!data.privacy }
@@ -81,7 +63,7 @@ export function Auth({
     }
   }
   return (
-    <div className="auth-layout">
+    <div className="auth-layout gnk-auth">
       <div className="auth-art">
         <Logo />
         <div>
@@ -95,13 +77,20 @@ export function Auth({
             <br />
             One secure workspace.
           </p>
-          <Activity size={100} />
+          <img
+            className="auth-brand-art"
+            src="/brand/gnkalgo-brand.jpg"
+            alt="GNK ALGO bull and bear brand artwork"
+          />
         </div>
         <small>
           Trading involves market risk. Returns are never guaranteed.
         </small>
       </div>
       <div className="auth-form">
+        <div className="auth-mobile-brand">
+          <Logo />
+        </div>
         <Link className="back" to="/">
           ← Back to home
         </Link>
@@ -113,18 +102,6 @@ export function Auth({
             : "Secure access to your GNK ALGO account."}
         </p>
         <form onSubmit={submit}>
-          {path === "/login" && (
-            <label>
-              Authenticator code (if enrolled)
-              <input
-                name="totp_code"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                pattern="[0-9]{6}"
-                placeholder="6-digit code"
-              />
-            </label>
-          )}
           {path === "/register" && (
             <label>
               Full name
@@ -138,7 +115,51 @@ export function Auth({
               />
             </label>
           )}
-          {!["/reset", "/verify"].includes(path) && (
+          {path === "/register" && (
+            <div className="registration-fields">
+              <label>
+                Gender
+                <select
+                  aria-label="Gender"
+                  name="gender"
+                  required
+                  defaultValue=""
+                >
+                  <option value="" disabled>
+                    Select gender
+                  </option>
+                  <option value="female">Female</option>
+                  <option value="male">Male</option>
+                  <option value="non_binary">Non-binary</option>
+                  <option value="prefer_not_to_say">Prefer not to say</option>
+                </select>
+              </label>
+              <label>
+                Date of birth
+                <input
+                  name="date_of_birth"
+                  type="date"
+                  required
+                  min="1900-01-01"
+                  max={new Date().toISOString().slice(0, 10)}
+                  autoComplete="bday"
+                />
+              </label>
+              <label className="field-wide">
+                Mobile number
+                <input
+                  name="mobile"
+                  type="tel"
+                  required
+                  pattern="\+[1-9][0-9]{7,14}"
+                  placeholder="+919876543210"
+                  title="International format, for example +919876543210"
+                  autoComplete="tel"
+                />
+              </label>
+            </div>
+          )}
+          {!["/reset", "/verify", "/confirm-email-change"].includes(path) && (
             <label>
               Email address
               <input
@@ -155,6 +176,7 @@ export function Auth({
               Password
               <input
                 type="password"
+                onChange={(e) => setPassword(e.target.value)}
                 name="password"
                 required
                 minLength={path === "/login" ? 1 : 12}
@@ -164,12 +186,10 @@ export function Auth({
                 }
                 placeholder="Enter your password"
               />
-              {path !== "/login" && (
-                <small>
-                  12+ characters, uppercase, lowercase, number and symbol.
-                </small>
-              )}
             </label>
+          )}
+          {["/register", "/reset"].includes(path) && (
+            <PasswordStrength value={password} />
           )}
           {path === "/register" && (
             <>
@@ -198,6 +218,19 @@ export function Auth({
               Forgot password?
             </Link>
           )}
+          {path === "/login" && (
+            <label>
+              Authenticator code (if enrolled)
+              <input
+                name="totp_code"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                pattern="[0-9]{6}"
+                maxLength={6}
+                placeholder="6-digit code"
+              />
+            </label>
+          )}
           <button disabled={busy} className="button" type="submit">
             {busy
               ? "Please wait…"
@@ -205,9 +238,11 @@ export function Auth({
                 ? "Sign in"
                 : path === "/register"
                   ? "Create account"
-                  : path === "/verify"
-                    ? "Verify email"
-                    : "Continue"}
+                  : path === "/confirm-email-change"
+                    ? "Confirm email change"
+                    : path === "/verify"
+                      ? "Verify email"
+                      : "Continue"}
             <ArrowRight size={17} />
           </button>
         </form>

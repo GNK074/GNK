@@ -1,5 +1,5 @@
-from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime, ForeignKey, Text, BigInteger
+from datetime import datetime, date
+from sqlalchemy import String, Boolean, DateTime, ForeignKey, Text, BigInteger, Date, LargeBinary, Integer
 from sqlalchemy.orm import Mapped, mapped_column
 from app.core.config import ident, now
 from app.database.session import Base
@@ -9,6 +9,12 @@ class User(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=ident)
     email: Mapped[str] = mapped_column(String(254), unique=True, index=True)
     name: Mapped[str] = mapped_column(String(100))
+    gender: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    date_of_birth: Mapped[date | None] = mapped_column(Date, nullable=True)
+    mobile: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    theme: Mapped[str] = mapped_column(String(20), default='carbon_black', server_default='carbon_black')
+    avatar_data: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True, deferred=True)
+    avatar_version: Mapped[int] = mapped_column(Integer, default=0, server_default='0')
     password: Mapped[str] = mapped_column(Text)
     verified: Mapped[bool] = mapped_column(Boolean, default=False)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -22,6 +28,7 @@ class Token(Base):
     __tablename__ = 'tokens'
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
     user_id: Mapped[str] = mapped_column(ForeignKey('users.id'), index=True)
+    target_email: Mapped[str | None] = mapped_column(String(254), nullable=True)
     kind: Mapped[str] = mapped_column(String(20))
     expires: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     used: Mapped[bool] = mapped_column(Boolean, default=False)

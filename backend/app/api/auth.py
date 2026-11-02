@@ -2,12 +2,13 @@ import secrets
 from datetime import timedelta
 from argon2.exceptions import VerificationError
 from fastapi import Depends, HTTPException, Request, Response
-from sqlalchemy import select
+from sqlalchemy import select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from app.core.config import PROD, digest, expired, now, settings
+from app.core.config import PROD, ORIGIN, digest, expired, now, settings
 from app.database.session import db
-from app.models.identity import LoginSession, User
-from app.schemas.identity import Credentials, EmailInput, PasswordChange, Register, Reset, TokenInput
+from app.models.identity import LoginSession, User, Token
+from app.schemas.identity import Credentials, EmailInput, PasswordChange, Register, Reset, TokenInput, EmailChange
 from app.security.authentication import auth, cookies, hasher, limit
 from app.services.accounts import audit, consume, issue, revoke_all
 from fastapi import APIRouter
@@ -18,7 +19,7 @@ def register(data: Register, request: Request, s: Session=Depends(db)):
     limit(request, 'register', data.email)
     email = str(data.email).lower()
     if not s.scalar(select(User).where(User.email == email)):
-        u = User(email=email, name=data.name.strip(), password=hasher.hash(data.password))
+        u = User(email=email, name=data.name.strip(), password=hasher.hash(data.password), gender=data.gender, date_of_birth=data.date_of_birth, mobile=data.mobile)
         s.add(u)
         s.flush()
         issue(s, u, 'verify', 60)
@@ -81,13 +82,17 @@ def refresh(request: Request, response: Response, s: Session=Depends(db)):
 
 @router.post('/api/v1/auth/logout-all')
 @router.post('/api/v1/auth/logout')
-def logout(response: Response, u=Depends(auth), s: Session=Depends(db)):
-    revoke_all(s, u.id)
-    audit(s, u.id, 'logout_all')
+def logout(request: Request, response: Response, u=Depends(auth), s: Session=Depends(db)):
+    if request.url.path.endswith('logout-all'):
+        revoke_all(s, u.id)
+    else:
+        from app.api.users import session_id
+        s.get(LoginSession, session_id(request)).revoked = True
+    audit(s, u.id, 'logout_all' if request.url.path.endswith('logout-all') else 'logout')
     s.commit()
     for key in ('access', 'refresh'):
         response.delete_cookie(key, path='/api/v1', secure=PROD, httponly=True, samesite='strict')
-    return {'message': 'Signed out of all devices'}
+    return {'message': 'Signed out'}
 
 @router.post('/api/v1/auth/forgot-password')
 @router.post('/api/v1/auth/resend-verification')
@@ -104,20 +109,70 @@ def recovery(data: EmailInput, request: Request, s: Session=Depends(db)):
 def reset(data: Reset, s: Session=Depends(db)):
     u = consume(s, data.token, 'reset')
     u.password = hasher.hash(data.password)
+    s.execute(update(Token).where(Token.user_id == u.id).values(used=True))
     revoke_all(s, u.id)
     audit(s, u.id, 'password_reset')
     s.commit()
     return {'message': 'Password updated. Please sign in.'}
 
 @router.post('/api/v1/auth/change-password')
-def change_password(data: PasswordChange, u=Depends(auth), s: Session=Depends(db)):
+def change_password(data: PasswordChange, request: Request, response: Response, u=Depends(auth), s: Session=Depends(db)):
+    limit(request, 'password-change', u.id)
     current = s.get(User, u.id)
     try:
         hasher.verify(current.password, data.current_password)
     except VerificationError:
         raise HTTPException(400, 'Current password is incorrect')
     current.password = hasher.hash(data.password)
+    s.execute(update(Token).where(Token.user_id == u.id).values(used=True))
+    for key in ('access', 'refresh'):
+        response.delete_cookie(key, path='/api/v1', secure=PROD, httponly=True, samesite='strict')
     revoke_all(s, u.id)
     audit(s, u.id, 'password_changed')
     s.commit()
     return {'message': 'Password changed. All sessions revoked. Please sign in again.'}
+
+
+@router.post('/api/v1/auth/change-email', status_code=202)
+def request_email_change(data: EmailChange, request: Request, u=Depends(auth), s: Session=Depends(db)):
+    limit(request, 'email-change', u.id)
+    current = s.scalar(select(User).where(User.id == u.id).with_for_update())
+    try:
+        hasher.verify(current.password, data.current_password)
+    except VerificationError:
+        raise HTTPException(400, 'Current password is incorrect')
+    target = str(data.email).lower()
+    if target == current.email:
+        raise HTTPException(400, 'Enter a different email address')
+    # Do not reveal whether the target address belongs to another account.
+    if not s.scalar(select(User.id).where(User.email == target)):
+        s.execute(update(Token).where(Token.user_id == u.id, Token.kind == 'change-email').values(used=True))
+        raw = secrets.token_urlsafe(32)
+        s.add(Token(id=digest(raw), user_id=u.id, kind='change-email', target_email=target, expires=now() + timedelta(minutes=20)))
+        from app.services import accounts
+        accounts.send_email(target, 'Confirm your GNK ALGO email address', f'{ORIGIN}/confirm-email-change?token={raw}')
+        audit(s, u.id, 'email_change_requested')
+        s.commit()
+    return {'message': 'If eligible, a confirmation link has been sent to the new address. Your current email remains active until confirmed.'}
+
+@router.post('/api/v1/auth/confirm-email-change')
+def confirm_email_change(data: TokenInput, request: Request, s: Session=Depends(db)):
+    limit(request, 'email-confirm')
+    token = s.scalar(select(Token).where(Token.id == digest(data.token)).with_for_update())
+    if not token or token.kind != 'change-email' or token.used or expired(token.expires) or not token.target_email:
+        raise HTTPException(400, 'Invalid or expired link')
+    current = s.scalar(select(User).where(User.id == token.user_id).with_for_update())
+    if not current or not current.active:
+        raise HTTPException(400, 'Account unavailable')
+    try:
+        current.email = token.target_email
+        current.verified = True
+        token.used = True
+        s.execute(update(Token).where(Token.user_id == current.id).values(used=True))
+        revoke_all(s, current.id)
+        audit(s, current.id, 'email_changed')
+        s.commit()
+    except IntegrityError:
+        s.rollback()
+        raise HTTPException(400, 'This email change can no longer be completed')
+    return {'message': 'Email updated. Sign in with your new address.'}

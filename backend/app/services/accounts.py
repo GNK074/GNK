@@ -27,4 +27,4 @@ def revoke_all(s, uid):
         item.revoked = True
 
 def public(u):
-    return dict(id=u.id, name=u.name, email=u.email, verified=u.verified, active=u.active, role=u.role)
+    return dict(id=u.id, name=u.name, email=u.email, verified=u.verified, active=u.active, role=u.role, theme=u.theme, avatar_url=f'/api/v1/users/me/avatar?v={u.avatar_version}' if u.avatar_version > 0 else None)

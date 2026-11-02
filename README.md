@@ -31,3 +31,8 @@ Read TECHNICAL_AUDIT.md, MULTI_USER_ARCHITECTURE.md, ENVIRONMENT_VARIABLES.md, B
 
 ## Connect individual broker accounts
 Use your own API application/session credentials through the broker setup forms. Seven provider-specific identity validation handlers are available; see INDIVIDUAL_BROKER_SETUP.md for exact fields, documentation, operator requirements and unimplemented catalog candidates. Connected status requires successful provider validation and does not enable live execution. The dashboard uses actual per-user connection records.
+
+
+## Profile and settings
+
+`/user/settings` includes editable personal details, private photo upload/reset, password and email changes, session revocation, and three account-saved themes. Login and registration use the supplied GNK brand artwork. See [PROFILE_SETTINGS.md](PROFILE_SETTINGS.md) for API contracts, validation, migration and deployment instructions.
