@@ -34,6 +34,16 @@ class Settings(BaseSettings):
     field_encryption_key: SecretStr
     field_encryption_previous_keys: SecretStr = SecretStr('')
     encryption_key_version: str = 'v1'
+    disclosure_version: str = Field(default='2026-11-02.1', min_length=1, max_length=60, pattern='^[a-zA-Z0-9._-]+$')
+    disclosure_max_age_hours: int = Field(default=24, ge=1, le=168)
+    contact_channels_verified: bool = False
+    company_registration_verified: bool = False
+    company_legal_name: str = ''
+    company_sebi_registration: str = ''
+    company_basl_membership: str = ''
+    company_basl_applicable: bool = False
+    company_office_address: str = ''
+    company_office_address_verified: bool = False
     enable_mfa: bool = False
     secure_cookies: bool = False
     https_only: bool = False
@@ -60,6 +70,14 @@ class Settings(BaseSettings):
                 Fernet(k.encode())
         except Exception:
             raise ValueError('Invalid field encryption key') from None
+        if self.company_registration_verified:
+            import re
+            if not self.company_legal_name.strip() or not re.fullmatch(r'INH[0-9]{9}', self.company_sebi_registration):
+                raise ValueError('Verified company publication requires legal entity name and valid SEBI RA registration number')
+            if self.company_basl_applicable and not self.company_basl_membership.strip():
+                raise ValueError('BASL publication requires verified membership details')
+        if self.company_office_address_verified and len(self.company_office_address.strip()) < 20:
+            raise ValueError('Provide the full verified office address before enabling map publication')
         if self.live_trading_enabled:
             raise ValueError('Live execution is unavailable in this release; keep LIVE_TRADING_ENABLED=false')
         if self.app_env == 'production':

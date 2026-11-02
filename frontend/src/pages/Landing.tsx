@@ -1,3 +1,4 @@
+import { PublicAwareness } from "../compliance/PublicAwareness";
 import React, { useEffect, useState } from "react";
 import {
   BrowserRouter,
@@ -36,13 +37,14 @@ export function Landing() {
         <div>
           <a href="#features">Features</a>
           <a href="#about">About</a>
-          <a href="mailto:gnkalgo@gmail.com">Contact</a>
+          <Link to="/contact-us">Contact</Link>
           <Link to="/login">Sign in</Link>
           <Link className="button" to="/register">
             Get started <ArrowUpRight size={16} />
           </Link>
         </div>
       </div>
+      <PublicAwareness />
       <section className="hero">
         <div className="pill">
           <span className="status-dot" /> THE NEXT CHAPTER OF YOUR TRADING
@@ -156,7 +158,7 @@ export function Landing() {
       <footer>
         GNK ALGO · Intelligence Behind Every Trade.
         <span>Trading involves market risk. No guaranteed returns.</span>
-        <a href="mailto:gnkalgo@gmail.com">Contact support</a>
+        <Link to="/contact-us">Contact support</Link>
       </footer>
     </div>
   );

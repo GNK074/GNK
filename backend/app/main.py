@@ -51,3 +51,9 @@ from fastapi.responses import JSONResponse
 async def sanitized_validation_error(request,error):
     # Never echo raw inputs: broker API tokens/passwords can appear in validation input.
     return JSONResponse(status_code=422,content={'detail':[{'loc':list(item['loc']),'msg':item['msg'],'type':item['type']} for item in error.errors()]})
+
+from app.compliance.routes import router as compliance_router
+app.include_router(compliance_router)
+
+from app.api.public import router as public_router
+app.include_router(public_router)

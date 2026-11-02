@@ -29,7 +29,13 @@ def three(client):
 def login(c,i):
     response=c.post('/api/v1/auth/login',json={'email':f'user{i}@example.com','password':'StrongPassword!123'})
     assert response.status_code==200,response.text
-    return {'X-CSRF-Token':response.json()['csrf_token']}
+    headers = {'X-CSRF-Token':response.json()['csrf_token']}
+    if response.json().get('mfa_required'):
+        return headers
+    document = c.get('/api/v1/compliance/disclosure').json()
+    result = c.post('/api/v1/compliance/disclosure/acknowledge', headers=headers, json={'disclosure_id':document['id'], 'disclosure_version':document['version'], 'content_sha256':document['content_sha256'], 'acknowledged':True})
+    assert result.status_code == 200, result.text
+    return headers
 
 def strategy(c,headers):
     r=c.post('/api/v1/strategies',json={'name':'Paper research'},headers=headers)

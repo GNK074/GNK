@@ -1,3 +1,4 @@
+from app.compliance import models as compliance_models
 from alembic import context
 from app.database.session import Base, engine
 from app.models import identity, trading

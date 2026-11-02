@@ -1,3 +1,5 @@
+import { ContactUsPage } from "../pages/ContactUsPage";
+import { DisclosureGate } from "../compliance/DisclosureGate";
 import { SignOutDialog } from "../components/SignOutDialog";
 import { applyTheme } from "../services/theme";
 import { MfaEnrollment } from "../pages/MfaEnrollment";
@@ -82,10 +84,12 @@ export function App() {
         <Auth
           onLogin={(u) => {
             updateUser(u);
-            nav("/user/broker-and-exchanges");
+            nav("/user/dashboard");
           }}
           notify={notify}
         />
+      ) : ["/contact", "/contact-us", "/contact-us/"].includes(loc.pathname) ? (
+        <ContactUsPage signedIn={!!user} />
       ) : loc.pathname === "/" ? (
         <Landing />
       ) : !user ? (
@@ -196,14 +200,19 @@ export function App() {
                 <Admin />
               ) : loc.pathname === "/user/strategies" ||
                 loc.pathname === "/user/portfolio" ? (
-                <PaperWorkspace notify={notify} />
+                <DisclosureGate key={user.id}>
+                  <PaperWorkspace notify={notify} />
+                </DisclosureGate>
               ) : (
-                <Dashboard user={user} notify={notify} />
+                <DisclosureGate key={user.id}>
+                  <Dashboard user={user} notify={notify} />
+                </DisclosureGate>
               )}
             </div>
             <footer>
               © {new Date().getFullYear()} GNK ALGO{" "}
               <span>Intelligence Behind Every Trade.</span>
+              <Link to="/contact-us">Contact Us</Link>
               <span>
                 Trading involves market risk. AI signals do not guarantee
                 returns.

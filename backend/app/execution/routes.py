@@ -10,6 +10,7 @@ from app.models.identity import User
 from app.models.trading import Strategy, RiskConfiguration, Order, Position, PlatformControl, BrokerAccount, BrokerCredential
 from app.schemas.trading import StrategyInput, RiskInput, PaperOrderInput, LiveOrderInput, SwitchInput
 from app.security.authentication import auth, admin
+from app.compliance.service import require_disclosure
 from app.security.ownership import owned
 from app.services.accounts import audit
 router = APIRouter(prefix='/api/v1')
@@ -78,7 +79,7 @@ def position(record_id: str, u=Depends(auth), s: Session=Depends(db)):
     return dict(id=x.id, symbol=x.symbol, quantity=x.quantity)
 
 @router.post('/paper/orders', status_code=201)
-def paper_order(data: PaperOrderInput, u=Depends(auth), s: Session=Depends(db)):
+def paper_order(data: PaperOrderInput, u=Depends(require_disclosure), s: Session=Depends(db)):
     if not settings.paper_trading_enabled:
         raise HTTPException(409, 'Paper trading disabled')
     r = risk_for(s, u.id)
@@ -127,7 +128,7 @@ def paper_order(data: PaperOrderInput, u=Depends(auth), s: Session=Depends(db)):
     return order_public(o)
 
 @router.post('/live/orders')
-def live_order(data: LiveOrderInput, u=Depends(auth), s: Session=Depends(db)):
+def live_order(data: LiveOrderInput, u=Depends(require_disclosure), s: Session=Depends(db)):
     account = owned(s, BrokerAccount, data.broker_account_id, u.id)
     strategy = owned(s, Strategy, data.strategy_id, u.id)
     from app.brokers.approval.approval_service import missing_requirements

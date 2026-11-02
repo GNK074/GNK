@@ -36,3 +36,7 @@ Use your own API application/session credentials through the broker setup forms.
 ## Profile and settings
 
 `/user/settings` includes editable personal details, private photo upload/reset, password and email changes, session revocation, and three account-saved themes. Login and registration use the supplied GNK brand artwork. See [PROFILE_SETTINGS.md](PROFILE_SETTINGS.md) for API contracts, validation, migration and deployment instructions.
+
+## Risk disclosure and contact
+
+A server-recorded, per-login risk acknowledgment now gates the dashboard and all order submissions. `/contact-us` provides a responsive public support page with verified-publication controls. Migration `0004` is required. See [DISCLOSURE_CONTACT.md](DISCLOSURE_CONTACT.md) for deployment, regulatory-source review, configuration, and validation limits.
