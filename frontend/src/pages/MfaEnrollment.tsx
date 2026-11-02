@@ -1,63 +1,123 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "../services/api";
 export function MfaEnrollment() {
   const [secret, setSecret] = useState(""),
     [code, setCode] = useState(""),
-    [message, setMessage] = useState("");
+    [message, setMessage] = useState(""),
+    [enabled, setEnabled] = useState<boolean | null>(null),
+    [busy, setBusy] = useState(false);
+  const submitting = useRef(false);
   useEffect(() => {
-    api("/auth/mfa/status").catch((e) => setMessage(e.message));
+    let live = true;
+    api("/auth/mfa/status")
+      .then((d) => live && setEnabled(d.enabled))
+      .catch((e) => live && setMessage(e.message));
+    return () => {
+      live = false;
+    };
   }, []);
+  async function action(task: () => Promise<void>) {
+    if (submitting.current) return;
+    submitting.current = true;
+    setBusy(true);
+    setMessage("");
+    try {
+      await task();
+    } catch (e) {
+      setCode("");
+      setMessage((e as Error).message);
+    } finally {
+      submitting.current = false;
+      setBusy(false);
+    }
+  }
   return (
     <div className="auth-wrap">
-      <h1>Secure your account</h1>
+      <h1>
+        {enabled
+          ? "Authenticator protection is enabled"
+          : "Secure your account"}
+      </h1>
       <p>
-        Enroll an authenticator before accessing your workspace. Keep the setup
-        key private.
+        {enabled
+          ? "Use the GNK ALGO entry in your authenticator when signing in. Each accepted code can be used only once."
+          : "Enroll an authenticator before accessing your workspace. Keep the setup key private."}
       </p>
-      {message && <p role="status">{message}</p>}
-      <button
-        className="button"
-        onClick={async () => {
-          try {
-            const data = await api("/auth/mfa/setup", "POST");
-            setSecret(data.secret);
-          } catch (e) {
-            setMessage((e as Error).message);
-          }
-        }}
-      >
-        Generate authenticator setup key
-      </button>
-      {secret && (
-        <form
-          style={{ maxWidth: 450, margin: "30px auto" }}
-          onSubmit={async (e) => {
-            e.preventDefault();
-            try {
-              await api("/auth/mfa/confirm", "POST", { code });
-              window.location.assign("/user/dashboard");
-            } catch (err) {
-              setMessage((err as Error).message);
+      {message && <p role="alert">{message}</p>}
+      {enabled ? (
+        <Link className="button" to="/user/settings">
+          Return to account settings
+        </Link>
+      ) : (
+        <>
+          <button
+            disabled={busy || enabled === null}
+            className="button"
+            onClick={() =>
+              action(async () => {
+                const d = await api("/auth/mfa/setup", "POST");
+                setSecret(d.secret);
+              })
             }
-          }}
-        >
-          <p>
-            Add an account named GNK ALGO in your authenticator, using this key:
-          </p>
-          <code style={{ wordBreak: "break-all" }}>{secret}</code>
-          <label>
-            Confirmation code
-            <input
-              required
-              pattern="[0-9]{6}"
-              autoComplete="one-time-code"
-              inputMode="numeric"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-            />
-          </label>
-          <button className="button">Confirm enrollment</button>
-        </form>
+          >
+            {busy
+              ? "Please wait…"
+              : secret
+                ? "Show existing setup key"
+                : "Generate authenticator setup key"}
+          </button>
+          {secret && (
+            <form
+              style={{ maxWidth: 450, margin: "30px auto" }}
+              onSubmit={(e) => {
+                e.preventDefault();
+                action(async () => {
+                  await api("/auth/mfa/confirm", "POST", { code });
+                  window.location.assign("/user/dashboard");
+                });
+              }}
+            >
+              <p>
+                Add an account named GNK ALGO in your authenticator, using this
+                key:
+              </p>
+              <code style={{ wordBreak: "break-all" }}>{secret}</code>
+              <label>
+                Confirmation code
+                <input
+                  required
+                  pattern="[0-9]{6}"
+                  maxLength={6}
+                  autoComplete="one-time-code"
+                  inputMode="numeric"
+                  value={code}
+                  disabled={busy}
+                  onChange={(e) =>
+                    setCode(e.target.value.replace(/[^0-9]/g, "").slice(0, 6))
+                  }
+                  onPaste={(e) => {
+                    e.preventDefault();
+                    setCode(
+                      e.clipboardData
+                        .getData("text")
+                        .replace(/[^0-9]/g, "")
+                        .slice(0, 6),
+                    );
+                  }}
+                />
+              </label>
+              <p>
+                Keep automatic date and time enabled on your phone. After
+                confirmation, continue to the dashboard; a new sign-in requires
+                a fresh code.
+              </p>
+              <button disabled={busy} className="button">
+                {busy ? "Verifying…" : "Confirm enrollment"}
+              </button>
+            </form>
+          )}
+        </>
       )}
     </div>
   );

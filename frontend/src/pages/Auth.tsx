@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ArrowRight, LockKeyhole } from "lucide-react";
 import { api } from "../services/api";
@@ -16,7 +16,9 @@ export function Auth({
   const loc = useLocation(),
     path = loc.pathname;
   const [busy, setBusy] = useState(false),
-    [password, setPassword] = useState("");
+    [password, setPassword] = useState(""),
+    [mfaCode, setMfaCode] = useState("");
+  const submitting = useRef(false);
   const titles: Record<string, string> = {
     "/login": "Welcome back.",
     "/register": "Your next chapter starts here.",
@@ -27,6 +29,8 @@ export function Auth({
   };
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (submitting.current) return;
+    submitting.current = true;
     setBusy(true);
     const f = new FormData(e.currentTarget),
       data = Object.fromEntries(f);
@@ -57,8 +61,10 @@ export function Auth({
       if (path === "/login") onLogin(d.user);
       else notify(d.message);
     } catch (e) {
+      if (path === "/login") setMfaCode("");
       notify((e as Error).message);
     } finally {
+      submitting.current = false;
       setBusy(false);
     }
   }
@@ -223,12 +229,29 @@ export function Auth({
               Authenticator code (if enrolled)
               <input
                 name="totp_code"
+                value={mfaCode}
+                onChange={(e) =>
+                  setMfaCode(e.target.value.replace(/[^0-9]/g, "").slice(0, 6))
+                }
+                onPaste={(e) => {
+                  e.preventDefault();
+                  setMfaCode(
+                    e.clipboardData
+                      .getData("text")
+                      .replace(/[^0-9]/g, "")
+                      .slice(0, 6),
+                  );
+                }}
                 inputMode="numeric"
                 autoComplete="one-time-code"
                 pattern="[0-9]{6}"
                 maxLength={6}
                 placeholder="6-digit code"
               />
+              <small>
+                Use the GNK ALGO authenticator entry. Each code can be accepted
+                only once; wait for a new code after setup or a recent sign-in.
+              </small>
             </label>
           )}
           <button disabled={busy} className="button" type="submit">

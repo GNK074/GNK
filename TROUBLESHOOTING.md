@@ -47,3 +47,22 @@ Optional read-only confirmation:
 ```
 
 For the current release the result is `0004`. Then retry registration in the browser. If registration advances past the schema error but email delivery fails, inspect the new backend error separately; a successful database migration does not verify external SMTP delivery.
+
+## MFA codes incorrect, expired, or already used
+
+A login HTTP 401 alone does not identify the reason. Wrong passwords also return 401. Inspect the browser's displayed response message; do not copy request bodies, passwords, authenticator codes, setup keys, cookies or tokens into support logs.
+
+A code accepted during enrollment or a previous sign-in cannot be reused. Wait for the authenticator display to change, then submit the new code once. The verifier uses six-digit SHA-1 TOTP in 30-second intervals with the existing one-step clock tolerance. [RFC 6238 section 5.2](https://www.rfc-editor.org/rfc/rfc6238#section-5.2) requires rejecting a second use after successful validation.
+
+If fresh codes also fail, verify both phone and VM clock synchronization and the correct GNK ALGO authenticator entry/account. These checks are independent of the phone's displayed timezone. On the VM, start with read-only checks:
+
+```bash
+timedatectl show -p NTPSynchronized -p NTP -p Timezone
+date -u
+```
+
+After syncing/building this source update, `./deploy/diagnose_mfa.sh` prompts for the account email locally. It inspects the account without changing it, and prints only clock, enrollment/decryption flags, and whether the saved replay counter is ahead of the current acceptance window. It never outputs the email, setup key, encrypted key, authenticator codes or session cookies. A future counter can follow a server clock rollback; do not reset it blindly or bypass replay protection. If key decryption fails, verify the existing encryption-key configuration/previous keys rather than generating new keys. A readable setup key does not prove that the phone has the same key.
+
+This release distinguishes reused codes from incorrect/expired codes, prevents duplicate login/enrollment submissions, clears failed code input, handles grouped-code paste, and displays the enabled state instead of attempting enrollment again. Login locks the current account before password/MFA verification; setup and confirmation refresh the locked account state to avoid using a cached replay counter. No MFA-disable, replay-counter reset, wider tolerance or unauthenticated recovery endpoint is added.
+
+Validation includes RFC SHA-1 test vectors, malformed inputs, distinct replay/expiry messages, next-step acceptance and existing MFA enrollment/replay tests. The code improvements do not determine the live VM's clock or whether its phone entry matches; fresh-code failures need the read-only diagnostic output before further recovery.

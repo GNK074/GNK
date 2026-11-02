@@ -38,7 +38,8 @@ def verify(data: TokenInput, s: Session=Depends(db)):
 @router.post('/api/v1/auth/login')
 def login(data: Credentials, request: Request, response: Response, s: Session=Depends(db)):
     limit(request, 'login', data.email)
-    u = s.scalar(select(User).where(User.email == str(data.email).lower()))
+    # Lock before password/MFA verification so concurrent requests observe the latest counter.
+    u = s.scalar(select(User).where(User.email == str(data.email).lower()).with_for_update())
     try:
         if not u:
             hasher.verify(hasher.hash('dummy-password'), data.password)
@@ -52,7 +53,6 @@ def login(data: Credentials, request: Request, response: Response, s: Session=De
         raise HTTPException(403, 'Verify your email and ensure your account is active')
     if u.mfa_enabled:
         from app.security.mfa import verify_totp
-        u = s.scalar(select(User).where(User.id == u.id).with_for_update())
         verify_totp(u, data.totp_code or '')
     raw = secrets.token_urlsafe(48)
     session = LoginSession(mfa_complete=u.mfa_enabled or not settings.enable_mfa, user_id=u.id, refresh_hash=digest(raw), csrf=secrets.token_hex(32), expires=now() + timedelta(days=settings.refresh_token_expire_days), agent=request.headers.get('user-agent', '')[:300])

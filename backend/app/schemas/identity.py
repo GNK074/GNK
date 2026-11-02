@@ -45,7 +45,7 @@ class Register(PersonalDetails):
         return v
 
 class Credentials(BaseModel):
-    totp_code: str | None = None
+    totp_code: str | None = Field(default=None, max_length=32)
     email: EmailStr
     password: str = Field(max_length=128)
 

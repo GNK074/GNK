@@ -23,15 +23,21 @@ def totp(secret, counter):
     return f"{(struct.unpack('>I', mac[offset:offset + 4])[0] & 2147483647) % 1000000:06d}"
 
 def verify_totp(user, code):
-    if not user.mfa_secret or len(code) != 6:
-        raise HTTPException(401, 'MFA code required or invalid')
+    code = ''.join(code.split())
+    if not user.mfa_secret or len(code) != 6 or not code.isascii() or not code.isdigit():
+        raise HTTPException(401, 'Enter the current 6-digit code from your GNK ALGO authenticator account.')
     secret = decrypt(user.mfa_secret)
     counter = int(time.time() // 30)
-    for candidate in [counter - 1, counter, counter + 1]:
-        if candidate > user.mfa_counter and hmac.compare_digest(totp(secret, candidate), code):
-            user.mfa_counter = candidate
-            return
-    raise HTTPException(401, 'MFA code invalid or already used')
+    matched = [candidate for candidate in (counter, counter - 1, counter + 1)
+               if hmac.compare_digest(totp(secret, candidate), code)]
+    fresh = [candidate for candidate in matched if candidate > user.mfa_counter]
+    if fresh:
+        user.mfa_counter = max(fresh)
+        return
+    if matched:
+        raise HTTPException(401, 'This authenticator code has already been used. Wait for a new code and submit it once.')
+    raise HTTPException(401, 'Authenticator code is incorrect or expired. Use the GNK ALGO entry and enable automatic date and time on your phone.')
+
 
 def current_session(request, s):
     claims = jwt.decode(request.cookies.get('access', ''), SECRET, algorithms=['HS256'], audience='gnk-web', issuer='gnk-api')
@@ -44,7 +50,7 @@ def status(request: Request, u=Depends(auth), s: Session=Depends(db)):
 @router.post('/setup')
 def setup(request: Request, u=Depends(auth), s: Session=Depends(db)):
     limit(request, 'mfa-setup', u.id)
-    user = s.scalar(select(User).where(User.id == u.id).with_for_update())
+    user = s.scalar(select(User).where(User.id == u.id).with_for_update().execution_options(populate_existing=True))
     if user.mfa_enabled:
         raise HTTPException(409, 'MFA already enrolled')
     if not user.mfa_secret:
@@ -56,7 +62,7 @@ def setup(request: Request, u=Depends(auth), s: Session=Depends(db)):
 @router.post('/confirm')
 def confirm(data: CodeInput, request: Request, u=Depends(auth), s: Session=Depends(db)):
     limit(request, 'mfa-confirm', u.id)
-    user = s.scalar(select(User).where(User.id == u.id).with_for_update())
+    user = s.scalar(select(User).where(User.id == u.id).with_for_update().execution_options(populate_existing=True))
     verify_totp(user, data.code)
     user.mfa_enabled = True
     current = current_session(request, s)
