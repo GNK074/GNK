@@ -25,3 +25,8 @@ No real-money order was submitted. Infrastructure readiness is not live-trading 
 The original secure startup assumed su-exec and reused a chowned config path. The reported VM logs proved that assumption invalid. The fix delegates privilege dropping to the official image entrypoint and creates a unique private config directory per start; production Redis mounts /tmp as tmpfs. No persistent volume is removed.
 
 Updated startup Bash grammar and Compose/CI YAML parsing passed locally. A real Redis container smoke test now checks unauthenticated rejection, authenticated PING, restart and data persistence in Ubuntu CI using an isolated disposable test volume. That Docker test has not run locally; its CI outcome has not been observed.
+
+
+## Mounted-secret permission regression
+
+The reported backend startup failed before database connection because the non-root API could not read /run/secrets/app_db_password. Added an operator check/repair for the three configured direct files under secrets/, preserving values and refusing external/missing sources. The production deployment helper checks permissions before proceeding; backend read failures now identify the repair command without printing values. Seven targeted tests passed (three permission regressions plus four settings/encryption/adapter tests). Actual UID/file access on the Oracle VM must be verified with a one-off non-root backend shell; Docker is unavailable locally.

@@ -85,7 +85,10 @@ class Settings(BaseSettings):
         return [x.strip() for x in self.cors_allowed_origins.split(',') if x.strip()] or [self.frontend_url]
 
 def read_secret(path):
-    return Path(path).read_text(encoding='utf-8').strip()
+    try:
+        return Path(path).read_text(encoding='utf-8').strip()
+    except (OSError, UnicodeError):
+        raise RuntimeError('Required mounted secret is missing or unreadable. Check host file permissions with deploy/check_secret_permissions.sh; do not regenerate existing passwords.') from None
 settings = Settings()
 UTC = timezone.utc
 PROD = settings.app_env == 'production'
