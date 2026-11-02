@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: gnk
       POSTGRES_USER: gnk
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
     volumes: ["postgres_data:/var/lib/postgresql/data"]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U gnk"]
@@ -30,7 +30,7 @@ services:
       dockerfile: infrastructure/docker/backend.Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: postgresql+psycopg://gnk:${POSTGRES_PASSWORD}@postgres:5432/gnk
+      DATABASE_URL: postgresql+psycopg://gnk:${POSTGRES_PASSWORD:-}@postgres:5432/gnk
       REDIS_URL: redis://redis:6379/0
     depends_on:
       postgres: {condition: service_healthy}

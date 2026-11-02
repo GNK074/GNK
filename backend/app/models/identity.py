@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime, ForeignKey, Text
+from sqlalchemy import String, Boolean, DateTime, ForeignKey, Text, BigInteger
 from sqlalchemy.orm import Mapped, mapped_column
 from app.core.config import ident, now
 from app.database.session import Base
@@ -13,6 +13,9 @@ class User(Base):
     verified: Mapped[bool] = mapped_column(Boolean, default=False)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     role: Mapped[str] = mapped_column(String(20), default='USER')
+    mfa_secret: Mapped[str | None] = mapped_column(Text, nullable=True)
+    mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    mfa_counter: Mapped[int] = mapped_column(BigInteger, default=-1)
     created: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
 class Token(Base):
@@ -31,6 +34,7 @@ class LoginSession(Base):
     csrf: Mapped[str] = mapped_column(String(64))
     expires: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     revoked: Mapped[bool] = mapped_column(Boolean, default=False)
+    mfa_complete: Mapped[bool] = mapped_column(Boolean, default=True)
     agent: Mapped[str] = mapped_column(String(300))
     created: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 

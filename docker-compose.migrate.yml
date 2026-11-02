@@ -1,0 +1,15 @@
+services:
+  migrator:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/backend.Dockerfile
+    env_file: .env
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      APP_ENV: production
+      ENVIRONMENT: production
+      DATABASE_URL: postgresql+psycopg://gnk@postgres:5432/gnk
+      DATABASE_PASSWORD_FILE: /run/secrets/postgres_password
+      REDIS_PASSWORD_FILE: /run/secrets/redis_password
+    secrets: [postgres_password, redis_password]
+    restart: "no"

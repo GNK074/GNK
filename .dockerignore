@@ -5,3 +5,8 @@
 **/.env
 **/*.db
 .git
+**/.env.*
+!**/.env.example
+!**/.env.production.example
+secrets
+backups

@@ -68,6 +68,10 @@ export function Auth({
           ? { ...data, terms: !!data.terms, privacy: !!data.privacy }
           : { ...data, token: new URLSearchParams(loc.search).get("token") };
       const d = await api("/auth/" + route, "POST", body);
+      if (path === "/login" && d.mfa_required) {
+        window.location.assign("/mfa");
+        return;
+      }
       if (path === "/login") onLogin(d.user);
       else notify(d.message);
     } catch (e) {
@@ -109,6 +113,18 @@ export function Auth({
             : "Secure access to your GNK ALGO account."}
         </p>
         <form onSubmit={submit}>
+          {path === "/login" && (
+            <label>
+              Authenticator code (if enrolled)
+              <input
+                name="totp_code"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                pattern="[0-9]{6}"
+                placeholder="6-digit code"
+              />
+            </label>
+          )}
           {path === "/register" && (
             <label>
               Full name

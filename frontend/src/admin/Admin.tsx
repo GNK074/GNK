@@ -1,3 +1,4 @@
+import { BrokerApprovals } from "./BrokerApprovals";
 import React, { useEffect, useState } from "react";
 import {
   BrowserRouter,
@@ -50,6 +51,7 @@ export function Admin() {
           </div>
         ))}
       </article>
+      <BrokerApprovals />
     </>
   );
 }

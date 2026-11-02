@@ -1,3 +1,4 @@
+import { RiskControls } from "./RiskControls";
 import React, { useEffect, useState } from "react";
 import {
   BrowserRouter,
@@ -63,6 +64,7 @@ export function Security({ notify }: { notify: (s: string) => void }) {
           </div>
         ))}
       </article>
+      <RiskControls notify={notify} />
     </>
   );
 }

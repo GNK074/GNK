@@ -1,75 +1,92 @@
-import React, { useEffect, useState } from "react";
-import {
-  BrowserRouter,
-  Link,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
-import {
-  Activity,
-  ArrowUpRight,
-  ArrowRight,
-  BarChart3,
-  Blocks,
-  Cable,
-  ChevronRight,
-  CircleHelp,
-  Command,
-  Gauge,
-  LayoutDashboard,
-  LockKeyhole,
-  Search,
-  Settings,
-  ShieldCheck,
-  Square,
-  Zap,
-} from "lucide-react";
+import { useEffect, useState } from "react";
 import { api } from "../services/api";
-import type { User } from "../store/session";
-
 export function Brokers({ notify }: { notify: (s: string) => void }) {
   const [items, setItems] = useState<any[]>([]),
+    [connections, setConnections] = useState<any[]>([]),
     [search, setSearch] = useState(""),
-    [selected, setSelected] = useState<any>(null);
+    [selected, setSelected] = useState<any>(null),
+    [busy, setBusy] = useState(false);
+  async function reload() {
+    const [catalog, accounts] = await Promise.all([
+      api("/brokers"),
+      api("/brokers/connections"),
+    ]);
+    setItems(catalog);
+    setConnections(accounts);
+  }
   useEffect(() => {
-    api("/brokers")
-      .then(setItems)
-      .catch((e) => notify(e.message));
+    reload().catch((e) => notify(e.message));
   }, []);
   return (
     <>
-      <p className="eyebrow">CONNECT YOUR ECOSYSTEM</p>
+      <p className="eyebrow">YOUR INDEPENDENT BROKER ACCOUNTS</p>
       <div className="page-heading">
         <div>
           <h1>Brokers & exchanges</h1>
-          <p>Your trading accounts, together in one secure workspace.</p>
-        </div>
-        <span className="tag">0 CONNECTED</span>
-      </div>
-      <div className="notice">
-        <Cable />
-        <div>
-          <b>A thoughtful connection starts with verification.</b>
           <p>
-            All broker integrations are pending official API access and
-            compliance verification.
+            Credentials are encrypted server-side and isolated by account owner.
           </p>
         </div>
+        <span className="tag">
+          {connections.filter((a) => a.status === "connected").length} CONNECTED
+        </span>
       </div>
+      <div className="notice">
+        <p>
+          Authentication availability does not authorize trading. All real-money
+          execution remains disabled pending independent broker and production
+          approval.
+        </p>
+      </div>
+      <article className="panel">
+        <h3>Your connection status</h3>
+        {connections.length === 0 ? (
+          <p>No broker accounts connected.</p>
+        ) : (
+          connections.map((a) => (
+            <div className="market" key={a.id}>
+              <b>
+                {a.broker} · {a.account_identifier || "Pending identity"}
+              </b>
+              <span>{a.status}</span>
+              <small>
+                {a.expires_at
+                  ? "Expires " + new Date(a.expires_at).toLocaleString()
+                  : "Expiry not available"}
+              </small>
+              <button
+                className="danger"
+                onClick={async () => {
+                  try {
+                    notify(
+                      (
+                        await api(
+                          `/brokers/${a.broker}/${a.id}/disconnect`,
+                          "POST",
+                        )
+                      ).message,
+                    );
+                    await reload();
+                  } catch (e) {
+                    notify((e as Error).message);
+                  }
+                }}
+              >
+                Disconnect locally
+              </button>
+            </div>
+          ))
+        )}
+      </article>
       <div className="section-heading">
-        <h3>
-          Available integration candidates{" "}
-          <span className="muted">{items.length}</span>
-        </h3>
-        <div className="search">
-          <Search size={17} />
-          <input
-            aria-label="Search brokers"
-            placeholder="Search brokers…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
+        <h3>Broker integrations</h3>
+        <input
+          aria-label="Search brokers"
+          style={{ maxWidth: 280 }}
+          placeholder="Search brokers…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </div>
       <div className="broker-grid">
         {items
@@ -78,73 +95,108 @@ export function Brokers({ notify }: { notify: (s: string) => void }) {
             <article className="broker-card" key={b.id}>
               <div className="broker-card-top">
                 <span className={"broker-logo color" + (i % 5)}>
-                  {b.name.slice(0, 1)}
+                  {b.name[0]}
                 </span>
-                <span className="pending">Pending verification</span>
+                <span className="pending">
+                  {b.auth_available
+                    ? "Authentication available"
+                    : "Pending verification"}
+                </span>
               </div>
               <h3>{b.name}</h3>
-              <p>Indian stock broker integration</p>
+              <p>Live execution unavailable</p>
               <div className="broker-divider" />
               <button
                 className="button ghost wide"
                 onClick={() => setSelected(b)}
               >
-                View setup status <ArrowUpRight size={16} />
+                Setup & authorization
               </button>
             </article>
           ))}
       </div>
-      {items.length > 0 &&
-        !items.some((b) =>
-          b.name.toLowerCase().includes(search.toLowerCase()),
-        ) && <div className="empty">No brokers match your search.</div>}
-      <div className="broker-note">
-        <LockKeyhole size={16} /> Never share your broker password, PIN or OTP.
-        GNK ALGO will only use verified official authentication flows.
-      </div>
-      <Link className="text-link" to="/user/dashboard">
-        Continue without a broker <ArrowRight size={16} />
-      </Link>
       {selected && (
         <div className="modal-backdrop">
           <div
-            className="modal"
             role="dialog"
             aria-modal="true"
-            aria-label="Broker setup status"
+            aria-label="Broker setup"
+            className="modal"
           >
             <button
               className="close"
-              aria-label="Close"
               onClick={() => setSelected(null)}
+              aria-label="Close"
             >
               ×
             </button>
-            <span className="eyebrow">BROKER ONBOARDING · STEP 1 OF 2</span>
             <h2>{selected.name}</h2>
-            <p>
-              Configuration is unavailable until this broker's integration has
-              been approved.
-            </p>
-            {[
-              "Official API and authentication review",
-              "API access and commercial approval",
-              "Exchange and segment validation",
-              "Compliance and security review",
-            ].map((x) => (
-              <div className="check-row" key={x}>
-                <span>○</span>
-                {x}
-                <small>Pending</small>
-              </div>
-            ))}
-            <div className="notice">
-              <ShieldCheck size={20} />
-              <p>No credentials are collected and no orders are placed.</p>
-            </div>
-            <button className="button wide" onClick={() => setSelected(null)}>
-              Return to brokers
-            </button>
+            {!selected.auth_available ? (
+              <p>
+                This integration is disabled until official application setup
+                and authentication have been verified. No credentials are
+                collected.
+              </p>
+            ) : (
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  setBusy(true);
+                  const body = Object.fromEntries(
+                    new FormData(e.currentTarget),
+                  );
+                  try {
+                    const r = await api(
+                      "/brokers/" + selected.id + "/connect",
+                      "POST",
+                      body,
+                    );
+                    const destination = new URL(r.authorization_url);
+                    if (
+                      destination.protocol !== "https:" ||
+                      destination.hostname !== "api.upstox.com"
+                    )
+                      throw Error("Unexpected broker authorization URL");
+                    window.location.assign(destination.href);
+                  } catch (err) {
+                    notify((err as Error).message);
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                <label>
+                  Credential ownership
+                  <select name="mode" style={{ width: "100%", padding: 10 }}>
+                    <option value="PLATFORM">
+                      Approved platform application
+                    </option>
+                    <option value="INDIVIDUAL">
+                      Your individual API application
+                    </option>
+                  </select>
+                </label>
+                <p>
+                  For individual mode only, enter your API application
+                  key/secret. Never enter a broker password, PIN or OTP.
+                </p>
+                <label>
+                  Individual API client ID
+                  <input name="client_id" autoComplete="off" />
+                </label>
+                <label>
+                  Individual API client secret
+                  <input
+                    name="client_secret"
+                    type="password"
+                    autoComplete="off"
+                  />
+                </label>
+                <button className="button wide" disabled={busy}>
+                  Continue to official broker authorization
+                </button>
+              </form>
+            )}
           </div>
         </div>
       )}

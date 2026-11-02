@@ -1,22 +1,20 @@
-# Validation record
+# Validation — multi-user security update (2026-11-02)
 
-- Reorganized frontend TypeScript compilation and Vite production build: passed.
-- Authentication integration suite after moving routes/services: 5 passed (SQLite and captured SMTP, mocked rate limiter).
-- Frozen initial migration from database/migrations against local SQLite: passed.
-- Python source syntax compilation: passed.
-- Docker execution: unavailable; Docker CLI is not installed on this machine.
-- Browser visual/mobile checks and production PostgreSQL/Redis/SMTP/TLS: not performed.
-- Broker, research engine and worker integrations: reserved modules; not implemented.
+Executed locally on Windows/Python 3.14:
 
-See README.md for setup and ARCHITECTURE.md for module responsibilities.
+- Backend suite: 22 passed, 14 skipped. Passing coverage includes account flows, three-user isolation, credential encryption/owner binding, callbacks/state replay/expiry/exchange errors, same-owner reauthorization, disconnect ownership, personal risk limits, paper idempotency/realized loss/stops, blocked live broker ownership, MFA/replay, all-18 approval rechecks, settings/encryption, provider HTTP contracts, secret generation/non-overwrite, independent rate-limit buckets and fail-closed Redis behavior.
+- After the final approval-status persistence change, the targeted all-18 gate test passed again.
+- Populated migration 0001 -> 0002 passed against an isolated SQLite database. Legacy account/hash preserved; old sessions revoked; resulting schema matches ORM metadata.
+- Frontend TypeScript/Vite production build passed.
+- Python syntax compilation passed.
+- All 16 Bash scripts parsed with the Tree-sitter Bash grammar and use LF. This does not substitute for execution under Bash/Docker.
+- Base, production, migration Compose and GitHub Actions YAML parsed.
 
+Skipped/not executed:
 
+- 13 Linux Bash command-contract tests: no functional Linux Bash in this Windows sandbox. Ubuntu CI is configured to run bash -n across scripts and the Docker/curl test doubles.
+- 1 actual PostgreSQL RLS/constraint test: no PostgreSQL/Docker service locally. A dedicated PostgreSQL CI job is configured, but its outcome has not been observed.
+- No real Docker build/boot, Redis authentication, restricted-role PostgreSQL boot, GPG backup/restore, real SMTP, DNS/TLS, browser automation, Oracle VM deployment, broker sandbox/customer authorization, licensed feed, live order or production security/compliance review was executed.
+- One Starlette/httpx deprecation warning remains in test infrastructure; it did not fail the tests.
 
-## Service-control verification
-
-- deploy/gnk-service.sh and service/gnk-service.sh parsed successfully with the Tree-sitter Bash grammar; both use LF line endings.
-- Base/production Compose and GitHub Actions YAML parsed successfully (including the Compose !override tag).
-- Existing authentication regressions: 5 passed.
-- Added 13 Linux Bash command-contract tests; all 13 skipped locally because this Windows environment cannot launch a working Linux Bash. The Ubuntu CI service-controls job runs bash -n and these tests with Docker/curl test doubles.
-- Test-double Python programs compile successfully.
-- No live start, stop, build, deployment, Docker healthcheck, or real HTTP/SMTP check was executed here. Docker is not installed. Run the documented commands on the Ubuntu deployment host to verify real services.
+No real-money order was submitted. Infrastructure readiness is not live-trading approval. See IMPLEMENTATION_STATUS.md for remaining work and PRODUCTION_DEPLOYMENT.md before modifying an existing server.

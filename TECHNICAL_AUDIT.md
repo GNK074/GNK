@@ -1,0 +1,11 @@
+# Pre-change technical audit and implementation plan
+
+Scope: local GNK ALGO source at the start of this change. Oracle VM, DNS, TLS, backups and remote GitHub HEAD were not accessible as a verified production environment. A source snapshot excluding secrets/build output was saved under the task work directory before edits. No production configuration, certificate, broker secret or database volume was modified.
+
+Existing: React 19/TypeScript/Vite, FastAPI, SQLAlchemy synchronous psycopg, Alembic 0001 identity schema, Redis fixed-window throttling, SMTP verification/recovery, Argon2, cookie JWT, CSRF, server RBAC. Docker Compose has PostgreSQL/Redis, mail capture, frontend/backend/Nginx; service scripts manage lifecycle and health. Production requires external TLS termination. Five account integration tests exist. Linux command tests cannot execute on this Windows sandbox.
+
+Findings: no tenant-owned broker/trading schema; no encrypted fields; global trading always false; no broker adapters registered; no callback state; emergency stop only audited; no paper execution; no MFA; environment validation only checks JWT length; initial dependencies are broad ranges; Redis has no password configuration; Nginx access logs could expose callback query strings; approval evidence is absent. Authentication stores role in users and checks it server-side. Existing account queries are scoped by authenticated identity. UI reports disconnected state honestly.
+
+Implementation order: centralized configuration and secret-file support; additive isolated broker/trading/MFA schema and migrations; encryption and broker callback manager; evidence-backed approval gate; paper execution, limits and kill switches; frontend management; environment/backup/readiness scripts; tests and migration checks. Retain the synchronous database stack to avoid an unrelated async rewrite. Every migration must be additive and reviewed before deployment.
+
+Production boundaries: official broker application registration, partner permissions, exact callback registration, static egress IP, licensing, sandbox verification, PostgreSQL RLS verification under a restricted role, security/compliance review, real SMTP/TLS, restored backup drills, order reconciliation and actual VM deployment remain external requirements. No real-money order submission will be enabled by these changes.

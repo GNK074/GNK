@@ -11,7 +11,9 @@ export async function api(path: string, method = "GET", body?: unknown) {
     throw Error(
       typeof data.detail === "string"
         ? data.detail
-        : "Please check the information entered.",
+        : data.detail?.runtime_blocker
+          ? `${data.detail.runtime_blocker}. Missing requirements: ${(data.detail.missing_requirements || []).join(", ") || "none; runtime checks still block approval"}`
+          : "Please check the information entered.",
     );
   if (data.csrf_token) csrf = data.csrf_token;
   return data;

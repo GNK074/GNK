@@ -1,6 +1,44 @@
 services:
-  backend:
+  frontend:
+    mem_limit: ${WEB_MEMORY_LIMIT:-128m}
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+  postgres:
+    mem_limit: ${POSTGRES_MEMORY_LIMIT:-2g}
     environment:
+      POSTGRES_PASSWORD: ""
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets: [postgres_password, app_db_password]
+    volumes:
+      - ./infrastructure/docker/provision-app-role.sh:/opt/gnk/provision-app-role.sh:ro
+    command: ["postgres", "-c", "password_encryption=scram-sha-256"]
+  redis:
+    mem_limit: ${REDIS_MEMORY_LIMIT:-512m}
+    command: ["sh", "/opt/gnk/redis-secure.sh"]
+    volumes:
+      - ./infrastructure/docker/redis-secure.sh:/opt/gnk/redis-secure.sh:ro
+    secrets: [redis_password]
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=$$(cat /run/secrets/redis_password) redis-cli ping | grep -q PONG"]
+  backend:
+    init: true
+    mem_limit: ${API_MEMORY_LIMIT:-1g}
+    stop_grace_period: 30s
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    read_only: true
+    tmpfs: ["/tmp"]
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]
+    secrets: [app_db_password, redis_password]
+    environment:
+      APP_ENV: production
+      DATABASE_URL: postgresql+psycopg://gnk_app@postgres:5432/gnk
+      DATABASE_PASSWORD_FILE: /run/secrets/app_db_password
+      REDIS_PASSWORD_FILE: /run/secrets/redis_password
       ENVIRONMENT: production
       FRONTEND_URL: ${FRONTEND_URL:?Set HTTPS public origin}
       SMTP_HOST: ${SMTP_HOST:?Set production SMTP host}
@@ -10,4 +48,16 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD:?Set SMTP password}
       SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:?Set sender email}
   nginx:
+    mem_limit: ${NGINX_MEMORY_LIMIT:-128m}
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
     ports: !override ["127.0.0.1:8080:80"]
+
+secrets:
+  postgres_password:
+    file: ${POSTGRES_PASSWORD_FILE:-./secrets/postgres_password}
+  redis_password:
+    file: ${REDIS_PASSWORD_FILE:-./secrets/redis_password}
+  app_db_password:
+    file: ${APP_DB_PASSWORD_FILE:-./secrets/app_db_password}

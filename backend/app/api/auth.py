@@ -4,7 +4,7 @@ from argon2.exceptions import VerificationError
 from fastapi import Depends, HTTPException, Request, Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from app.core.config import PROD, digest, expired, now
+from app.core.config import PROD, digest, expired, now, settings
 from app.database.session import db
 from app.models.identity import LoginSession, User
 from app.schemas.identity import Credentials, EmailInput, PasswordChange, Register, Reset, TokenInput
@@ -15,7 +15,7 @@ router = APIRouter()
 
 @router.post('/api/v1/auth/register', status_code=202)
 def register(data: Register, request: Request, s: Session=Depends(db)):
-    limit(request, 'register')
+    limit(request, 'register', data.email)
     email = str(data.email).lower()
     if not s.scalar(select(User).where(User.email == email)):
         u = User(email=email, name=data.name.strip(), password=hasher.hash(data.password))
@@ -36,7 +36,7 @@ def verify(data: TokenInput, s: Session=Depends(db)):
 
 @router.post('/api/v1/auth/login')
 def login(data: Credentials, request: Request, response: Response, s: Session=Depends(db)):
-    limit(request, 'login')
+    limit(request, 'login', data.email)
     u = s.scalar(select(User).where(User.email == str(data.email).lower()))
     try:
         if not u:
@@ -49,8 +49,12 @@ def login(data: Credentials, request: Request, response: Response, s: Session=De
         raise HTTPException(401, 'Invalid credentials')
     if not u.verified or not u.active:
         raise HTTPException(403, 'Verify your email and ensure your account is active')
+    if u.mfa_enabled:
+        from app.security.mfa import verify_totp
+        u = s.scalar(select(User).where(User.id == u.id).with_for_update())
+        verify_totp(u, data.totp_code or '')
     raw = secrets.token_urlsafe(48)
-    session = LoginSession(user_id=u.id, refresh_hash=digest(raw), csrf=secrets.token_hex(32), expires=now() + timedelta(days=30), agent=request.headers.get('user-agent', '')[:300])
+    session = LoginSession(mfa_complete=u.mfa_enabled or not settings.enable_mfa, user_id=u.id, refresh_hash=digest(raw), csrf=secrets.token_hex(32), expires=now() + timedelta(days=settings.refresh_token_expire_days), agent=request.headers.get('user-agent', '')[:300])
     s.add(session)
     audit(s, u.id, 'login')
     s.commit()
@@ -65,6 +69,8 @@ def refresh(request: Request, response: Response, s: Session=Depends(db)):
     if not secrets.compare_digest(request.headers.get('X-CSRF-Token', ''), session.csrf):
         raise HTTPException(403, 'Invalid CSRF token')
     u = s.get(User, session.user_id)
+    if not session.mfa_complete:
+        raise HTTPException(403, 'Complete MFA enrollment before refreshing')
     if not u.active or not u.verified:
         raise HTTPException(401, 'Account unavailable')
     raw = secrets.token_urlsafe(48)
@@ -86,7 +92,7 @@ def logout(response: Response, u=Depends(auth), s: Session=Depends(db)):
 @router.post('/api/v1/auth/forgot-password')
 @router.post('/api/v1/auth/resend-verification')
 def recovery(data: EmailInput, request: Request, s: Session=Depends(db)):
-    limit(request, 'recovery')
+    limit(request, 'recovery', data.email)
     u = s.scalar(select(User).where(User.email == str(data.email).lower()))
     kind = 'reset' if request.url.path.endswith('forgot-password') else 'verify'
     if u and u.active and (kind == 'reset' or not u.verified):

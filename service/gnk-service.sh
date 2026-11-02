@@ -30,8 +30,7 @@ Configuration (environment variables):
   GNK_LOG_FOLLOW      Set to 0 for a one-time log snapshot (default: 1)
 
 Production uses both Compose files. Configure HTTPS termination separately.
-No command deletes volumes or changes Git source. Deploy runs migrations via
-the backend container entry point. Stop does not cancel existing broker orders.
+No command deletes volumes or changes Git source. Dev startup migrates in the backend; production uses deploy/migrate_database.sh. Stop does not cancel existing broker orders.
 USAGE
 }
 
@@ -56,7 +55,8 @@ case "$COMMAND" in start|stop|build|deploy|status|logs|health|urls|help|-h|--hel
 if [[ "$COMMAND" == help || "$COMMAND" == -h || "$COMMAND" == --help ]]; then usage; exit 0; fi
 [[ "$COMMAND" == logs || $# -eq 0 ]] || die 'Only logs accepts service arguments.'
 
-MODE="${GNK_ENV:-${ENVIRONMENT:-$(dotenv ENVIRONMENT)}}"
+MODE="${GNK_ENV:-${APP_ENV:-${ENVIRONMENT:-$(dotenv APP_ENV)}}}"
+MODE="${MODE:-$(dotenv ENVIRONMENT)}"
 MODE="${MODE:-development}"
 [[ "$MODE" == development || "$MODE" == production ]] || die 'GNK_ENV must be development or production.'
 PUBLIC_URL="${GNK_PUBLIC_URL:-${FRONTEND_URL:-$(dotenv FRONTEND_URL)}}"
@@ -75,7 +75,7 @@ TAIL="${GNK_LOG_TAIL:-200}"
 urls() {
   printf '\nGNK ALGO URLs (%s)\n' "$MODE"
   local path
-  for path in / /login /register /forgot-password /verify /reset /user/dashboard /user/broker-and-exchanges /user/settings /user/security /user/strategies /user/portfolio /admin /docs /openapi.json /api/v1/health /api/v1/admin/dashboard /api/v1/admin/users /api/v1/admin/audit-logs /api/v1/admin/system-health; do
+  for path in / /mfa /login /register /forgot-password /verify /reset /user/dashboard /user/broker-and-exchanges /user/settings /user/security /user/strategies /user/portfolio /admin /docs /openapi.json /api/v1/health /api/v1/brokers/connections /api/v1/strategies /api/v1/orders /api/v1/positions /api/v1/risk/configuration /api/v1/admin/dashboard /api/v1/admin/users /api/v1/admin/audit-logs /api/v1/admin/system-health; do
     printf '  %s%s\n' "$PUBLIC_URL" "$path"
   done
   printf '\nAdmin URLs require an authenticated administrator; verification/reset links require emailed tokens.\n'
@@ -99,8 +99,13 @@ SERVICES="$("${COMPOSE[@]}" config --services)"
 validate_secrets() {
   local key value
   for key in JWT_SECRET POSTGRES_PASSWORD; do
+    if [[ "$key" == POSTGRES_PASSWORD && "$MODE" == production ]]; then continue; fi
     value="${!key:-}"
     [[ -n "$value" ]] || value="$(dotenv "$key")"
+    if [[ "$key" == JWT_SECRET ]]; then
+      preferred="${JWT_SECRET_KEY:-$(dotenv JWT_SECRET_KEY)}"
+      [[ -z "$preferred" ]] || value="$preferred"
+    fi
     [[ -n "$value" && "$value" != *replace-with* ]] || die "Configure $key before building or starting the application."
     if [[ "$key" == JWT_SECRET && ${#value} -lt 32 ]]; then die 'JWT_SECRET must have at least 32 characters.'; fi
   done

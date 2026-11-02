@@ -1,3 +1,5 @@
+import { MfaEnrollment } from "../pages/MfaEnrollment";
+import { PaperWorkspace } from "../strategies/PaperWorkspace";
 import React, { useEffect, useState } from "react";
 import {
   BrowserRouter,
@@ -58,6 +60,7 @@ export function App() {
     "/reset",
     "/verify",
   ].includes(loc.pathname);
+  if (loc.pathname === "/mfa") return <MfaEnrollment />;
   if (loading)
     return <div className="loading">GNK ALGO · Loading workspace…</div>;
   return (
@@ -178,30 +181,7 @@ export function App() {
                 <Admin />
               ) : loc.pathname === "/user/strategies" ||
                 loc.pathname === "/user/portfolio" ? (
-                <>
-                  <p className="eyebrow">YOUR WORKSPACE</p>
-                  <h1>
-                    {loc.pathname.includes("strategies")
-                      ? "Strategy workspace"
-                      : "Portfolio"}
-                  </h1>
-                  <div className="empty">
-                    <Blocks size={35} />
-                    <h2>
-                      {loc.pathname.includes("strategies")
-                        ? "Build on a secure foundation"
-                        : "No portfolio connected"}
-                    </h2>
-                    <p>
-                      {loc.pathname.includes("strategies")
-                        ? "Strategy building and execution are scheduled for a future release."
-                        : "Holdings and balances will appear after an approved broker integration is connected."}
-                    </p>
-                    <Link to="/user/broker-and-exchanges" className="button">
-                      View broker integrations
-                    </Link>
-                  </div>
-                </>
+                <PaperWorkspace notify={notify} />
               ) : (
                 <Dashboard user={user} notify={notify} />
               )}

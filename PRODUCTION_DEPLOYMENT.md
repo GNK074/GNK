@@ -1,0 +1,19 @@
+# Production deployment — gnkalgo.com
+
+Status: local source implemented; Oracle VM deployment, DNS, HTTPS, SMTP, real broker authentication and recovery drills have not been verified. This is not live-trading approval.
+
+Prerequisites: Ubuntu 24.04, Docker Engine, Compose >=2.24.4, curl, gpg and controlled Docker access. Review deploy/setup_server.sh (read-only host audit). install_dependencies.sh installs only curl/gpg/python3-venv when explicitly requested; OS upgrades, Docker installation, firewall and SSH changes remain operator-managed.
+
+Existing production upgrade: inventory the current .env, mounted volumes, database owner/password, Redis auth, Nginx, certificates and backups. Do not regenerate existing database passwords or encryption keys. Preserve the real PostgreSQL owner password in secrets/postgres_password and configure a new independent secrets/app_db_password for the restricted role. Keep secrets/ mode 0700 and files 0444 for container-mounted reads; keep .env 0600. Do not place secret values in shell history. The API never mounts the owner password. No command removes database volumes.
+
+Fresh installation: deploy/generate_secrets.sh --production --output .env.generated creates a NEW profile and three secret files, refusing to overwrite existing files. Review the output, configure real SMTP, and move the reviewed profile to .env only if that is the intended configuration. Preserve all generated keys. Production examples use https://gnkalgo.com and https://api.gnkalgo.com.
+
+For a fresh database, start only PostgreSQL and Redis with both Compose files, provision the app role, then run migrations before starting the API. Existing installations must first back up their existing database. The production Postgres service must be recreated with the reviewed secret/script mounts before provision_database_role.sh can read them; schedule this infrastructure change separately from an application rolling update. Set the secret file to the existing password, not a new password. Enabling Redis auth also requires a coordinated Redis restart and matching client settings.
+
+Commands after infrastructure preparation: deploy/provision_database_role.sh; deploy/migrate_database.sh; GNK_ENV=production deploy/gnk-service.sh deploy; deploy/validate_environment.sh; deploy/health_check.sh. Use deploy/deploy_production.sh for subsequent updates: it builds, takes an encrypted backup, provisions/grants the restricted role, runs an isolated migrator, starts services and checks connectivity. It assumes the database/Redis infrastructure and secret mounts are already prepared. Set GNK_BACKUP_RECIPIENT to a reviewed GPG backup recipient first.
+
+The isolated migrator gets owner credentials. The API runs as gnk_app and rejects superuser/BYPASSRLS roles at production startup. Migration 0002 revokes existing app sessions, adds MFA/trading/broker tables and enables forced RLS on new user-owned tables. Schedule migration review and communicate forced re-login/MFA enrollment. Never run an automatic destructive downgrade.
+
+Review infrastructure/nginx/gnkalgo-https.example.conf alongside existing host configuration. Obtain certificates covering both domains using your existing certificate-management process. The file is an example, not installed or issued by these scripts. The application proxy stays bound to server loopback port 8080. Do not open PostgreSQL/Redis ports. HTTPS certificates, DNS, ingress/egress firewall and static broker egress registration require operator verification.
+
+Bootstrap SUPER_ADMIN interactively with docker compose exec backend python bootstrap.py (use matching production Compose flags). Sign in, enroll MFA, and verify both user/admin routes. production_readiness_check.sh deliberately returns exit 2 while non-infrastructure go-live requirements remain unverified. No deployment command enables live orders.

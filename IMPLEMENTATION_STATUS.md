@@ -1,0 +1,7 @@
+# Implementation status
+
+Implemented locally: validated profiles/secrets, restricted-role production configuration, additive 0002 tenant/MFA schema, new-table RLS policies, encrypted user/account-bound credentials, Upstox OAuth/profile adapter and central callback state manager, registry modes, reviewer evidence records and hard 18-requirement gate, three-user application tests, TOTP enrollment/replay protection, manual paper orders/positions with limits/idempotency, persisted stops, broker/paper/MFA/admin-review UI, guarded secret/backup/restore/deployment tools and docs.
+
+Not completed/externally blocked: real VM inspection/deployment, remote GitHub synchronization, DNS/TLS/SMTP verification, PostgreSQL CI execution, backup/restore drills, monitoring/alerting, live market distribution, independent WebSockets, static egress-IP tracking, six additional broker adapters, real Upstox authorization/sandbox verification, partner approvals, account-funds/holdings synchronization, live execution/modify/cancel, fills/reconciliation, actual pending-order cancellation, background workers/scheduler and security/compliance approval. Paper pricing is manually supplied, not market data. No real-money execution is enabled.
+
+No existing production database volume, certificate or broker credential was accessed or overwritten. Production examples are proposed configuration and require review/migration on the server. Report test results from VALIDATION.md, not from intended CI jobs.

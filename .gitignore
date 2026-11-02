@@ -5,3 +5,10 @@ __pycache__/
 .pytest_cache/
 *.db
 .venv/
+
+.env.*
+!.env.example
+!.env.production.example
+secrets/
+backups/
+*.dump
