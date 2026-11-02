@@ -59,7 +59,7 @@ class ServiceScriptTests(unittest.TestCase):
         self.root.mkdir()
         for folder in ('deploy', 'service'):
             shutil.copytree(ROOT / folder, self.root / folder)
-        for name in ('docker-compose.yml', 'docker-compose.prod.yml'):
+        for name in ('docker-compose.yml', 'docker-compose.prod.yml', 'docker-compose.migrate.yml'):
             shutil.copy2(ROOT / name, self.root / name)
         self.env_path = self.root / '.env'
         self.env_path.write_text('JWT_SECRET=' + 'x' * 48 + '\nPOSTGRES_PASSWORD=database-test-password\nENVIRONMENT=development\nFRONTEND_URL=http://localhost:8080\n')
@@ -83,6 +83,19 @@ class ServiceScriptTests(unittest.TestCase):
 
     def docker_calls(self):
         return [json.loads(line) for line in self.calls.read_text().splitlines()] if self.calls.exists() else []
+
+    def test_migrator_rebuilds_before_running_and_aborts_on_build_failure(self):
+        script = str(self.root / 'deploy/migrate_database.sh')
+        result = subprocess.run([BASH, script], cwd=self.temp.name, env=self.env, text=True, capture_output=True, timeout=15)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        calls = self.docker_calls()
+        build = next(i for i,c in enumerate(calls) if 'build' in c and 'migrator' in c)
+        run = next(i for i,c in enumerate(calls) if 'run' in c and 'migrator' in c)
+        self.assertLess(build, run)
+        self.calls.unlink()
+        result = subprocess.run([BASH, script], cwd=self.temp.name, env={**self.env,'FAKE_BUILD_FAIL':'1'}, text=True, capture_output=True, timeout=15)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse(any('run' in c for c in self.docker_calls()))
 
     def test_bash_syntax(self):
         for path in ('deploy/gnk-service.sh','service/gnk-service.sh'):

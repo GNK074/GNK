@@ -17,16 +17,20 @@ def main():
     try:
         from app.core.config import settings
         if args.connectivity:
+            from app.models import identity, trading
+            from app.compliance import models as compliance_models
+            from app.database.readiness import check_schema
             from app.database.session import engine
             from app.security.authentication import cache
             from sqlalchemy import text
             with engine.connect() as c:
                 c.execute(text('SELECT 1'))
+                check_schema(c)
             cache.ping()
     except Exception:
-        print('Environment/connectivity validation FAILED. Review required variables, secret files, database and Redis. Values are suppressed.', file=sys.stderr)
+        print('Environment/connectivity validation FAILED. Review required variables, secret files, database, pending migrations and Redis. Values are suppressed.', file=sys.stderr)
         return 1
-    print('Environment validation passed' + (' including database and Redis' if args.connectivity else '') + '. Live execution remains disabled.')
+    print('Environment validation passed' + (' including database schema and Redis' if args.connectivity else '') + '. Live execution remains disabled.')
     return 0
 if __name__ == '__main__':
     sys.exit(main())

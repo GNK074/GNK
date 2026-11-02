@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 source "$(dirname -- "${BASH_SOURCE[0]}")/common.sh"
+# The backend and migrator have separate image tags. Always rebuild the migrator
+# so a previous deployment cannot silently reuse an image missing new revisions.
+"${COMPOSE[@]}" -f "$ROOT/docker-compose.migrate.yml" build migrator
 "${COMPOSE[@]}" -f "$ROOT/docker-compose.migrate.yml" run --rm --no-deps migrator

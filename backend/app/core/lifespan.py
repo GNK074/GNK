@@ -4,6 +4,7 @@ from sqlalchemy import text
 from redis.exceptions import AuthenticationError
 from app.core.config import settings
 from app.database.session import engine
+from app.database.readiness import check_schema
 from app.security.authentication import cache
 
 class StartupCheckError(RuntimeError):
@@ -44,4 +45,6 @@ def check_dependencies(database,redis_client,production=False):
 async def lifespan(app):
     if settings.startup_connectivity_check:
         check_dependencies(engine,cache,production=settings.app_env=='production')
+        with engine.connect() as connection:
+            check_schema(connection)
     yield
