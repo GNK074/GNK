@@ -82,5 +82,5 @@ def connect_individual(broker:str,data:IndividualInput,request:Request,u=Depends
     except IntegrityError:
         s.rollback();raise HTTPException(409,'This broker account could not be linked because its identity is already registered') from None
     value=account_public(account)
-    value.update(expires_at=verified.expires_at,verified_at=now(),expiry_basis=verified.expiry_basis,message='Your broker identity was verified and the connection saved. Live execution remains disabled.')
+    value.update(expires_at=verified.expires_at,verified_at=now(),expiry_basis=verified.expiry_basis,message='Broker & Exchange settings created successfully!')
     return value

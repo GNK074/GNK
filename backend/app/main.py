@@ -1,3 +1,4 @@
+from app.trade_details import models as trade_detail_models
 from app.execution import models as live_models
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -73,3 +74,6 @@ app.include_router(market_ws_router)
 from app.execution.live_routes import router as live_router,admin_router as live_admin_router
 app.include_router(live_router)
 app.include_router(live_admin_router)
+
+from app.trade_details.routes import router as trade_details_router
+app.include_router(trade_details_router)

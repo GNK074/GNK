@@ -128,7 +128,10 @@ def submit(s,u,data):
     broker=client(s,account);broker.verify_identity(account.account_identifier)
     book=broker.book();positions=broker.positions();validate_risk(s,u.id,risk,data,instrument,positions,book)
     row=LiveOrder(user_id=u.id,account_id=account.id,strategy_id=strategy.id,instrument_id=instrument.id,instrument_key=instrument.instrument_key,symbol=instrument.symbol,side=data.side,quantity=data.quantity,price=data.price,tag='GNK'+uuid.uuid4().hex,idempotency_key=data.idempotency_key,request_hash=fingerprint)
-    s.add(row);s.flush();audit(s,u.id,'live_intent_created:'+row.id);s.commit()
+    s.add(row);s.flush()
+    from app.trade_details.models import TradeSignal
+    s.add(TradeSignal(user_id=u.id,strategy_id=strategy.id,account_id=account.id,instrument_id=instrument.id,symbol=instrument.symbol,strike_price=instrument.strike,order_type='LIMIT',side=data.side,quantity=data.quantity,reference_price=data.price,signal_time=row.created_at,source='ORDER_REQUEST',source_order_id=row.id,note='User-submitted order request; this signal is not a broker fill.'))
+    audit(s,u.id,'live_intent_created:'+row.id);s.commit()
     # The durable SUBMITTING intent survives crash/timeout. It is never resent.
     account_id=account.id;strategy_id=strategy.id;order_id=row.id
     uid=u.id

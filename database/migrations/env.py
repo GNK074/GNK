@@ -1,3 +1,4 @@
+from app.trade_details import models as trade_detail_models
 from app.execution import models as live_models
 from app.market_data import models as market_models
 from app.compliance import models as compliance_models

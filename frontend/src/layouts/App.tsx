@@ -1,3 +1,4 @@
+import { TradeDetails } from "../trade-details/TradeDetails";
 import { LiveWorkspace } from "../strategies/LiveWorkspace";
 import { LiveExecutionAdmin } from "../admin/LiveExecutionAdmin";
 import { MarketDataAdmin } from "../admin/MarketDataAdmin";
@@ -13,6 +14,7 @@ import { PaperWorkspace } from "../strategies/PaperWorkspace";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
+  Activity,
   ArrowRight,
   BarChart3,
   Blocks,
@@ -83,7 +85,7 @@ export function App() {
   }, []);
   useLayoutEffect(() => {
     document.documentElement.dataset.workspace = String(
-      loc.pathname.startsWith("/user/") || loc.pathname.startsWith("/markets") || loc.pathname === "/admin",
+      loc.pathname.startsWith("/user/") || loc.pathname.startsWith("/markets") || loc.pathname.startsWith("/tradedetails/") || loc.pathname === "/admin",
     );
   }, [loc.pathname]);
   useEffect(() => {
@@ -161,7 +163,9 @@ export function App() {
                 [BarChart3, "Markets", "/markets"],
                 [Cable, "Brokers & exchanges", "/user/broker-and-exchanges"],
                 [Blocks, "Strategies", "/user/strategies"],
-                [BarChart3, "Orders", "/user/live-orders"],
+                [BarChart3, "Orders", "/tradedetails/orders"],
+                [BarChart3, "Trade History", "/tradedetails/client-trade-history"],
+                [Activity, "Signals", "/tradedetails/signals"],
                 [BarChart3, "Portfolio", "/user/portfolio"],
                 [ShieldCheck, "Risk & security", "/user/security"],
                 [Settings, "Account settings", "/user/settings"],
@@ -170,7 +174,7 @@ export function App() {
                   : []),
               ].map(([Icon, title, path]: any) => (
                 <Link
-                  className={loc.pathname === path ? "selected" : ""}
+                  className={loc.pathname === path || (path === "/tradedetails/orders" && loc.pathname === "/user/live-orders") ? "selected" : ""}
                   to={path}
                   key={path}
                 >
@@ -208,7 +212,9 @@ export function App() {
               <span>
                 Workspace <ChevronRight size={14} />{" "}
                 <b>
-                  {loc.pathname === "/user/live-orders"
+                  {loc.pathname.startsWith("/tradedetails/")
+                    ? loc.pathname.endsWith("/signals") ? "Signals" : loc.pathname.endsWith("/client-trade-history") ? "Trade History" : "Orders"
+                    : loc.pathname === "/user/live-orders"
                     ? "Orders"
                     : loc.pathname.startsWith("/markets")
                     ? "Markets"
@@ -233,7 +239,9 @@ export function App() {
               </div>
             </header>
             <div className="content">
-              {loc.pathname === "/user/live-orders" ? (
+              {loc.pathname.startsWith("/tradedetails/") ? (
+                <TradeDetails key={loc.pathname} />
+              ) : loc.pathname === "/user/live-orders" ? (
                 <DisclosureGate key={user.id}><LiveWorkspace /></DisclosureGate>
               ) : loc.pathname.startsWith("/markets") ? (
                 <MarketsPage />

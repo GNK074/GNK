@@ -52,3 +52,7 @@ See [MARKET_DATA_PHASE05_REPORT.md](MARKET_DATA_PHASE05_REPORT.md) for API contr
 ## Controlled Upstox live execution
 
 See [UPSTOX_LIVE_EXECUTION.md](UPSTOX_LIVE_EXECUTION.md) for the NSE equity intraday limit-order scope, migration 0007, reconciliation worker, API contracts and activation/rollback. Samples remain disabled; broker acceptance and user/account approval are separate from environment validation.
+
+## Trade details
+
+[Orders, Trade History and Signals](TRADE_DETAILS.md) documents the new pages, owner-scoped reporting, fill-based gross P&L, Excel export and migration 0008. Live execution settings are unchanged.

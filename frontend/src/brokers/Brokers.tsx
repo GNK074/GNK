@@ -17,7 +17,8 @@ export function Brokers({ notify }: { notify: (s: string) => void }) {
     [accounts, setAccounts] = useState<any[]>([]),
     [search, setSearch] = useState(""),
     [selected, setSelected] = useState<Broker | null>(null),
-    [busy, setBusy] = useState(false);
+    [busy, setBusy] = useState(false),
+    [success,setSuccess] = useState("");
   async function reload() {
     const [catalog, connections] = await Promise.all([
       api("/brokers"),
@@ -25,13 +26,18 @@ export function Brokers({ notify }: { notify: (s: string) => void }) {
     ]);
     setItems(catalog);
     setAccounts(connections);
+    if(!connections.some((a:any)=>a.status === "connected"))setSuccess("");
+    return connections;
   }
   useEffect(() => {
-    reload().catch((e) => notify(e.message));
     const result = new URLSearchParams(window.location.search).get("result");
-    if (result === "connected") notify("Broker authorization completed.");
-    if (result === "failed")
-      notify("Broker authorization failed. Please reconnect.");
+    reload().then(connections=>{
+      if(result === "connected" && connections.some((a:any)=>a.status === "connected")){
+        setSuccess("Broker & Exchange settings created successfully!");
+        notify("Broker & Exchange settings created successfully!");
+      }
+    }).catch((e)=>notify(e.message));
+    if(result === "failed")notify("Broker authorization failed. Please reconnect.");
   }, []);
   const count = accounts.filter((a) => a.status === "connected").length;
   return (
@@ -47,10 +53,11 @@ export function Brokers({ notify }: { notify: (s: string) => void }) {
         </div>
         <span className="tag">{count} CONNECTED</span>
       </div>
+      {success && <div className="notice" role="status"><p>{success}</p></div>}
       <div className="notice">
         <p>
           Account connection validates your broker identity. Order execution is
-          a separate permission and remains disabled in this release.
+          subject to separate account authorization and risk checks.
         </p>
       </div>
       <article className="panel">
@@ -165,7 +172,7 @@ export function Brokers({ notify }: { notify: (s: string) => void }) {
                 <div className="broker-divider" />
                 <button
                   className="button ghost wide"
-                  onClick={() => setSelected(b)}
+                  onClick={() => { setSuccess(""); setSelected(b); }}
                 >
                   {b.individual_available
                     ? "Connect your account"
@@ -251,8 +258,9 @@ export function Brokers({ notify }: { notify: (s: string) => void }) {
                     );
                     form.reset();
                     setSelected(null);
-                    await reload();
-                    notify(result.message);
+                    setSuccess("Broker & Exchange settings created successfully!");
+                    notify("Broker & Exchange settings created successfully!");
+                    await reload().catch(()=>notify("Broker saved. Refresh connection status to load the latest details."));
                   } catch (err) {
                     notify((err as Error).message);
                   } finally {

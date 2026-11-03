@@ -8,7 +8,7 @@ from app.models.trading import Owned
 from app.core.config import now
 class LiveOrder(Owned,Base):
     __tablename__='live_orders'
-    __table_args__=(UniqueConstraint('user_id','idempotency_key'),UniqueConstraint('account_id','provider_order_id'),ForeignKeyConstraint(['account_id','user_id'],['broker_accounts.id','broker_accounts.user_id']),ForeignKeyConstraint(['strategy_id','user_id'],['strategies.id','strategies.user_id']))
+    __table_args__=(UniqueConstraint('id','user_id',name='uq_live_order_owner'),UniqueConstraint('user_id','idempotency_key'),UniqueConstraint('account_id','provider_order_id'),ForeignKeyConstraint(['account_id','user_id'],['broker_accounts.id','broker_accounts.user_id']),ForeignKeyConstraint(['strategy_id','user_id'],['strategies.id','strategies.user_id']))
     account_id:Mapped[str]=mapped_column(String(36))
     strategy_id:Mapped[str]=mapped_column(String(36))
     instrument_id:Mapped[str]=mapped_column(String(36))
