@@ -1,3 +1,4 @@
+from app.execution import models as live_models
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import ORIGIN, PROD, settings
@@ -68,3 +69,7 @@ from app.market_data.websocket_manager import router as market_ws_router
 app.include_router(market_router)
 app.include_router(market_admin_router)
 app.include_router(market_ws_router)
+
+from app.execution.live_routes import router as live_router,admin_router as live_admin_router
+app.include_router(live_router)
+app.include_router(live_admin_router)

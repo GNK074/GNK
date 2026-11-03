@@ -24,7 +24,7 @@ def test_old_schema_fails_readiness_then_migration_restores_registration(tmp_pat
     with engine.begin() as c:
         c.execute(text("INSERT INTO users(id,email,name,password,verified,active,role,mfa_enabled,mfa_counter,created) VALUES('existing','existing@example.com','Existing User','preserved-hash',1,1,'USER',0,-1,'2026-01-01')"))
     with engine.connect() as c:
-        with pytest.raises(SchemaNotReady,match='migrate_database.sh'):
+        with pytest.raises(SchemaNotReady,match='Database revisions: 0002; image requires:'):
             check_schema(c)
     old_bind=m.DB.kw['bind']
     m.DB.configure(bind=engine)
@@ -62,5 +62,5 @@ def test_revision_stamp_cannot_hide_a_missing_column(tmp_path):
         c.execute(text('INSERT INTO alembic_version VALUES (:head)'),{'head':head})
         c.execute(text('ALTER TABLE users DROP COLUMN gender'))
     with engine.connect() as c:
-        with pytest.raises(SchemaNotReady): check_schema(c)
+        with pytest.raises(SchemaNotReady,match='Missing columns in users: gender'): check_schema(c)
     engine.dispose()

@@ -11,4 +11,6 @@ def dashboard(u=Depends(auth),s:Session=Depends(db)):
     accounts=connections(u,s)
     count=sum(a['status']=='connected' for a in accounts)
     strategies=[{'id':x.id,'name':x.name,'approved':x.approved} for x in s.scalars(select(Strategy).where(Strategy.user_id==u.id))]
-    return {'mode':'broker_connected' if count else 'disconnected','live_trading':False,'connections':count,'broker_accounts':accounts,'portfolio':None,'strategies':strategies,'market_data':None,'connection_scope':'identity_validation_only'}
+    from app.execution import live_service as live
+    live_ready=live.enabled() and live.broker_approved(s) and live.worker_ready()
+    return {'mode':'broker_connected' if count else 'disconnected','live_trading':live_ready,'connections':count,'broker_accounts':accounts,'portfolio':None,'strategies':strategies,'market_data':None,'connection_scope':'live_placement_gated' if live_ready else 'identity_validation_only'}

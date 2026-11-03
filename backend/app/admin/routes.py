@@ -1,3 +1,4 @@
+from app.core.config import settings
 from fastapi import Depends, HTTPException
 from sqlalchemy import select, func
 from sqlalchemy.orm import Session
@@ -12,7 +13,7 @@ router = APIRouter()
 
 @router.get('/api/v1/admin/dashboard')
 def stats(u=Depends(admin), s: Session=Depends(db)):
-    return {'users': s.scalar(select(func.count(User.id))), 'pending': s.scalar(select(func.count(User.id)).where(User.verified == False)), 'live_trading': False}
+    return {'users': s.scalar(select(func.count(User.id))), 'pending': s.scalar(select(func.count(User.id)).where(User.verified == False)), 'live_trading': settings.live_trading_enabled}
 
 @router.get('/api/v1/admin/users')
 def users(q: str='', u=Depends(admin), s: Session=Depends(db)):

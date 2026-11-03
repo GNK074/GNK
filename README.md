@@ -48,3 +48,7 @@ Login includes Forgot MFA; setup generates a local QR code and one-time recovery
 ## Phase 05 market data
 
 See [MARKET_DATA_PHASE05_REPORT.md](MARKET_DATA_PHASE05_REPORT.md) for API contracts, offline verification, migration and controlled activation. Shared Upstox data remains disabled by default pending review of the written distribution scope and live acceptance tests.
+
+## Controlled Upstox live execution
+
+See [UPSTOX_LIVE_EXECUTION.md](UPSTOX_LIVE_EXECUTION.md) for the NSE equity intraday limit-order scope, migration 0007, reconciliation worker, API contracts and activation/rollback. Samples remain disabled; broker acceptance and user/account approval are separate from environment validation.

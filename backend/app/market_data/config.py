@@ -35,7 +35,7 @@ class MarketSettings(BaseSettings):
 
     @model_validator(mode='after')
     def valid_policy(self):
-        if self.marketdata_distribution_approved and not self.marketdata_approval_reference.strip():
+        if self.marketdata_distribution_approved and (not self.marketdata_approval_reference.strip() or self.marketdata_approval_reference.strip().lower() in ('false','true','pending')):
             raise ValueError('Distribution approval requires a verified written reference')
         if not set(self.marketdata_allowed_modes.split(',')) <= {'ltpc','full','option_greeks'}:
             raise ValueError('Unsupported configured feed mode')

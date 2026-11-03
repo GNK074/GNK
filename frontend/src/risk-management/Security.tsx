@@ -42,10 +42,10 @@ export function Security({ notify }: { notify: (s: string) => void }) {
       <div className="notice">
         <ShieldCheck />
         <div>
-          <b>Live trading is disabled</b>
+          <b>Live orders require explicit authorization</b>
           <p>
-            Security controls and broker approval must be reviewed before live
-            execution is introduced.
+            Broker production approval, account arming and personal risk limits
+            apply independently to live order placement.
           </p>
         </div>
       </div>

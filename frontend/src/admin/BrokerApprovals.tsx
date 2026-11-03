@@ -18,8 +18,8 @@ export function BrokerApprovals() {
       <h2>Broker production gate</h2>
       <p>
         Each broker requires 18 independent, current evidence records. Live
-        execution is unavailable in this release; recording evidence cannot
-        enable it.
+        execution is supported for Upstox NSE equity intraday limit orders only.
+        Current evidence, server activation and operational acceptance are required.
       </p>
       {message && <p role="status">{message}</p>}
       <label>
@@ -85,7 +85,7 @@ export function BrokerApprovals() {
               },
             );
             setMessage(
-              "Evidence attestation recorded. Production remains blocked.",
+              "Evidence attestation recorded. Run the production approval gate after completing every requirement.",
             );
             await load();
           } catch (err) {
@@ -125,7 +125,8 @@ export function BrokerApprovals() {
         style={{ marginTop: 25 }}
         onClick={async () => {
           try {
-            await api(`/admin/brokers/${broker}/production-approval`, "POST");
+            const result=await api(`/admin/brokers/${broker}/production-approval`, "POST");
+            setMessage(result.approved?"Production scope approved. Accounts remain separately authorized and armed.":"Production approval is blocked.");
           } catch (e) {
             setMessage((e as Error).message);
           }

@@ -131,9 +131,11 @@ def paper_order(data: PaperOrderInput, u=Depends(require_disclosure), s: Session
 def live_order(data: LiveOrderInput, u=Depends(require_disclosure), s: Session=Depends(db)):
     account = owned(s, BrokerAccount, data.broker_account_id, u.id)
     strategy = owned(s, Strategy, data.strategy_id, u.id)
-    from app.brokers.approval.approval_service import missing_requirements
-    missing = missing_requirements(s, account.broker)
-    raise HTTPException(409, {'message': 'No broker order submitted', 'runtime_blocker': 'Live execution and reconciliation unavailable', 'missing_requirements': missing, 'account_authorized': account.live_authorized, 'strategy_approved': strategy.approved})
+    from app.execution.live_service import submit,public
+    from app.execution.upstox import ExecutionError
+    from app.market_data.providers.base import ProviderError
+    try:return public(submit(s,u,data))
+    except (ExecutionError,ProviderError) as error:raise HTTPException(409,error.code) from None
 
 @router.post('/risk/emergency-stop')
 def user_switch(data: SwitchInput, u=Depends(auth), s: Session=Depends(db)):

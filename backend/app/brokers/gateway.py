@@ -30,7 +30,7 @@ def integration(s, broker):
     return config
 
 def account_public(a):
-    return dict(id=a.id, broker=a.broker, account_identifier='***' + a.account_identifier[-4:] if a.account_identifier else None, status=a.status, live_authorized=False, kill_switch=a.kill_switch)
+    return dict(id=a.id, broker=a.broker, account_identifier='***' + a.account_identifier[-4:] if a.account_identifier else None, status=a.status, live_authorized=a.live_authorized, kill_switch=a.kill_switch)
 
 @router.get('/connections')
 def connections(u=Depends(auth), s: Session=Depends(db)):

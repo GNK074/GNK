@@ -30,7 +30,7 @@ def main():
     except Exception:
         print('Environment/connectivity validation FAILED. Review required variables, secret files, database, pending migrations and Redis. Values are suppressed.', file=sys.stderr)
         return 1
-    print('Environment validation passed' + (' including database schema and Redis' if args.connectivity else '') + '. Live execution remains disabled.')
+    print('Environment validation passed' + (' including database schema and Redis' if args.connectivity else '') + ('. Live placement configured; broker/account/strategy and risk gates still apply.' if settings.live_trading_enabled else '. Live execution remains disabled.'))
     return 0
 if __name__ == '__main__':
     sys.exit(main())

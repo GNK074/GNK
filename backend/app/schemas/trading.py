@@ -29,3 +29,5 @@ class SwitchInput(BaseModel):
 
 class LiveOrderInput(PaperOrderInput):
     broker_account_id: str
+    instrument_id: str | None = None
+    confirm_real_money: bool = False

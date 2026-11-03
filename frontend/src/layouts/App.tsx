@@ -1,3 +1,5 @@
+import { LiveWorkspace } from "../strategies/LiveWorkspace";
+import { LiveExecutionAdmin } from "../admin/LiveExecutionAdmin";
 import { MarketDataAdmin } from "../admin/MarketDataAdmin";
 import { MarketsPage } from "../markets/MarketsPage";
 import { MfaRecoveryPage } from "../pages/MfaRecoveryPage";
@@ -37,6 +39,8 @@ export function App() {
   const [user, setUser] = useState<User | null>(null),
     [loading, setLoading] = useState(true),
     [note, setNote] = useState("");
+  const [liveReady,setLiveReady] = useState(false);
+  useEffect(()=>{if(user)api("/live/readiness").then(r=>setLiveReady(r.server_enabled&&r.broker_approved&&r.reconciliation_healthy&&r.accounts.some((a:any)=>a.armed&&a.live_authorized))).catch(()=>setLiveReady(false));},[user?.id,location.pathname]);
   const [signOutOpen, setSignOutOpen] = useState(false);
   function updateUser(u: User) {
     setUser(u);
@@ -130,6 +134,7 @@ export function App() {
                 [BarChart3, "Markets", "/markets"],
                 [Cable, "Brokers & exchanges", "/user/broker-and-exchanges"],
                 [Blocks, "Strategies", "/user/strategies"],
+                [BarChart3, "Live orders", "/user/live-orders"],
                 [BarChart3, "Portfolio", "/user/portfolio"],
                 [ShieldCheck, "Risk & security", "/user/security"],
                 [Settings, "Account settings", "/user/settings"],
@@ -176,7 +181,9 @@ export function App() {
               <span>
                 Workspace <ChevronRight size={14} />{" "}
                 <b>
-                  {loc.pathname.startsWith("/markets")
+                  {loc.pathname === "/user/live-orders"
+                    ? "Live orders"
+                    : loc.pathname.startsWith("/markets")
                     ? "Markets"
                     : loc.pathname.includes("broker")
                     ? "Brokers & exchanges"
@@ -187,7 +194,7 @@ export function App() {
               </span>
               <div>
                 <span className="status-dot" />
-                Trading disabled <span className="header-divider">│</span>
+                {liveReady?"Live account armed":"Live placement locked"} <span className="header-divider">│</span>
                 <CircleHelp size={18} />
                 <span className="avatar">
                   {user.avatar_url ? (
@@ -199,7 +206,9 @@ export function App() {
               </div>
             </header>
             <div className="content">
-              {loc.pathname.startsWith("/markets") ? (
+              {loc.pathname === "/user/live-orders" ? (
+                <DisclosureGate key={user.id}><LiveWorkspace /></DisclosureGate>
+              ) : loc.pathname.startsWith("/markets") ? (
                 <MarketsPage />
               ) : loc.pathname.includes("broker") ? (
                 <Brokers notify={notify} />
@@ -215,7 +224,7 @@ export function App() {
               ) : loc.pathname === "/admin" ? (
                 <>
                   <Admin />
-                  {user.role === "SUPER_ADMIN" && <><MfaRecoveryReview /><MarketDataAdmin /></>}
+                  {user.role === "SUPER_ADMIN" && <><MfaRecoveryReview /><MarketDataAdmin /><LiveExecutionAdmin /></>}
                 </>
               ) : loc.pathname === "/user/strategies" ||
                 loc.pathname === "/user/portfolio" ? (

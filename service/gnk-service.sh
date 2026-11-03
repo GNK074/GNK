@@ -75,14 +75,14 @@ TAIL="${GNK_LOG_TAIL:-200}"
 urls() {
   printf '\nGNK ALGO URLs (%s)\n' "$MODE"
   local path
-  for path in / /contact-us /mfa /forgot-mfa /mfa-recovery /login /register /forgot-password /verify /reset /user/dashboard /user/broker-and-exchanges /user/settings /user/security /user/strategies /user/portfolio /markets /markets/watchlist /markets/instruments /markets/history /markets/market-status /api/v1/marketdata/status /api/v1/marketdata/health /api/v1/marketdata/sync-status /admin /docs /openapi.json /api/v1/health /api/v1/public/contact /api/v1/compliance/disclosure /api/v1/compliance/disclosure/status /api/v1/brokers/connections /api/v1/strategies /api/v1/orders /api/v1/positions /api/v1/risk/configuration /api/v1/admin/dashboard /api/v1/admin/users /api/v1/admin/audit-logs /api/v1/admin/system-health; do
+  for path in / /contact-us /mfa /forgot-mfa /mfa-recovery /login /register /forgot-password /verify /reset /user/dashboard /user/broker-and-exchanges /user/settings /user/security /user/strategies /user/portfolio /user/live-orders /api/v1/live/readiness /markets /markets/watchlist /markets/instruments /markets/history /markets/market-status /api/v1/marketdata/status /api/v1/marketdata/health /api/v1/marketdata/sync-status /admin /docs /openapi.json /api/v1/health /api/v1/public/contact /api/v1/compliance/disclosure /api/v1/compliance/disclosure/status /api/v1/brokers/connections /api/v1/strategies /api/v1/orders /api/v1/positions /api/v1/risk/configuration /api/v1/admin/dashboard /api/v1/admin/users /api/v1/admin/audit-logs /api/v1/admin/system-health; do
     printf '  %s%s\n' "$PUBLIC_URL" "$path"
   done
   printf '\nAdmin URLs require an authenticated administrator; verification/reset links require emailed tokens.\n'
   printf 'All API routes and schemas: %s/docs\n' "$PUBLIC_URL"
   if [[ "$MODE" == development ]]; then printf 'Development email inbox (server loopback): http://127.0.0.1:8025\n'; fi
   printf 'Internal Docker addresses (not public URLs):\n  frontend:80  backend:8000  postgres:5432  redis:6379  mailpit:1025\n'
-  printf 'Production requires an external HTTPS reverse proxy; live trading remains disabled.\n\n'
+  printf 'Production requires an external HTTPS reverse proxy; live placement requires explicit server activation and broker/account approvals.\n\n'
 }
 if [[ "$COMMAND" == urls ]]; then urls; exit 0; fi
 

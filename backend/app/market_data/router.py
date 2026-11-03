@@ -5,7 +5,7 @@ from fastapi import APIRouter,Depends,HTTPException,Request,Query
 from sqlalchemy import select,func
 from sqlalchemy.orm import Session
 import jwt
-from app.core.config import now,SECRET,digest,expired
+from app.core.config import now,SECRET,digest,expired,settings
 from app.database.session import db
 from app.models.identity import User
 from app.security.authentication import auth,admin
@@ -40,7 +40,7 @@ def status_payload(s):
     row=provider_status(s)
     try:state=get_store().state()
     except Exception:state={'state':'CACHE_UNAVAILABLE'}
-    state={**state,'provider':'upstox','enabled':cfg.upstox_enabled and row.enabled,'websocket_enabled':cfg.upstox_websocket_enabled,'distribution_approved':cfg.marketdata_distribution_approved and bool(cfg.marketdata_approval_reference.strip()),'approval_review_required':not cfg.marketdata_distribution_approved,'credentials_configured':bool(s.get(MarketProviderSecret,'upstox')),'execution_enabled':False,'timezone':'Asia/Kolkata','max_instruments':cfg.marketdata_max_instruments}
+    state={**state,'provider':'upstox','enabled':cfg.upstox_enabled and row.enabled,'websocket_enabled':cfg.upstox_websocket_enabled,'distribution_approved':cfg.marketdata_distribution_approved and bool(cfg.marketdata_approval_reference.strip()),'approval_review_required':not cfg.marketdata_distribution_approved,'credentials_configured':bool(s.get(MarketProviderSecret,'upstox')),'execution_enabled':settings.live_trading_enabled,'timezone':'Asia/Kolkata','max_instruments':cfg.marketdata_max_instruments}
     if not state['enabled']:state['state']='DISABLED'
     return state
 

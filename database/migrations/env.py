@@ -1,3 +1,4 @@
+from app.execution import models as live_models
 from app.market_data import models as market_models
 from app.compliance import models as compliance_models
 from alembic import context

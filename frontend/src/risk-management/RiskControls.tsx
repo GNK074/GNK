@@ -41,7 +41,7 @@ export function RiskControls({ notify }: { notify: (s: string) => void }) {
               ["max_quantity", "Maximum quantity"],
               ["max_order_value", "Maximum order value"],
               ["max_daily_orders", "Daily order limit"],
-              ["max_daily_loss", "Daily realized-loss limit"],
+              ["max_daily_loss", "Loss limit (live includes unrealized P&L)"],
               ["max_positions", "Maximum open positions"],
             ].map(([key, label]) => (
               <label key={key}>
@@ -77,8 +77,8 @@ export function RiskControls({ notify }: { notify: (s: string) => void }) {
             }}
           >
             {risk.kill_switch
-              ? "Resume paper simulation"
-              : "Stop new paper orders"}
+              ? "Clear personal order stop"
+              : "Stop new paper and live orders"}
           </button>
         </>
       )}

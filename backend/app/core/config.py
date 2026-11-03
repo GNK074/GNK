@@ -1,3 +1,4 @@
+from decimal import Decimal
 import hashlib
 import uuid
 from datetime import datetime, timezone
@@ -52,6 +53,11 @@ class Settings(BaseSettings):
     trading_enabled: bool = False
     paper_trading_enabled: bool = True
     live_trading_enabled: bool = False
+    upstox_execution_enabled: bool = False
+    live_execution_reference: str = ''
+    upstox_algo_name: str = ''
+    live_price_deviation_percent: int = Field(default=2,ge=1,le=5)
+    live_tick_size_multiplier: Decimal = Field(default=0,ge=0,le=1)
     smtp_host: str = 'mailpit'
     smtp_port: int = Field(default=1025, ge=1, le=65535)
     smtp_username: str = ''
@@ -79,7 +85,13 @@ class Settings(BaseSettings):
         if self.company_office_address_verified and len(self.company_office_address.strip()) < 20:
             raise ValueError('Provide the full verified office address before enabling map publication')
         if self.live_trading_enabled:
-            raise ValueError('Live execution is unavailable in this release; keep LIVE_TRADING_ENABLED=false')
+            import ipaddress
+            if not self.trading_enabled or not self.upstox_execution_enabled or not self.live_execution_reference.strip() or self.live_execution_reference.strip().lower() in ('false','true','pending') or not self.live_tick_size_multiplier:
+                raise ValueError('Live execution requires explicit Upstox enablement, reviewed reference and verified tick-size multiplier')
+            if not ipaddress.ip_address(self.broker_egress_ip).is_global:
+                raise ValueError('Live execution requires the registered public egress IP')
+        if '\n' in self.upstox_algo_name or '\r' in self.upstox_algo_name:
+            raise ValueError('Invalid configured algo name')
         if self.app_env == 'production':
             values = [self.jwt_secret_key.get_secret_value(), self.secret_key.get_secret_value(), self.smtp_password.get_secret_value()]
             if any((not v or any((marker in v.upper() for marker in ['REPLACE-WITH', 'CHANGE_ME', 'CONFIGURE_', 'GENERATE_'])) for v in values)):

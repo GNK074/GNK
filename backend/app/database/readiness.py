@@ -16,11 +16,11 @@ def check_schema(connection):
     expected = set(ScriptDirectory.from_config(config).get_heads())
     current = set(MigrationContext.configure(connection).get_current_heads())
     if current != expected:
-        raise SchemaNotReady(MESSAGE)
+        raise SchemaNotReady(MESSAGE + ' Database revisions: ' + (', '.join(sorted(current)) or 'none') + '; image requires: ' + ', '.join(sorted(expected)) + '.')
     inspector = inspect(connection)
     for table in Base.metadata.sorted_tables:
         if not inspector.has_table(table.name):
-            raise SchemaNotReady(MESSAGE)
+            raise SchemaNotReady(MESSAGE + ' Missing table: ' + table.name + '.')
         actual = {column['name'] for column in inspector.get_columns(table.name)}
         if not set(table.c.keys()).issubset(actual):
-            raise SchemaNotReady(MESSAGE)
+            raise SchemaNotReady(MESSAGE + ' Missing columns in ' + table.name + ': ' + ', '.join(sorted(set(table.c.keys()) - actual)) + '.')
