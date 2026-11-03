@@ -62,3 +62,9 @@ from app.security.mfa_recovery import router as mfa_recovery_router, review_rout
 app.include_router(mfa_recovery_router)
 
 app.include_router(mfa_recovery_review_router)
+
+from app.market_data.router import router as market_router, admin_router as market_admin_router
+from app.market_data.websocket_manager import router as market_ws_router
+app.include_router(market_router)
+app.include_router(market_admin_router)
+app.include_router(market_ws_router)

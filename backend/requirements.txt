@@ -12,3 +12,5 @@ pytest>=8,<10
 httpx>=0.28,<1
 cryptography>=44,<51
 Pillow>=12.0,<13
+protobuf>=6.33,<7
+websockets>=15,<16

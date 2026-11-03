@@ -22,10 +22,17 @@ def test_postgres_rls_and_composite_ownership_constraints():
             conn.execute("INSERT INTO users(id,email,name,password,verified,active,role,created) VALUES(%s,%s,'RLS test','unused',true,true,'USER',now())",(uid,f'{uid}@example.com'))
             conn.execute("INSERT INTO strategies(id,user_id,name,approved,created_at) VALUES(%s,%s,'research',false,now())",(sid,uid))
             conn.execute("INSERT INTO user_sessions(id,user_id,refresh_hash,csrf,expires,revoked,agent,created,mfa_complete) VALUES(%s,%s,%s,'csrf',now()+interval '1 day',false,'test',now(),true)",(login_ids[i],uid,str(uuid.uuid4())))
+        conn.execute("INSERT INTO market_instruments(id,provider,instrument_key,exchange,segment,symbol,name,instrument_type,status,version,synced_at) VALUES('market-test','upstox','NSE_EQ|TEST','NSE','NSE_EQ','TEST','Fixture','EQ','ACTIVE','fixture',now())")
+        for uid in ids:
+            conn.execute("INSERT INTO market_data_entitlements(user_id,enabled,segments,modes,max_instruments) VALUES(%s,true,'[\"NSE_EQ\"]','[\"ltpc\"]',10)",(uid,))
+            conn.execute("INSERT INTO market_data_subscriptions(id,user_id,instrument_key,mode,created) VALUES(%s,%s,'NSE_EQ|TEST','ltpc',now())",(str(uuid.uuid4()),uid))
         for i,uid in enumerate(ids):
             with conn.transaction():
                 conn.execute('SET LOCAL ROLE gnk_rls_test')
                 conn.execute("SELECT set_config('app.user_id',%s,true)",(uid,))
+                assert conn.execute('SELECT user_id FROM market_data_subscriptions').fetchall()==[(uid,)]
+                assert conn.execute('SELECT user_id FROM market_data_entitlements').fetchall()==[(uid,)]
+                assert conn.execute("UPDATE market_data_subscriptions SET mode='full' WHERE user_id<>%s",(uid,)).rowcount==0
                 rows=conn.execute('SELECT user_id FROM strategies').fetchall()
                 assert rows==[(uid,)]
                 changed=conn.execute('UPDATE strategies SET name=%s WHERE id=%s',('intrusion',sids[(i+1)%3])).rowcount
@@ -60,3 +67,9 @@ def test_postgres_rls_and_composite_ownership_constraints():
         with conn.transaction():
             conn.execute('SET LOCAL ROLE gnk_rls_test')
             assert conn.execute('SELECT count(*) FROM strategies').fetchone()[0]==0
+            assert conn.execute('SELECT count(*) FROM market_data_subscriptions').fetchone()[0]==0
+            conn.execute("SELECT set_config('app.market_worker','true',true)")
+            assert conn.execute('SELECT count(*) FROM market_data_subscriptions').fetchone()[0]==3
+        with conn.transaction():
+            conn.execute('SET LOCAL ROLE gnk_rls_test')
+            assert conn.execute('SELECT count(*) FROM market_data_subscriptions').fetchone()[0]==0

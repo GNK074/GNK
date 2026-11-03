@@ -1,3 +1,5 @@
+import { MarketDataAdmin } from "../admin/MarketDataAdmin";
+import { MarketsPage } from "../markets/MarketsPage";
 import { MfaRecoveryPage } from "../pages/MfaRecoveryPage";
 import { MfaRecoveryReview } from "../admin/MfaRecoveryReview";
 import { ContactUsPage } from "../pages/ContactUsPage";
@@ -50,7 +52,7 @@ export function App() {
   }, []);
   useLayoutEffect(() => {
     document.documentElement.dataset.workspace = String(
-      loc.pathname.startsWith("/user/") || loc.pathname === "/admin",
+      loc.pathname.startsWith("/user/") || loc.pathname.startsWith("/markets") || loc.pathname === "/admin",
     );
   }, [loc.pathname]);
   useEffect(() => {
@@ -125,6 +127,7 @@ export function App() {
             <nav>
               {[
                 [LayoutDashboard, "Overview", "/user/dashboard"],
+                [BarChart3, "Markets", "/markets"],
                 [Cable, "Brokers & exchanges", "/user/broker-and-exchanges"],
                 [Blocks, "Strategies", "/user/strategies"],
                 [BarChart3, "Portfolio", "/user/portfolio"],
@@ -173,7 +176,9 @@ export function App() {
               <span>
                 Workspace <ChevronRight size={14} />{" "}
                 <b>
-                  {loc.pathname.includes("broker")
+                  {loc.pathname.startsWith("/markets")
+                    ? "Markets"
+                    : loc.pathname.includes("broker")
                     ? "Brokers & exchanges"
                     : loc.pathname.includes("settings")
                       ? "Profile & settings"
@@ -194,7 +199,9 @@ export function App() {
               </div>
             </header>
             <div className="content">
-              {loc.pathname.includes("broker") ? (
+              {loc.pathname.startsWith("/markets") ? (
+                <MarketsPage />
+              ) : loc.pathname.includes("broker") ? (
                 <Brokers notify={notify} />
               ) : loc.pathname === "/user/settings" ? (
                 <SettingsPage
@@ -208,7 +215,7 @@ export function App() {
               ) : loc.pathname === "/admin" ? (
                 <>
                   <Admin />
-                  {user.role === "SUPER_ADMIN" && <MfaRecoveryReview />}
+                  {user.role === "SUPER_ADMIN" && <><MfaRecoveryReview /><MarketDataAdmin /></>}
                 </>
               ) : loc.pathname === "/user/strategies" ||
                 loc.pathname === "/user/portfolio" ? (

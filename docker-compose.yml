@@ -51,6 +51,24 @@ services:
       interval: 30s
       retries: 3
       start_period: 30s
+  market-worker:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/backend.Dockerfile
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://gnk:${POSTGRES_PASSWORD:-}@postgres:5432/gnk
+      REDIS_URL: redis://redis:6379/0
+    command: ["python", "-m", "app.market_data.worker"]
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "from app.market_data.service import get_store; from app.market_data.redis_store import LEASE; assert get_store().client.exists(LEASE)"]
+      interval: 30s
+      start_period: 45s
+      retries: 3
   frontend:
     build:
       context: .

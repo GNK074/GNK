@@ -44,3 +44,7 @@ A server-recorded, per-login risk acknowledgment now gates the dashboard and all
 ## Authenticator QR setup and recovery
 
 Login includes Forgot MFA; setup generates a local QR code and one-time recovery codes. Workspace pages use only the selected Appearance theme. Migration `0005` is required. See [MFA_RECOVERY.md](MFA_RECOVERY.md) for the backup-code/email and reviewed-administrator recovery paths, deployment and validation.
+
+## Phase 05 market data
+
+See [MARKET_DATA_PHASE05_REPORT.md](MARKET_DATA_PHASE05_REPORT.md) for API contracts, offline verification, migration and controlled activation. Shared Upstox data remains disabled by default pending review of the written distribution scope and live acceptance tests.

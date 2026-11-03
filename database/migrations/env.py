@@ -1,3 +1,4 @@
+from app.market_data import models as market_models
 from app.compliance import models as compliance_models
 from alembic import context
 from app.database.session import Base, engine
