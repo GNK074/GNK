@@ -161,7 +161,7 @@ export function App() {
                 [BarChart3, "Markets", "/markets"],
                 [Cable, "Brokers & exchanges", "/user/broker-and-exchanges"],
                 [Blocks, "Strategies", "/user/strategies"],
-                [BarChart3, "Live orders", "/user/live-orders"],
+                [BarChart3, "Orders", "/user/live-orders"],
                 [BarChart3, "Portfolio", "/user/portfolio"],
                 [ShieldCheck, "Risk & security", "/user/security"],
                 [Settings, "Account settings", "/user/settings"],
@@ -209,7 +209,7 @@ export function App() {
                 Workspace <ChevronRight size={14} />{" "}
                 <b>
                   {loc.pathname === "/user/live-orders"
-                    ? "Live orders"
+                    ? "Orders"
                     : loc.pathname.startsWith("/markets")
                     ? "Markets"
                     : loc.pathname.includes("broker")
