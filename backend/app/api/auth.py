@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from app.core.config import PROD, ORIGIN, digest, expired, now, settings
 from app.database.session import db
-from app.models.identity import LoginSession, User, Token
+from app.models.identity import LoginSession, User, Token, MfaRecoveryRequest
 from app.schemas.identity import Credentials, EmailInput, PasswordChange, Register, Reset, TokenInput, EmailChange
 from app.security.authentication import auth, cookies, hasher, limit
 from app.services.accounts import audit, consume, issue, revoke_all
@@ -55,7 +55,7 @@ def login(data: Credentials, request: Request, response: Response, s: Session=De
         from app.security.mfa import verify_totp
         verify_totp(u, data.totp_code or '')
     raw = secrets.token_urlsafe(48)
-    session = LoginSession(mfa_complete=u.mfa_enabled or not settings.enable_mfa, user_id=u.id, refresh_hash=digest(raw), csrf=secrets.token_hex(32), expires=now() + timedelta(days=settings.refresh_token_expire_days), agent=request.headers.get('user-agent', '')[:300])
+    session = LoginSession(mfa_complete=(u.mfa_enabled or not settings.enable_mfa) and not u.mfa_reenroll_required, user_id=u.id, refresh_hash=digest(raw), csrf=secrets.token_hex(32), expires=now() + timedelta(days=settings.refresh_token_expire_days), agent=request.headers.get('user-agent', '')[:300])
     s.add(session)
     audit(s, u.id, 'login')
     s.commit()
@@ -108,6 +108,7 @@ def recovery(data: EmailInput, request: Request, s: Session=Depends(db)):
 @router.post('/api/v1/auth/reset-password')
 def reset(data: Reset, s: Session=Depends(db)):
     u = consume(s, data.token, 'reset')
+    s.execute(update(MfaRecoveryRequest).where(MfaRecoveryRequest.user_id == u.id).values(consumed=True))
     u.password = hasher.hash(data.password)
     s.execute(update(Token).where(Token.user_id == u.id).values(used=True))
     revoke_all(s, u.id)
@@ -123,6 +124,7 @@ def change_password(data: PasswordChange, request: Request, response: Response, 
         hasher.verify(current.password, data.current_password)
     except VerificationError:
         raise HTTPException(400, 'Current password is incorrect')
+    s.execute(update(MfaRecoveryRequest).where(MfaRecoveryRequest.user_id == u.id).values(consumed=True))
     current.password = hasher.hash(data.password)
     s.execute(update(Token).where(Token.user_id == u.id).values(used=True))
     for key in ('access', 'refresh'):
@@ -165,6 +167,7 @@ def confirm_email_change(data: TokenInput, request: Request, s: Session=Depends(
     if not current or not current.active:
         raise HTTPException(400, 'Account unavailable')
     try:
+        s.execute(update(MfaRecoveryRequest).where(MfaRecoveryRequest.user_id == current.id).values(consumed=True))
         current.email = token.target_email
         current.verified = True
         token.used = True

@@ -1,12 +1,27 @@
 /* Original GnKAlgo artwork, shared by every route without intercepting input. */
 :root {
-  --brand-wash: linear-gradient(110deg, rgb(9 9 15 / 83%), rgb(9 9 15 / 62%) 55%, rgb(9 9 15 / 76%));
+  --brand-wash: linear-gradient(
+    110deg,
+    rgb(9 9 15 / 83%),
+    rgb(9 9 15 / 62%) 55%,
+    rgb(9 9 15 / 76%)
+  );
 }
 :root[data-theme="royal_blue"] {
-  --brand-wash: linear-gradient(110deg, rgb(8 15 35 / 85%), rgb(8 15 35 / 64%) 55%, rgb(8 15 35 / 78%));
+  --brand-wash: linear-gradient(
+    110deg,
+    rgb(8 15 35 / 85%),
+    rgb(8 15 35 / 64%) 55%,
+    rgb(8 15 35 / 78%)
+  );
 }
 :root[data-theme="light"] {
-  --brand-wash: linear-gradient(110deg, rgb(240 239 245 / 92%), rgb(240 239 245 / 82%) 55%, rgb(240 239 245 / 90%));
+  --brand-wash: linear-gradient(
+    110deg,
+    rgb(240 239 245 / 92%),
+    rgb(240 239 245 / 82%) 55%,
+    rgb(240 239 245 / 90%)
+  );
 }
 body {
   position: relative;
@@ -95,6 +110,106 @@ body::before {
     --brand-wash: linear-gradient(rgb(9 9 15 / 94%), rgb(9 9 15 / 94%));
   }
   :root[data-theme="light"] {
-    --brand-wash: linear-gradient(rgb(240 239 245 / 97%), rgb(240 239 245 / 97%));
+    --brand-wash: linear-gradient(
+      rgb(240 239 245 / 97%),
+      rgb(240 239 245 / 97%)
+    );
   }
 }
+
+/* Authenticated workspaces use only the account's Appearance theme. */
+:root[data-workspace="true"] body::before {
+  display: none;
+}
+.app {
+  background: var(--page);
+}
+.mfa-card {
+  max-width: 680px;
+  padding: 40px;
+}
+.mfa-card form {
+  max-width: 440px;
+  margin: 24px auto;
+  text-align: left;
+}
+.mfa-card .text-link {
+  display: block;
+  margin-top: 20px;
+}
+.mfa-card details {
+  text-align: left;
+  margin: 22px 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+}
+.mfa-card summary {
+  cursor: pointer;
+}
+.mfa-secret {
+  display: block;
+  word-break: break-all;
+  padding-top: 12px;
+}
+.mfa-qr {
+  background: white;
+  padding: 8px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 24px auto;
+  border-radius: 12px;
+}
+.mfa-qr svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+.recovery-code-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  margin: 22px 0;
+}
+.recovery-code-grid code {
+  font:
+    12px ui-monospace,
+    monospace;
+  padding: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow-wrap: anywhere;
+}
+.mfa-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.7;
+  margin: 20px 0;
+  text-align: left;
+}
+.mfa-checkbox input {
+  width: 16px;
+  height: 16px;
+  margin-top: 4px;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+}
+.mfa-backup p {
+  color: var(--muted);
+  font-size: 12px;
+}
+@media (max-width: 600px) {
+  .mfa-card {
+    padding: 28px 20px;
+  }
+  .recovery-code-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mfa-card p { color:var(--muted); }
+.mfa-card input:not([type="checkbox"]) { color:var(--ink); background:var(--surface-2); border:1px solid var(--line); }
+.mfa-card .button { background:var(--accent); color:white; border-color:var(--accent); }
+.mfa-card .text-link { color:var(--accent); }

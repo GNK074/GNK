@@ -1,10 +1,12 @@
+import { MfaRecoveryPage } from "../pages/MfaRecoveryPage";
+import { MfaRecoveryReview } from "../admin/MfaRecoveryReview";
 import { ContactUsPage } from "../pages/ContactUsPage";
 import { DisclosureGate } from "../compliance/DisclosureGate";
 import { SignOutDialog } from "../components/SignOutDialog";
 import { applyTheme } from "../services/theme";
 import { MfaEnrollment } from "../pages/MfaEnrollment";
 import { PaperWorkspace } from "../strategies/PaperWorkspace";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
@@ -46,6 +48,11 @@ export function App() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+  useLayoutEffect(() => {
+    document.documentElement.dataset.workspace = String(
+      loc.pathname.startsWith("/user/") || loc.pathname === "/admin",
+    );
+  }, [loc.pathname]);
   useEffect(() => {
     setNote("");
   }, [loc.pathname]);
@@ -58,6 +65,8 @@ export function App() {
     "/verify",
     "/confirm-email-change",
   ].includes(loc.pathname);
+  if (["/forgot-mfa", "/mfa-recovery"].includes(loc.pathname))
+    return <MfaRecoveryPage />;
   if (loc.pathname === "/mfa") return <MfaEnrollment />;
   if (loading)
     return <div className="loading">GNK ALGO · Loading workspace…</div>;
@@ -197,7 +206,10 @@ export function App() {
               ) : loc.pathname === "/user/security" ? (
                 <Security notify={notify} />
               ) : loc.pathname === "/admin" ? (
-                <Admin />
+                <>
+                  <Admin />
+                  {user.role === "SUPER_ADMIN" && <MfaRecoveryReview />}
+                </>
               ) : loc.pathname === "/user/strategies" ||
                 loc.pathname === "/user/portfolio" ? (
                 <DisclosureGate key={user.id}>

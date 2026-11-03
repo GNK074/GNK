@@ -15,6 +15,8 @@ def client(monkeypatch):
     m.Base.metadata.create_all(engine)
     m.DB.configure(bind=engine)
     monkeypatch.setattr(auth_routes,'limit',lambda *args:None)
+    from app.security import mfa_recovery
+    monkeypatch.setattr(mfa_recovery,'limit',lambda *args:None)
     from app.security import mfa
     from app.brokers import gateway
     monkeypatch.setattr(mfa,'limit',lambda *args:None)

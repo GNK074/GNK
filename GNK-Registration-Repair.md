@@ -16,7 +16,7 @@ GNK_ENV=production ./deploy/gnk-service.sh start &&
 GNK_ENV=production ./deploy/gnk-service.sh health
 ```
 
-The explicit migrator build works with the older script too. The latest expected migration is `0004`; `0003` supplies the missing user profile columns. Existing accounts and database volumes are preserved.
+The explicit migrator build works with the older script too. The latest expected migration is `0005`; `0003` supplies the missing user profile columns. Existing accounts and database volumes are preserved.
 
 To deploy the new readiness protection as well, sync the source update first and use the existing full production deployment workflow.
 

@@ -40,3 +40,7 @@ Use your own API application/session credentials through the broker setup forms.
 ## Risk disclosure and contact
 
 A server-recorded, per-login risk acknowledgment now gates the dashboard and all order submissions. `/contact-us` provides a responsive public support page with verified-publication controls. Migration `0004` is required. See [DISCLOSURE_CONTACT.md](DISCLOSURE_CONTACT.md) for deployment, regulatory-source review, configuration, and validation limits.
+
+## Authenticator QR setup and recovery
+
+Login includes Forgot MFA; setup generates a local QR code and one-time recovery codes. Workspace pages use only the selected Appearance theme. Migration `0005` is required. See [MFA_RECOVERY.md](MFA_RECOVERY.md) for the backup-code/email and reviewed-administrator recovery paths, deployment and validation.

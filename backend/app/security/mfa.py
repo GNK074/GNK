@@ -57,14 +57,19 @@ def setup(request: Request, u=Depends(auth), s: Session=Depends(db)):
         user.mfa_secret = encrypt(base64.b32encode(secrets.token_bytes(20)).decode().rstrip('='))
     secret = decrypt(user.mfa_secret)
     s.commit()
-    return {'secret': secret, 'provisioning_uri': f'otpauth://totp/GNK%20ALGO:{quote(u.email)}?secret={secret}&issuer=GNK%20ALGO'}
+    return {'secret': secret, 'provisioning_uri': f'otpauth://totp/GNK%20ALGO:{quote(u.email)}?secret={secret}&issuer=GNK%20ALGO&algorithm=SHA1&digits=6&period=30'}
 
 @router.post('/confirm')
 def confirm(data: CodeInput, request: Request, u=Depends(auth), s: Session=Depends(db)):
     limit(request, 'mfa-confirm', u.id)
     user = s.scalar(select(User).where(User.id == u.id).with_for_update().execution_options(populate_existing=True))
+    if user.mfa_enabled:
+        raise HTTPException(409, 'MFA already enrolled')
     verify_totp(user, data.code)
     user.mfa_enabled = True
+    user.mfa_reenroll_required = False
+    from app.security.mfa_recovery import issue_codes
+    codes = issue_codes(s,user)
     current = current_session(request, s)
     for session in s.scalars(select(LoginSession).where(LoginSession.user_id == u.id)):
         if session.id != current.id:
@@ -72,4 +77,4 @@ def confirm(data: CodeInput, request: Request, u=Depends(auth), s: Session=Depen
     current.mfa_complete = True
     audit(s, u.id, 'mfa_enabled')
     s.commit()
-    return {'message': 'MFA enabled'}
+    return {'message': 'MFA enabled. Save your recovery codes privately.', 'recovery_codes': codes}

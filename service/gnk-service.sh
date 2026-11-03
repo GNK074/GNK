@@ -75,7 +75,7 @@ TAIL="${GNK_LOG_TAIL:-200}"
 urls() {
   printf '\nGNK ALGO URLs (%s)\n' "$MODE"
   local path
-  for path in / /contact-us /mfa /login /register /forgot-password /verify /reset /user/dashboard /user/broker-and-exchanges /user/settings /user/security /user/strategies /user/portfolio /admin /docs /openapi.json /api/v1/health /api/v1/public/contact /api/v1/compliance/disclosure /api/v1/compliance/disclosure/status /api/v1/brokers/connections /api/v1/strategies /api/v1/orders /api/v1/positions /api/v1/risk/configuration /api/v1/admin/dashboard /api/v1/admin/users /api/v1/admin/audit-logs /api/v1/admin/system-health; do
+  for path in / /contact-us /mfa /forgot-mfa /mfa-recovery /login /register /forgot-password /verify /reset /user/dashboard /user/broker-and-exchanges /user/settings /user/security /user/strategies /user/portfolio /admin /docs /openapi.json /api/v1/health /api/v1/public/contact /api/v1/compliance/disclosure /api/v1/compliance/disclosure/status /api/v1/brokers/connections /api/v1/strategies /api/v1/orders /api/v1/positions /api/v1/risk/configuration /api/v1/admin/dashboard /api/v1/admin/users /api/v1/admin/audit-logs /api/v1/admin/system-health; do
     printf '  %s%s\n' "$PUBLIC_URL" "$path"
   done
   printf '\nAdmin URLs require an authenticated administrator; verification/reset links require emailed tokens.\n'

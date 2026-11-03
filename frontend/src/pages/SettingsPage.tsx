@@ -1,3 +1,4 @@
+import { MfaRecoveryCodes } from "../components/MfaRecoveryCodes";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -611,6 +612,12 @@ export function SettingsPage({
               </div>
             )}
           </section>
+          {user.mfa_enabled && (
+            <section className="settings-card">
+              <h2>Authenticator recovery</h2>
+              <MfaRecoveryCodes />
+            </section>
+          )}
           <section className="settings-card">
             <div className="card-heading">
               <div className="section-icon">

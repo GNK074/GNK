@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowRight, LockKeyhole } from "lucide-react";
 import { api } from "../services/api";
 import type { User } from "../store/session";
@@ -13,6 +13,7 @@ export function Auth({
   onLogin: (u: User) => void;
   notify: (s: string) => void;
 }) {
+  const navigate = useNavigate();
   const loc = useLocation(),
     path = loc.pathname;
   const [busy, setBusy] = useState(false),
@@ -56,6 +57,10 @@ export function Auth({
       const d = await api("/auth/" + route, "POST", body);
       if (path === "/login" && d.mfa_required) {
         window.location.assign("/mfa");
+        return;
+      }
+      if (path === "/verify") {
+        navigate("/login?verified=1", { replace: true });
         return;
       }
       if (path === "/login") onLogin(d.user);
@@ -111,6 +116,16 @@ export function Auth({
             ? "Create your secure trading workspace."
             : "Secure access to your GNK ALGO account."}
         </p>
+        {path === "/login" &&
+          new URLSearchParams(loc.search).get("verified") === "1" && (
+            <p role="status">Email verified. You can sign in.</p>
+          )}
+        {path === "/login" &&
+          new URLSearchParams(loc.search).get("mfa") === "recovered" && (
+            <p role="status">
+              MFA recovery completed. Sign in to enroll a new authenticator.
+            </p>
+          )}
         <form onSubmit={submit}>
           {path === "/register" && (
             <label>
@@ -230,7 +245,7 @@ export function Auth({
           )}
           {path === "/login" && (
             <label>
-              Authenticator code (if enrolled)
+              Authenticator code
               <input
                 name="totp_code"
                 value={mfaCode}
@@ -257,6 +272,11 @@ export function Auth({
                 only once; wait for a new code after setup or a recent sign-in.
               </small>
             </label>
+          )}
+          {path === "/login" && (
+            <Link className="text-link" to="/forgot-mfa">
+              Forgot MFA?
+            </Link>
           )}
           <button disabled={busy} className="button" type="submit">
             {busy

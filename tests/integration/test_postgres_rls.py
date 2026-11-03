@@ -34,6 +34,8 @@ def test_postgres_rls_and_composite_ownership_constraints():
                 assert conn.execute('SELECT user_id FROM disclosure_acknowledgments').fetchall()==[(uid,)]
                 assert conn.execute("UPDATE disclosure_acknowledgments SET disclosure_version='forged'").rowcount==0
                 assert conn.execute('DELETE FROM disclosure_acknowledgments').rowcount==0
+                conn.execute("INSERT INTO mfa_recovery_codes(id,user_id,code_hash,used,created) VALUES(%s,%s,%s,false,now())",(str(uuid.uuid4()),uid,str(uuid.uuid4())))
+                assert conn.execute('SELECT user_id FROM mfa_recovery_codes').fetchall()==[(uid,)]
             with pytest.raises(psycopg.errors.InsufficientPrivilege):
                 with conn.transaction():
                     conn.execute('SET LOCAL ROLE gnk_rls_test')
@@ -49,6 +51,11 @@ def test_postgres_rls_and_composite_ownership_constraints():
                     conn.execute('SET LOCAL ROLE gnk_rls_test')
                     conn.execute("SELECT set_config('app.user_id',%s,true)",(uid,))
                     conn.execute("INSERT INTO orders(id,user_id,strategy_id,symbol,side,quantity,price,mode,status,idempotency_key,request_hash,realized_pnl,created_at) VALUES(%s,%s,%s,'TEST','BUY',1,1,'paper','filled',%s,'hash',0,now())",(str(uuid.uuid4()),uid,sids[(i+1)%3],str(uuid.uuid4())))
+            with pytest.raises(psycopg.errors.InsufficientPrivilege):
+                with conn.transaction():
+                    conn.execute('SET LOCAL ROLE gnk_rls_test')
+                    conn.execute("SELECT set_config('app.user_id',%s,true)",(uid,))
+                    conn.execute("INSERT INTO mfa_recovery_codes(id,user_id,code_hash,used,created) VALUES(%s,%s,%s,false,now())",(str(uuid.uuid4()),ids[(i+1)%3],str(uuid.uuid4())))
         # A new transaction has no inherited tenant identity and sees no records.
         with conn.transaction():
             conn.execute('SET LOCAL ROLE gnk_rls_test')

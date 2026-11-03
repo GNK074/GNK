@@ -22,7 +22,7 @@ Mounted secret PermissionError: ordinary Compose file secrets retain host file p
 
 This means the backend image includes the profile fields but the persistent database is still on an older migration. The previous health probe tested connectivity only, so HTTP 200 did not prove schema readiness. Registration and login both select the User model and therefore both fail.
 
-The existing profile migration is `0003`; current releases also require disclosure migration `0004`. Do not remove volumes or stamp the migration version to bypass the upgrade.
+The existing profile migration is `0003`; current releases also require disclosure migration `0004` and MFA recovery migration `0005`. Do not remove volumes or stamp the migration version to bypass the upgrade.
 
 The backend and migrator are different Compose services with separate image tags. Building the backend does not refresh an already-built migrator image. `deploy/migrate_database.sh` now builds the migrator before running it, and stops if the build fails. Startup, health and environment validation now check both migration head and actual model columns. Application-side SQL error output also suppresses bound parameter values.
 
@@ -46,7 +46,7 @@ Optional read-only confirmation:
 "${gnk_compose[@]}" exec -T postgres psql -U gnk -d gnk -c 'SELECT version_num FROM alembic_version;'
 ```
 
-For the current release the result is `0004`. Then retry registration in the browser. If registration advances past the schema error but email delivery fails, inspect the new backend error separately; a successful database migration does not verify external SMTP delivery.
+For the current release the result is `0005`. Then retry registration in the browser. If registration advances past the schema error but email delivery fails, inspect the new backend error separately; a successful database migration does not verify external SMTP delivery.
 
 ## MFA codes incorrect, expired, or already used
 

@@ -1,5 +1,5 @@
 from datetime import datetime, date
-from sqlalchemy import String, Boolean, DateTime, ForeignKey, Text, BigInteger, Date, LargeBinary, Integer
+from sqlalchemy import String, Boolean, DateTime, ForeignKey, Text, BigInteger, Date, LargeBinary, Integer, false
 from sqlalchemy.orm import Mapped, mapped_column
 from app.core.config import ident, now
 from app.database.session import Base
@@ -21,6 +21,7 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(20), default='USER')
     mfa_secret: Mapped[str | None] = mapped_column(Text, nullable=True)
     mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    mfa_reenroll_required: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
     mfa_counter: Mapped[int] = mapped_column(BigInteger, default=-1)
     created: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
@@ -50,4 +51,25 @@ class Audit(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=ident)
     user_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
     event: Mapped[str] = mapped_column(String(100))
+    created: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class MfaRecoveryCode(Base):
+    __tablename__ = 'mfa_recovery_codes'
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=ident)
+    user_id: Mapped[str] = mapped_column(ForeignKey('users.id'), index=True)
+    code_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    used: Mapped[bool] = mapped_column(Boolean, default=False)
+    created: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+class MfaRecoveryRequest(Base):
+    __tablename__ = 'mfa_recovery_requests'
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=ident)
+    user_id: Mapped[str] = mapped_column(ForeignKey('users.id'), index=True)
+    email_token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    email_confirmed: Mapped[bool] = mapped_column(Boolean, default=False)
+    backup_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    consumed: Mapped[bool] = mapped_column(Boolean, default=False)
+    approved_by: Mapped[str | None] = mapped_column(ForeignKey('users.id'), nullable=True)
+    expires: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     created: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)

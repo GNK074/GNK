@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { QRCodeSVG } from "qrcode.react";
 import { api } from "../services/api";
 export function MfaEnrollment() {
   const [secret, setSecret] = useState(""),
+    [uri, setUri] = useState(""),
     [code, setCode] = useState(""),
     [message, setMessage] = useState(""),
     [enabled, setEnabled] = useState<boolean | null>(null),
-    [busy, setBusy] = useState(false);
+    [busy, setBusy] = useState(false),
+    [recoveryCodes, setRecoveryCodes] = useState<string[]>([]),
+    [saved, setSaved] = useState(false);
   const submitting = useRef(false);
   useEffect(() => {
     let live = true;
@@ -33,22 +37,67 @@ export function MfaEnrollment() {
     }
   }
   return (
-    <div className="auth-wrap">
+    <div className="auth-wrap mfa-card">
       <h1>
-        {enabled
-          ? "Authenticator protection is enabled"
-          : "Secure your account"}
+        {recoveryCodes.length
+          ? "Save your recovery codes"
+          : enabled
+            ? "Authenticator protection is enabled"
+            : "Secure your account"}
       </h1>
       <p>
-        {enabled
-          ? "Use the GNK ALGO entry in your authenticator when signing in. Each accepted code can be used only once."
-          : "Enroll an authenticator before accessing your workspace. Keep the setup key private."}
+        {recoveryCodes.length
+          ? "Store these single-use codes in a safe place. You will need one if you lose your authenticator. They are shown only once."
+          : enabled
+            ? "Use the GNK ALGO authenticator entry when signing in."
+            : "Enroll an authenticator before accessing your workspace. Keep the setup key private."}
       </p>
       {message && <p role="alert">{message}</p>}
-      {enabled ? (
-        <Link className="button" to="/user/settings">
-          Return to account settings
-        </Link>
+      {recoveryCodes.length > 0 ? (
+        <>
+          <div className="recovery-code-grid">
+            {recoveryCodes.map((value) => (
+              <code key={value}>{value}</code>
+            ))}
+          </div>
+          <button
+            className="subtle-button"
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(recoveryCodes.join("\n"));
+                setMessage("Recovery codes copied. Store them privately.");
+              } catch {
+                setMessage("Select and copy the codes manually.");
+              }
+            }}
+          >
+            Copy recovery codes
+          </button>
+          <label className="mfa-checkbox">
+            <input
+              type="checkbox"
+              checked={saved}
+              onChange={(e) => setSaved(e.target.checked)}
+            />
+            I have saved my recovery codes securely.
+          </label>
+          <button
+            className="button"
+            disabled={!saved}
+            onClick={() => window.location.assign("/user/dashboard")}
+          >
+            Continue to dashboard
+          </button>
+        </>
+      ) : enabled ? (
+        <>
+          <Link className="button" to="/user/settings">
+            Return to account settings
+          </Link>
+          <Link className="text-link" to="/forgot-mfa">
+            Forgot MFA?
+          </Link>
+        </>
       ) : (
         <>
           <button
@@ -58,33 +107,48 @@ export function MfaEnrollment() {
               action(async () => {
                 const d = await api("/auth/mfa/setup", "POST");
                 setSecret(d.secret);
+                setUri(d.provisioning_uri);
               })
             }
           >
             {busy
               ? "Please wait…"
               : secret
-                ? "Show existing setup key"
-                : "Generate authenticator setup key"}
+                ? "Show existing setup"
+                : "Generate setup QR code"}
           </button>
           {secret && (
             <form
-              style={{ maxWidth: 450, margin: "30px auto" }}
               onSubmit={(e) => {
                 e.preventDefault();
                 action(async () => {
-                  await api("/auth/mfa/confirm", "POST", { code });
-                  window.location.assign("/user/dashboard");
+                  const d = await api("/auth/mfa/confirm", "POST", { code });
+                  setSecret("");
+                  setUri("");
+                  setCode("");
+                  setEnabled(true);
+                  setRecoveryCodes(d.recovery_codes);
                 });
               }}
             >
+              <div
+                className="mfa-qr"
+                role="img"
+                aria-label="Scan this private QR code with your authenticator app"
+              >
+                <QRCodeSVG value={uri} size={224} marginSize={4} level="M" />
+              </div>
               <p>
-                Add an account named GNK ALGO in your authenticator, using this
-                key:
+                Scan with Google Authenticator, Microsoft Authenticator or
+                another TOTP app. The QR code is generated on your device.
               </p>
-              <code style={{ wordBreak: "break-all" }}>{secret}</code>
+              <details>
+                <summary>Enter the setup key manually</summary>
+                <p>Use time-based SHA-1, 6 digits and a 30-second interval.</p>
+                <code className="mfa-secret">{secret}</code>
+              </details>
               <label>
-                Confirmation code
+                Authenticator code
                 <input
                   required
                   pattern="[0-9]{6}"
@@ -96,26 +160,18 @@ export function MfaEnrollment() {
                   onChange={(e) =>
                     setCode(e.target.value.replace(/[^0-9]/g, "").slice(0, 6))
                   }
-                  onPaste={(e) => {
-                    e.preventDefault();
-                    setCode(
-                      e.clipboardData
-                        .getData("text")
-                        .replace(/[^0-9]/g, "")
-                        .slice(0, 6),
-                    );
-                  }}
                 />
               </label>
-              <p>
-                Keep automatic date and time enabled on your phone. After
-                confirmation, continue to the dashboard; a new sign-in requires
-                a fresh code.
-              </p>
+              <p>Keep automatic date and time enabled on your phone.</p>
               <button disabled={busy} className="button">
                 {busy ? "Verifying…" : "Confirm enrollment"}
               </button>
             </form>
+          )}
+          {enabled === null && message && (
+            <Link className="text-link" to="/login">
+              Back to sign in
+            </Link>
           )}
         </>
       )}

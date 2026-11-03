@@ -57,3 +57,8 @@ app.include_router(compliance_router)
 
 from app.api.public import router as public_router
 app.include_router(public_router)
+
+from app.security.mfa_recovery import router as mfa_recovery_router, review_router as mfa_recovery_review_router
+app.include_router(mfa_recovery_router)
+
+app.include_router(mfa_recovery_review_router)
