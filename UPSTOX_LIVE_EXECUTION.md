@@ -108,3 +108,9 @@ Set LIVE_TRADING_ENABLED=false and TRADING_ENABLED=false and recreate backend to
 ## Official contracts consulted
 
 [Upstox V3 order submission](https://upstox.com/developer/api-documentation/v3/place-order/), [V3 cancellation](https://upstox.com/developer/api-documentation/v3/cancel-order/), [order book](https://upstox.com/developer/api-documentation/get-order-book/), [order trades](https://upstox.com/developer/api-documentation/get-trades-by-order/), [positions](https://upstox.com/developer/api-documentation/get-positions/), [instruments](https://upstox.com/developer/api-documentation/instruments/) and [rate limits](https://upstox.com/developer/api-documentation/rate-limiting/).
+
+## Migration configuration isolation
+
+The migrator explicitly overrides trading, Upstox execution, upstream streaming/history and distribution activation flags to false. This lets schema maintenance and post-migration verification run while a live rollout has incomplete activation settings. Production database credentials, encryption, MFA/HTTPS requirements and runtime validation remain unchanged. Backend and worker services still require valid runtime configuration; migration success does not activate live orders.
+
+Regression checks: migration environment and existing security configuration tests pass (5 tests), including incomplete runtime live activation and a placeholder market-data approval reference.

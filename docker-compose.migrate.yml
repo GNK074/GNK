@@ -8,6 +8,14 @@ services:
     environment:
       APP_ENV: production
       ENVIRONMENT: production
+      # Schema maintenance must not depend on live activation settings in .env.
+      TRADING_ENABLED: "false"
+      LIVE_TRADING_ENABLED: "false"
+      UPSTOX_EXECUTION_ENABLED: "false"
+      UPSTOX_ENABLED: "false"
+      UPSTOX_WEBSOCKET_ENABLED: "false"
+      UPSTOX_HISTORICAL_SYNC_ENABLED: "false"
+      MARKETDATA_DISTRIBUTION_APPROVED: "false"
       DATABASE_URL: postgresql+psycopg://gnk@postgres:5432/gnk
       DATABASE_PASSWORD_FILE: /run/secrets/postgres_password
       REDIS_PASSWORD_FILE: /run/secrets/redis_password
