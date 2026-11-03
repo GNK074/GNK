@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { api } from "../services/api";
+import { signOut } from "../services/api";
 export function SignOutDialog({
   onClose,
   onSignedOut,
@@ -11,6 +11,8 @@ export function SignOutDialog({
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [busy, setBusy] = useState(false);
+  const [error,setError] = useState("");
+  const submitting = useRef(false);
   useEffect(() => {
     dialog.current?.showModal();
     return () => dialog.current?.close();
@@ -39,6 +41,7 @@ export function SignOutDialog({
     >
       <h2 id="signout-title">Sign out of GNK ALGO?</h2>
       <p>Choose whether to end this session or sign out of every device.</p>
+      {error && <p role="alert">{error}</p>}
       <div>
         <button
           autoFocus
@@ -57,13 +60,18 @@ export function SignOutDialog({
             disabled={busy}
             className="settings-primary"
             onClick={async () => {
+              if(submitting.current)return;
+              submitting.current=true;
               setBusy(true);
+              setError("");
               try {
-                await api(path, "POST");
+                await signOut(path === "/auth/logout-all");
                 onSignedOut();
               } catch (e) {
+                setError((e as Error).message);
                 onError((e as Error).message);
               } finally {
+                submitting.current=false;
                 setBusy(false);
               }
             }}

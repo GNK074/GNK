@@ -24,7 +24,7 @@ import {
   Settings,
   ShieldCheck,
 } from "lucide-react";
-import { api } from "../services/api";
+import { api, SESSION_ENDED_KEY } from "../services/api";
 import type { User } from "../store/session";
 import { Logo } from "../components/Logo";
 import { Landing } from "../pages/Landing";
@@ -42,12 +42,39 @@ export function App() {
   const [liveReady,setLiveReady] = useState(false);
   useEffect(()=>{if(user)api("/live/readiness").then(r=>setLiveReady(r.server_enabled&&r.broker_approved&&r.reconciliation_healthy&&r.accounts.some((a:any)=>a.armed&&a.live_authorized))).catch(()=>setLiveReady(false));},[user?.id,location.pathname]);
   const [signOutOpen, setSignOutOpen] = useState(false);
+  useEffect(()=>{
+    const ended=(event:StorageEvent)=>{
+      if(event.key===SESSION_ENDED_KEY && event.newValue)window.location.replace("/login");
+    };
+    window.addEventListener("storage",ended);
+    return()=>window.removeEventListener("storage",ended);
+  },[]);
   function updateUser(u: User) {
     setUser(u);
     applyTheme(u.theme || "carbon_black");
   }
   const loc = useLocation(),
     nav = useNavigate();
+  useEffect(()=>{
+    if(!user)return;
+    let active=true,inFlight=false;
+    async function checkSession(){
+      if(inFlight||document.visibilityState!=="visible")return;
+      inFlight=true;
+      try{
+        const response=await fetch("/api/v1/auth/session",{credentials:"include",cache:"no-store"});
+        if(active&&response.status===401){
+          setUser(null);setSignOutOpen(false);setLiveReady(false);
+          nav("/login",{replace:true});
+        }
+      }catch{/* A temporary network failure does not prove session revocation. */}
+      finally{inFlight=false;}
+    }
+    const timer=window.setInterval(checkSession,30000);
+    window.addEventListener("focus",checkSession);
+    document.addEventListener("visibilitychange",checkSession);
+    return()=>{active=false;clearInterval(timer);window.removeEventListener("focus",checkSession);document.removeEventListener("visibilitychange",checkSession);};
+  },[user?.id,nav]);
   useEffect(() => {
     api("/users/me")
       .then((d) => updateUser(d.user))
@@ -84,7 +111,7 @@ export function App() {
           onSignedOut={() => {
             setUser(null);
             setSignOutOpen(false);
-            nav("/login");
+            nav("/login", {replace:true});
           }}
           onError={notify}
         />

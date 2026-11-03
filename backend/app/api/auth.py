@@ -1,3 +1,5 @@
+from urllib.parse import urlsplit
+import jwt
 import secrets
 from datetime import timedelta
 from argon2.exceptions import VerificationError
@@ -5,7 +7,7 @@ from fastapi import Depends, HTTPException, Request, Response
 from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from app.core.config import PROD, ORIGIN, digest, expired, now, settings
+from app.core.config import PROD, ORIGIN, SECRET, digest, expired, now, settings
 from app.database.session import db
 from app.models.identity import LoginSession, User, Token, MfaRecoveryRequest
 from app.schemas.identity import Credentials, EmailInput, PasswordChange, Register, Reset, TokenInput, EmailChange
@@ -80,19 +82,91 @@ def refresh(request: Request, response: Response, s: Session=Depends(db)):
     s.commit()
     return cookies(response, u, session, raw)
 
+def logout_origin(request):
+    origin=request.headers.get('origin')
+    permitted=not origin or origin.rstrip('/') in {x.rstrip('/') for x in settings.origins}
+    if origin and not permitted:
+        # A configured reverse proxy may serve the same app on an additional
+        # host (for example www). Accept its own browser origin, never an
+        # unrelated origin, while retaining the session-bound CSRF requirement.
+        try:
+            parsed=urlsplit(origin)
+            permitted=(parsed.scheme in (('https',) if PROD else ('http','https'))
+                and parsed.netloc.lower()==request.headers.get('host','').lower()
+                and not parsed.username and not parsed.password
+                and parsed.path in ('','/') and not parsed.query and not parsed.fragment)
+        except ValueError:permitted=False
+    if request.headers.get('sec-fetch-site')=='cross-site' or not permitted:
+        raise HTTPException(403,'Sign out must be requested from the application')
+
+
+def logout_session(request,s,lock=False):
+    """Authenticate session revocation without requiring a fresh access JWT/MFA.
+
+    The refresh cookie identifies only its own session; mutations still require
+    that session's CSRF token. No token lifetime is extended or rotated here.
+    """
+    raw=request.cookies.get('refresh','')
+    statement=select(LoginSession).where(LoginSession.refresh_hash==digest(raw)) if raw else None
+    if statement is not None:
+        session=s.scalar(statement)
+    else:session=None
+    if session is None:
+        # Permit logout when only a still-valid access cookie is available.
+        try:
+            claims=jwt.decode(request.cookies.get('access',''),SECRET,algorithms=['HS256'],audience='gnk-web',issuer='gnk-api',options={'require':['exp','sub','sid']})
+            query=select(LoginSession).where(LoginSession.id==claims['sid'],LoginSession.user_id==claims['sub'])
+            statement=query
+            session=s.scalar(statement)
+        except jwt.InvalidTokenError:session=None
+    if not session or session.revoked or expired(session.expires):return None
+    if lock:
+        # Serialize per user before locking sessions, matching login/recovery's
+        # lock order and preventing two logout-all requests from deadlocking.
+        user=s.scalar(select(User).where(User.id==session.user_id).with_for_update())
+        if not user:return None
+        session=s.scalar(statement.with_for_update().execution_options(populate_existing=True))
+        if not session or session.revoked or expired(session.expires):return None
+    return session if s.get(User,session.user_id) else None
+
+
+@router.get('/api/v1/auth/session')
+def session_status(request:Request,s:Session=Depends(db)):
+    # Same-origin bootstrap for an expired access cookie or another tab's CSRF
+    # rotation. This grants no workspace access and works during MFA enrollment.
+    logout_origin(request)
+    session=logout_session(request,s)
+    if not session:raise HTTPException(401,'Session expired; sign in again to manage other devices')
+    return {'csrf_token':session.csrf}
+
+
+def clear_auth_cookies(response):
+    for key in ('access','refresh'):
+        response.delete_cookie(key,path='/api/v1',secure=settings.secure_cookies or PROD,httponly=True,samesite='strict')
+
+
 @router.post('/api/v1/auth/logout-all')
 @router.post('/api/v1/auth/logout')
-def logout(request: Request, response: Response, u=Depends(auth), s: Session=Depends(db)):
-    if request.url.path.endswith('logout-all'):
-        revoke_all(s, u.id)
-    else:
-        from app.api.users import session_id
-        s.get(LoginSession, session_id(request)).revoked = True
-    audit(s, u.id, 'logout_all' if request.url.path.endswith('logout-all') else 'logout')
+def logout(request:Request,response:Response,s:Session=Depends(db)):
+    logout_origin(request)
+    session=logout_session(request,s,lock=True)
+    all_devices=request.url.path.endswith('logout-all')
+    if not session:
+        if all_devices:
+            raise HTTPException(401,'Your session has expired. Sign in again to sign out other devices, or choose This device.')
+        # Idempotent local cleanup for an already expired/revoked session.
+        clear_auth_cookies(response)
+        return {'message':'Signed out of this device','all_devices':False}
+    if not secrets.compare_digest(request.headers.get('X-CSRF-Token',''),session.csrf):
+        raise HTTPException(403,'Invalid CSRF token')
+    from app.database.tenancy import set_context
+    set_context(s,session.user_id)
+    if all_devices:revoke_all(s,session.user_id)
+    else:session.revoked=True
+    audit(s,session.user_id,'logout_all' if all_devices else 'logout')
     s.commit()
-    for key in ('access', 'refresh'):
-        response.delete_cookie(key, path='/api/v1', secure=PROD, httponly=True, samesite='strict')
-    return {'message': 'Signed out'}
+    clear_auth_cookies(response)
+    return {'message':'Signed out of all devices' if all_devices else 'Signed out of this device','all_devices':all_devices}
 
 @router.post('/api/v1/auth/forgot-password')
 @router.post('/api/v1/auth/resend-verification')

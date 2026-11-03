@@ -1,3 +1,4 @@
+import { SignOutDialog } from "../components/SignOutDialog";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
@@ -12,6 +13,7 @@ export function MfaEnrollment() {
     [recoveryCodes, setRecoveryCodes] = useState<string[]>([]),
     [saved, setSaved] = useState(false);
   const submitting = useRef(false);
+  const [signOutOpen,setSignOutOpen]=useState(false);
   useEffect(() => {
     let live = true;
     api("/auth/mfa/status")
@@ -38,6 +40,8 @@ export function MfaEnrollment() {
   }
   return (
     <div className="auth-wrap mfa-card">
+      {signOutOpen && <SignOutDialog onClose={()=>setSignOutOpen(false)} onSignedOut={()=>window.location.replace("/login")} onError={setMessage}/>}
+      <button type="button" className="text-link" onClick={()=>setSignOutOpen(true)}>Sign out</button>
       <h1>
         {recoveryCodes.length
           ? "Save your recovery codes"
