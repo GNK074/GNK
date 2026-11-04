@@ -8,7 +8,7 @@ from app.database.readiness import check_schema
 from app.models.identity import User
 from app.models.trading import BrokerAccount
 from app.security.authentication import cache
-from .service import sync_account,HEARTBEAT
+from .service import sync_account,HEARTBEAT,safe_failure_code
 from .adapters import ADAPTERS
 
 def run_once():
@@ -19,7 +19,7 @@ def run_once():
             accounts=list(s.scalars(select(BrokerAccount.id).where(BrokerAccount.user_id==uid,BrokerAccount.status=='connected',BrokerAccount.broker.in_(ADAPTERS))))
         for aid in accounts:
             try:sync_account(uid,aid)
-            except Exception:print('Portfolio account synchronization unavailable; previous snapshots retained.',flush=True)
+            except Exception as error:print('Portfolio account synchronization unavailable; previous snapshots retained. Code: '+safe_failure_code(error),flush=True)
             cache.set(HEARTBEAT,now().isoformat(),ex=180)
 
 def main():

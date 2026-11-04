@@ -241,3 +241,56 @@ def test_rate_limit_stops_without_retry():
  a=Upstox({'access_token':'do-not-echo'},'a',transport=httpx.MockTransport(handler),sleep=lambda _:None)
  with pytest.raises(PortfolioError,match='RATE_LIMITED'):a.fetch('holdings')
  assert len(calls)==1
+
+def test_first_dhan_worker_sync_classifies_before_snapshot_insert(portfolio,monkeypatch):
+ from app.portfolio import worker
+ from app.portfolio.adapters import Dhan
+ c,ids,aids=portfolio
+ with m.DB() as s:
+  a=s.get(BrokerAccount,aids[0]);a.broker='dhan';s.commit()
+ def handler(request):
+  path=request.url.path.rsplit('/',1)[-1]
+  if path=='holdings':return httpx.Response(200,json=[{'exchange':'ALL','tradingSymbol':'HDFC','securityId':'1330','isin':'INE001A01036','totalQty':10,'avgCostPrice':'2655'}])
+  if path=='fundlimit':return httpx.Response(200,json={'availabelBalance':'500.25','utilizedAmount':'25'})
+  return httpx.Response(200,json=[])
+ monkeypatch.setattr(svc,'build_adapter',lambda a,cr:Dhan({'access_token':'fixture-token'},a.account_identifier,transport=httpx.MockTransport(handler),sleep=lambda _:None))
+ monkeypatch.setattr(worker,'cache',svc.cache)
+ # Exercise the actual discovery loop, not only the normalizer.
+ worker.run_once()
+ with m.DB() as s:
+  snapshots=list(s.scalars(select(PortfolioSnapshot).where(PortfolioSnapshot.account_id==aids[0])))
+  assert len(snapshots)==5
+  holding_snapshot=next(r for r in snapshots if r.kind=='holdings')
+  assert holding_snapshot.rows[0]['symbol']=='HDFC'
+  assert Decimal(holding_snapshot.rows[0]['invested_value'])==26550
+  assert holding_snapshot.rows[0]['current_value'] is None
+  state=s.scalar(select(PortfolioSync).where(PortfolioSync.account_id==aids[0]))
+  assert state.state=='CONNECTED' and state.errors=={}
+
+def test_unexpected_sync_failure_has_safe_error_backoff_and_retains_snapshot(portfolio,monkeypatch,capsys):
+ from app.portfolio import worker
+ c,ids,aids=portfolio
+ put(ids[0],aids[0],'holdings',holding())
+ with m.DB() as s:
+  for aid in aids[1:]:s.get(BrokerAccount,aid).status='disconnected'
+  s.commit()
+ calls=[]
+ class BrokenAdapter:
+  def fetch(self,kind):calls.append(kind);return holding()
+ def broken_classification(*args):raise RuntimeError('sensitive-token-and-broker-payload')
+ monkeypatch.setattr(svc,'build_adapter',lambda *a:BrokenAdapter())
+ monkeypatch.setattr(svc,'classify_holdings',broken_classification)
+ monkeypatch.setattr(worker,'cache',svc.cache)
+ worker.run_once()
+ output=capsys.readouterr().out
+ assert 'Code: INTERNAL_SYNC_ERROR' in output and 'sensitive-token' not in output
+ with m.DB() as s:
+  state=s.scalar(select(PortfolioSync).where(PortfolioSync.account_id==aids[0]))
+  assert state.state=='ERROR' and state.errors=={'sync':'INTERNAL_SYNC_ERROR'}
+  assert svc.utc(state.next_attempt_at)>now()
+  snap=s.scalar(select(PortfolioSnapshot).where(PortfolioSnapshot.account_id==aids[0]))
+  assert snap.rows[0]['symbol']=='ABC'
+ worker.run_once();assert calls==['holdings']
+ login(c,0)
+ assert c.get('/api/v1/portfolio/holdings').json()['coverage'][0]['fresh'] is False
+ assert c.get('/api/v1/portfolio/accounts').json()['items'][0]['errors']=={'sync':'INTERNAL_SYNC_ERROR'}

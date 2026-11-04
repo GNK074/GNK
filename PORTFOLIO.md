@@ -88,3 +88,11 @@ This development session has not updated the Oracle VM.
 - Headless Chromium against local API/database fixtures verified all six tabs at 1440/768/390-pixel widths; filtering, pagination, sorting, consolidation with details, account-filtered Excel download and queued refresh passed. No page errors, page overflow or order mutations occurred.
 - The browser-downloaded XLSX opened with an independent spreadsheet reader and contained only the selected account's holdings row.
 - Real customer broker authentication/permissions and provider response differences still require read-only verification after deployment; no customer tokens or real orders were used here.
+
+## Dhan first-sync correction
+
+A regression using the actual worker discovery loop and the published Dhan holdings shape reproduced an application failure: holdings with an ISIN but no asset type require a classification lookup. Adding an incomplete new snapshot before that lookup caused SQLAlchemy autoflush to insert it without required fields. Classification now finishes before the new snapshot is added; holdings, positions, funds, orders and trades can all be saved on the first sync. Missing broker prices remain unknown.
+
+Unexpected account-sync exceptions now persist a safe error code and retry backoff, retain previous snapshots and appear in coverage/account status. Worker logs include only a fixed code, never exception text, SQL parameters, credentials or broker response bodies.
+
+This correction changes no schema, broker credentials or execution flags. Update and rebuild backend and portfolio-worker, recreate those services, then recreate Nginx after the backend address changes. No additional migration beyond 0009 is needed.

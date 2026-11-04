@@ -17,6 +17,14 @@ REFRESH_SECONDS=30
 SYNC_SECONDS=60
 HEARTBEAT='gnk:portfolio:heartbeat'
 
+def safe_failure_code(error):
+    from sqlalchemy.exc import IntegrityError,SQLAlchemyError
+    from redis.exceptions import RedisError
+    if isinstance(error,IntegrityError):return 'DATABASE_INTEGRITY_ERROR'
+    if isinstance(error,SQLAlchemyError):return 'DATABASE_OPERATION_FAILED'
+    if isinstance(error,RedisError):return 'CACHE_UNAVAILABLE'
+    return 'INTERNAL_SYNC_ERROR'
+
 def utc(d):return d.replace(tzinfo=timezone.utc) if d and d.tzinfo is None else d
 def version(c):return hashlib.sha256(c.ciphertext.encode()).hexdigest()
 def serialized(v):
@@ -44,7 +52,7 @@ def account_data(s,uid,account_id=None,broker=None):
         elif c.expires_at is None or expired(c.expires_at):state='SESSION_EXPIRED'
         elif sync and sync.state=='SESSION_EXPIRED':state='SESSION_EXPIRED'
         elif sync and sync.state=='SYNCING' and sync.attempted_at and (now()-utc(sync.attempted_at)).total_seconds()<300:state='SYNCING'
-        elif not valid:state='PENDING'
+        elif not valid:state='ERROR' if sync and sync.errors else 'PENDING'
         elif any((now()-utc(v.fetched_at)).total_seconds()>STALE_SECONDS for v in valid) or len(valid)!=len(KINDS) or (sync and sync.errors):state='STALE'
         stamps=[utc(v.fetched_at) for v in valid]
         result.append(dict(id=a.id,broker=a.broker,account=a.account_identifier,status=state,connection_status=a.status,capabilities={k:a.broker in ADAPTERS for k in KINDS},last_success=min(stamps) if len(valid)==len(KINDS) else None,last_attempt=sync.attempted_at if sync else None,errors=sync.errors if sync else {},requested_at=sync.requested_at if sync else None,reauthorize_url='/user/broker-and-exchanges',snapshots={v.kind:v for v in valid}))
@@ -124,9 +132,11 @@ def sync_account(uid,aid):
                 a=s.scalar(select(BrokerAccount).where(BrokerAccount.user_id==uid,BrokerAccount.id==aid).with_for_update())
                 c=s.scalar(select(BrokerCredential).where(BrokerCredential.user_id==uid,BrokerCredential.account_id==aid))
                 if not a or a.status!='connected' or not c or version(c)!=fingerprint or c.expires_at is None or expired(c.expires_at):return False
+                # Classification queries may autoflush the session. Complete all
+                # lookups before adding a snapshot with required value fields.
+                if kind=='holdings':payload=classify_holdings(s,payload)
                 snap=s.scalar(select(PortfolioSnapshot).where(PortfolioSnapshot.user_id==uid,PortfolioSnapshot.account_id==aid,PortfolioSnapshot.kind==kind))
                 if not snap:snap=PortfolioSnapshot(user_id=uid,account_id=aid,kind=kind);s.add(snap)
-                if kind=='holdings':payload=classify_holdings(s,payload)
                 snap.rows=payload;snap.fetched_at=now();snap.credential_version=fingerprint;s.commit();success+=1
             cache.set(HEARTBEAT,now().isoformat(),ex=180)
         if not cache.eval("if redis.call('GET',KEYS[1])==ARGV[1] then redis.call('EXPIRE',KEYS[1],300); return 1 end return 0",1,key,token):return False
@@ -139,6 +149,21 @@ def sync_account(uid,aid):
             state.next_attempt_at=now()+timedelta(seconds=min(900,SYNC_SECONDS*2**min(state.failures,4)))
             s.commit()
         return True
+    except Exception as error:
+        # Keep unexpected failures visible and bounded instead of retrying every
+        # five seconds. Never persist raw exceptions, statements or credentials.
+        try:
+            if cache.eval("if redis.call('GET',KEYS[1])==ARGV[1] then return 1 end return 0",1,key,token):
+                with DB() as s:
+                    set_context(s,uid)
+                    state=s.scalar(select(PortfolioSync).where(PortfolioSync.user_id==uid,PortfolioSync.account_id==aid).with_for_update())
+                    if state and state.state=='SYNCING':
+                        state.state='ERROR';state.errors={'sync':safe_failure_code(error)}
+                        state.failures+=1;state.completed_at=now()
+                        state.next_attempt_at=now()+timedelta(seconds=min(900,SYNC_SECONDS*2**min(state.failures,4)))
+                        s.commit()
+        except Exception:pass
+        raise
     finally:
         cache.eval("if redis.call('GET',KEYS[1])==ARGV[1] then return redis.call('DEL',KEYS[1]) end return 0",1,key,token)
 
@@ -146,8 +171,8 @@ def dataset(s,uid,kind,account_id=None,broker=None,exchange=None,product=None,as
     accounts=account_data(s,uid,account_id,broker);items=[];coverage=[]
     for a in accounts:
         snap=a['snapshots'].get(kind)
-        fresh=bool(snap and a['connection_status']=='connected' and a['status'] not in ('SESSION_EXPIRED','DISCONNECTED') and (now()-utc(snap.fetched_at)).total_seconds()<=STALE_SECONDS and kind not in a['errors'] and 'session' not in a['errors'])
-        coverage.append(dict(account_id=a['id'],broker=a['broker'],status=a['status'],available=bool(snap),fresh=fresh,fetched_at=snap.fetched_at if snap else None,error=a['errors'].get(kind) or a['errors'].get('session')))
+        fresh=bool(snap and a['connection_status']=='connected' and a['status'] not in ('SESSION_EXPIRED','DISCONNECTED') and (now()-utc(snap.fetched_at)).total_seconds()<=STALE_SECONDS and kind not in a['errors'] and 'session' not in a['errors'] and 'sync' not in a['errors'])
+        coverage.append(dict(account_id=a['id'],broker=a['broker'],status=a['status'],available=bool(snap),fresh=fresh,fetched_at=snap.fetched_at if snap else None,error=a['errors'].get(kind) or a['errors'].get('session') or a['errors'].get('sync')))
         if not snap:continue
         for row in snap.rows:
             if kind!='funds' and exchange and str(row.get('exchange','')).upper()!=exchange.upper():continue
