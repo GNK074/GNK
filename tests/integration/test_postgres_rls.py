@@ -36,12 +36,16 @@ def test_postgres_rls_and_composite_ownership_constraints():
             conn.execute("INSERT INTO portfolio_snapshots(id,user_id,account_id,kind,rows,fetched_at,credential_version,created_at) SELECT %s,user_id,id,'holdings','[]',now(),'fixture',now() FROM broker_accounts WHERE user_id=%s",(str(uuid.uuid4()),uid))
             conn.execute("INSERT INTO portfolio_sync_states(id,user_id,account_id,state,failures,errors,created_at) SELECT %s,user_id,id,'QUEUED',0,'{}',now() FROM broker_accounts WHERE user_id=%s",(str(uuid.uuid4()),uid))
         for i,uid in enumerate(ids):
+            conn.execute("INSERT INTO dhan_consent_attempts(id,user_id,account_id,session_id,state_hash,secret_ciphertext,expires_at,consumed,created_at) SELECT %s,user_id,id,%s,%s,'encrypted',now()+interval '10 minutes',false,now() FROM broker_accounts WHERE user_id=%s",(str(uuid.uuid4()),login_ids[i],str(uuid.uuid4()),uid))
+        for i,uid in enumerate(ids):
             with conn.transaction():
                 conn.execute('SET LOCAL ROLE gnk_rls_test')
                 conn.execute("SELECT set_config('app.user_id',%s,true)",(uid,))
                 assert conn.execute('SELECT user_id FROM live_orders').fetchall()==[(uid,)]
                 assert conn.execute('SELECT user_id FROM portfolio_snapshots').fetchall()==[(uid,)]
                 assert conn.execute('SELECT user_id FROM portfolio_sync_states').fetchall()==[(uid,)]
+                assert conn.execute('SELECT user_id FROM dhan_consent_attempts').fetchall()==[(uid,)]
+                assert conn.execute("UPDATE dhan_consent_attempts SET secret_ciphertext='intrusion' WHERE user_id<>%s",(uid,)).rowcount==0
                 assert conn.execute("UPDATE portfolio_snapshots SET credential_version='intrusion' WHERE user_id<>%s",(uid,)).rowcount==0
                 assert conn.execute('SELECT user_id FROM trade_signals').fetchall()==[(uid,)]
                 assert conn.execute("UPDATE trade_signals SET note='intrusion' WHERE user_id<>%s",(uid,)).rowcount==0

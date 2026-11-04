@@ -1,3 +1,4 @@
+from app.brokers.dhan import models as dhan_models
 from app.portfolio import models as portfolio_models
 from app.trade_details import models as trade_detail_models
 from app.execution import models as live_models
@@ -84,3 +85,9 @@ app.include_router(portfolio_router)
 
 from app.brokers.dhan.routes import router as dhan_router
 app.include_router(dhan_router)
+
+from app.brokers.dhan.stream_routes import router as dhan_stream_router
+app.include_router(dhan_stream_router)
+
+from app.brokers.dhan.authentication import router as dhan_consent_router
+app.include_router(dhan_consent_router)

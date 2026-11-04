@@ -22,19 +22,19 @@ TERMINAL={'FILLED','CANCELLED','REJECTED'}
 UNCERTAIN={'SUBMITTING','UNKNOWN','RECONCILE_REQUIRED'}
 HEARTBEAT='gnk:execution:heartbeat'
 def fail(message):raise HTTPException(409,message)
-def enabled():return settings.trading_enabled and settings.live_trading_enabled and settings.upstox_execution_enabled
+def enabled(broker='upstox'):return settings.trading_enabled and settings.live_trading_enabled and (settings.dhan_execution_enabled if broker=='dhan' else settings.upstox_execution_enabled if broker=='upstox' else False)
 
 def worker_ready():
     try:return bool(cache.exists(HEARTBEAT))
     except Exception:return False
 
-def broker_approved(s):
-    status=s.get(ProductionStatus,'upstox')
-    return bool(status and status.approved and not missing_requirements(s,'upstox'))
+def broker_approved(s,broker='upstox'):
+    status=s.get(ProductionStatus,broker)
+    return bool(status and status.approved and not missing_requirements(s,broker))
 
 def client(s,account):
-    if account.broker!='upstox':fail('This execution adapter supports Upstox only')
-    if account.status!='connected' or not account.account_identifier:fail('Reconnect and verify your Upstox account')
+    if account.broker not in ('upstox','dhan'):fail('This broker execution adapter is not implemented')
+    if account.status!='connected' or not account.account_identifier:fail('Reconnect and verify your broker account')
     credential=s.scalar(select(BrokerCredential).where(BrokerCredential.account_id==account.id,BrokerCredential.user_id==account.user_id))
     if not credential or not credential.expires_at or expired(credential.expires_at):fail('Trading credentials are missing or expired')
     try:
@@ -42,12 +42,16 @@ def client(s,account):
         if data.get('connection_method')!='individual_credentials':raise ValueError()
         token=data['credentials']['access_token']
         if not isinstance(token,str) or not token:raise ValueError()
-    except Exception:fail('Reconnect using verified individual Upstox trading credentials')
+    except Exception:fail('Reconnect using verified individual broker trading credentials')
+    if account.broker=='dhan':
+        from app.brokers.dhan.execution import DhanExecution
+        from app.portfolio.service import version
+        return DhanExecution(account.account_identifier,token,account.id,account.user_id,credential_version=version(credential))
     return UpstoxExecution(token,account.id)
 
 def gates(s,account,strategy=None):
-    if not enabled():fail('Live execution is disabled by server configuration')
-    if not broker_approved(s):fail('Upstox production approval is missing, revoked or expired')
+    if not (enabled(account.broker) if account.broker=='dhan' else enabled()):fail('Live execution is disabled by server configuration')
+    if not (broker_approved(s,account.broker) if account.broker=='dhan' else broker_approved(s)):fail('Broker production approval is missing, revoked or expired')
     if not worker_ready():fail('Execution reconciliation worker is unavailable')
     if not account.live_authorized or account.kill_switch:fail('Live execution is not armed for this broker account')
     if strategy and not strategy.approved:fail('Strategy is not approved for live execution')
@@ -56,6 +60,16 @@ def gates(s,account,strategy=None):
     risk=risk_for(s,account.user_id)
     if risk.kill_switch:fail('Personal emergency stop is active')
     return risk
+
+def quote_for(s,uid,account,instrument):
+    if account.broker!='dhan':return MarketDataService(s,uid).require_live_quote(instrument.instrument_key)
+    from app.brokers.dhan import streams
+    credential=s.scalar(select(BrokerCredential).where(BrokerCredential.user_id==uid,BrokerCredential.account_id==account.id))
+    from app.portfolio.service import version
+    try:tick=streams.latest(uid,account.id,version(credential),instrument.instrument_key)
+    except Exception:fail('Private Dhan quote service is unavailable')
+    if tick.get('data_status')!='LIVE':fail('Subscribe to a fresh private Dhan quote before live placement')
+    return tick
 
 def public(row):
     return {k:getattr(row,k) for k in ('id','account_id','strategy_id','instrument_key','symbol','side','quantity','price','product','status','provider_order_id','filled_quantity','average_price','fills','error_code','created_at','updated_at','reconciled_at')}
@@ -110,6 +124,9 @@ def submit(s,u,data):
         if old.request_hash!=fingerprint:fail('Idempotency key belongs to a different live order')
         return old
     risk=gates(s,account,strategy)
+    if account.broker=='dhan':
+        clock=now().astimezone(ZoneInfo('Asia/Kolkata'))
+        if clock.weekday()>4 or not (9,15)<=(clock.hour,clock.minute)<(15,20):fail('Dhan intraday entry window is 09:15–15:20 IST on trading weekdays; fresh exchange ticks are also required')
     if not data.confirm_real_money:fail('Explicit real-money order confirmation is required')
     if not data.instrument_id:fail('Choose an instrument from the synchronized master')
     instrument=s.get(MarketInstrument,data.instrument_id)
@@ -118,16 +135,17 @@ def submit(s,u,data):
     if now()-synced>timedelta(hours=24):fail('Refresh the stale instrument master before live placement')
     if instrument.lot_size!=1:fail('This release supports unit-lot NSE equity only')
     if data.symbol!=instrument.symbol:fail('Symbol does not match the selected instrument')
-    tick=MarketDataService(s,u.id).require_live_quote(instrument.instrument_key)
+    if instrument.provider!=account.broker:fail('Instrument provider does not match this broker account')
+    tick=quote_for(s,u.id,account,instrument)
     ltp=decimal(tick['ltp'])
     if ltp<=0 or abs(data.price-ltp)*100>ltp*settings.live_price_deviation_percent:fail('Limit price is outside the configured band around the fresh quote')
-    step=decimal(instrument.tick_size)*settings.live_tick_size_multiplier
+    step=decimal(instrument.tick_size)*(settings.dhan_tick_size_multiplier if account.broker=='dhan' else settings.live_tick_size_multiplier)
     if step<=0 or data.price%step:fail('Price is not aligned to the verified instrument tick size')
     uncertain=s.scalar(select(LiveOrder.id).where(LiveOrder.account_id==account.id,LiveOrder.user_id==u.id,LiveOrder.status.in_(UNCERTAIN)).limit(1))
     if uncertain:fail('Resolve the account\'s uncertain order before submitting another')
     broker=client(s,account);broker.verify_identity(account.account_identifier)
     book=broker.book();positions=broker.positions();validate_risk(s,u.id,risk,data,instrument,positions,book)
-    row=LiveOrder(user_id=u.id,account_id=account.id,strategy_id=strategy.id,instrument_id=instrument.id,instrument_key=instrument.instrument_key,symbol=instrument.symbol,side=data.side,quantity=data.quantity,price=data.price,tag='GNK'+uuid.uuid4().hex,idempotency_key=data.idempotency_key,request_hash=fingerprint)
+    row=LiveOrder(user_id=u.id,account_id=account.id,strategy_id=strategy.id,instrument_id=instrument.id,instrument_key=instrument.instrument_key,symbol=instrument.symbol,side=data.side,quantity=data.quantity,price=data.price,tag='GNK'+(uuid.uuid4().hex[:24] if account.broker=='dhan' else uuid.uuid4().hex),idempotency_key=data.idempotency_key,request_hash=fingerprint)
     s.add(row);s.flush()
     from app.trade_details.models import TradeSignal
     s.add(TradeSignal(user_id=u.id,strategy_id=strategy.id,account_id=account.id,instrument_id=instrument.id,symbol=instrument.symbol,strike_price=instrument.strike,order_type='LIMIT',side=data.side,quantity=data.quantity,reference_price=data.price,signal_time=row.created_at,source='ORDER_REQUEST',source_order_id=row.id,note='User-submitted order request; this signal is not a broker fill.'))
@@ -145,7 +163,7 @@ def submit(s,u,data):
         if not current_user.active or not current_user.verified:fail('Account access was revoked before submission')
         gates(s,account,strategy)
         broker=client(s,account)
-        fresh=MarketDataService(s,u.id).require_live_quote(instrument.instrument_key)
+        fresh=quote_for(s,u.id,account,instrument)
         if abs(data.price-decimal(fresh['ltp']))*100>decimal(fresh['ltp'])*settings.live_price_deviation_percent:fail('Quote moved outside price band before submission')
         row.provider_order_id=broker.place(row);row.status='PENDING'
     except ExecutionError as error:

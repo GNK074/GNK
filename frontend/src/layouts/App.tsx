@@ -44,7 +44,7 @@ export function App() {
     [loading, setLoading] = useState(true),
     [note, setNote] = useState("");
   const [liveReady,setLiveReady] = useState(false);
-  useEffect(()=>{if(user)api("/live/readiness").then(r=>setLiveReady(r.server_enabled&&r.broker_approved&&r.reconciliation_healthy&&r.accounts.some((a:any)=>a.armed&&a.live_authorized))).catch(()=>setLiveReady(false));},[user?.id,location.pathname]);
+  useEffect(()=>{if(user)Promise.allSettled([api("/live/readiness?broker=upstox"),api("/live/readiness?broker=dhan")]).then(results=>setLiveReady(results.some(result=>result.status==="fulfilled"&&result.value.server_enabled&&result.value.broker_approved&&result.value.reconciliation_healthy&&result.value.accounts.some((a:any)=>a.armed&&a.live_authorized)))).catch(()=>setLiveReady(false));},[user?.id,location.pathname]);
   const [signOutOpen, setSignOutOpen] = useState(false);
   useEffect(()=>{
     const ended=(event:StorageEvent)=>{

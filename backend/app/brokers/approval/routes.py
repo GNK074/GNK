@@ -66,7 +66,7 @@ def production_status(broker: str, u=Depends(admin), s: Session=Depends(db)):
     check(broker, u)
     from app.execution import live_service as live
     status=s.get(ProductionStatus,broker)
-    return {'broker':broker,'approved':bool(broker=='upstox' and status and status.approved and not missing_requirements(s,broker)), 'missing':missing_requirements(s,broker),'runtime_blocker':None if broker=='upstox' else 'Execution adapter not implemented for this broker','server_enabled':live.enabled(),'reconciliation_healthy':live.worker_ready()}
+    return {'broker':broker,'approved':bool(broker in ('upstox','dhan') and status and status.approved and not missing_requirements(s,broker)), 'missing':missing_requirements(s,broker),'runtime_blocker':None if broker in ('upstox','dhan') else 'Execution adapter not implemented for this broker','server_enabled':live.enabled(broker) if broker=='dhan' else live.enabled(),'reconciliation_healthy':live.worker_ready()}
 
 @router.post('/{broker}/production-approval')
 def production_approval(broker: str, u=Depends(admin), s: Session=Depends(db)):
@@ -78,10 +78,10 @@ def production_approval(broker: str, u=Depends(admin), s: Session=Depends(db)):
         status=ProductionStatus(broker=broker);s.add(status)
     from app.execution import live_service as live
     from app.core.config import settings
-    if not parent or missing or broker!='upstox' or not live.enabled() or not live.worker_ready():
+    if not parent or missing or broker not in ('upstox','dhan') or not (live.enabled(broker) if broker=='dhan' else live.enabled()) or not live.worker_ready():
         status.approved=False;status.approved_by=None;status.updated_at=now()
         history(s,broker,u,'production_approval_blocked');s.commit()
-        raise HTTPException(409,{'missing_requirements':missing,'runtime_blocker':'Upstox implementation, explicit server activation, reconciliation worker and all current evidence are required'})
+        raise HTTPException(409,{'missing_requirements':missing,'runtime_blocker':'Implemented broker adapter, explicit server activation, reconciliation worker and all current evidence are required'})
     status.approved=True;status.approved_by=u.id;status.updated_at=now()
-    history(s,broker,u,'production_approved:'+settings.live_execution_reference);s.commit()
+    history(s,broker,u,'production_approved:'+(settings.dhan_execution_reference if broker=='dhan' else settings.live_execution_reference));s.commit()
     return {'broker':broker,'approved':True,'scope':'NSE EQ intraday LIMIT DAY; no short selling'}

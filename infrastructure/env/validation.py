@@ -7,6 +7,7 @@ sys.path.insert(0,str(ROOT/'backend'))
 # Only messages authored by this application may be exposed. Never print a
 # Pydantic error's input, arbitrary message, context, exception repr or URL.
 SAFE_MESSAGES={
+    'Dhan execution requires reviewed reference, verified tick multiplier and private stream service':'Check DHAN_EXECUTION_REFERENCE, DHAN_TICK_SIZE_MULTIPLIER and DHAN_STREAM_ENABLED.',
     'Live execution requires explicit Upstox enablement, reviewed reference and verified tick-size multiplier':
         'Live activation requires TRADING_ENABLED, UPSTOX_EXECUTION_ENABLED, LIVE_EXECUTION_REFERENCE and a positive verified LIVE_TICK_SIZE_MULTIPLIER. Check spelling of LIVE_EXECUTION_REFERENCE.',
     'Live execution requires the registered public egress IP':
@@ -58,6 +59,7 @@ def main():
             from app.compliance import models as compliance_models
             from app.execution import models as execution_models
             from app.portfolio import models as portfolio_models
+            from app.brokers.dhan import models as dhan_models
             from app.trade_details import models as trade_detail_models
             from app.market_data import models as market_models
             from app.database.session import engine

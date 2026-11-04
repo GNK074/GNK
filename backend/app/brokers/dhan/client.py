@@ -10,9 +10,9 @@ from dhanhq import DhanContext,DhanHTTP,dhanhq
 from app.security.authentication import cache
 
 SDK_VERSION='2.3.0'
-READS={('GET','/holdings'),('GET','/positions'),('GET','/fundlimit'),('GET','/orders'),('GET','/trades'),('GET','/trades/'),('GET','/profile'),('GET','/RenewToken'),('POST','/marketfeed/ltp'),('POST','/marketfeed/ohlc'),('POST','/marketfeed/quote'),('POST','/optionchain'),('POST','/optionchain/expirylist'),('POST','/charts/intraday'),('POST','/charts/historical'),('POST','/charts/rollingoption'),('POST','/margincalculator'),('POST','/margincalculator/multi')}
+READS={('GET','/holdings'),('GET','/positions'),('GET','/fundlimit'),('GET','/orders'),('GET','/trades'),('GET','/trades/'),('GET','/profile'),('GET','/RenewToken'),('GET','/ip/getIP'),('POST','/marketfeed/ltp'),('POST','/marketfeed/ohlc'),('POST','/marketfeed/quote'),('POST','/optionchain'),('POST','/optionchain/expirylist'),('POST','/charts/intraday'),('POST','/charts/historical'),('POST','/charts/rollingoption'),('POST','/margincalculator'),('POST','/margincalculator/multi')}
 class DhanError(Exception):
-    def __init__(self,code='DHAN_UNAVAILABLE'):self.code=code;super().__init__(code)
+    def __init__(self,code='DHAN_UNAVAILABLE',ambiguous=False):self.code=code;self.ambiguous=ambiguous;super().__init__(code)
 
 def guard(client_id):
     subject=hashlib.sha256(client_id.encode()).hexdigest()
@@ -26,17 +26,19 @@ def guard(client_id):
     except Exception:raise DhanError('CACHE_UNAVAILABLE') from None
 
 class SafeDhanHTTP(DhanHTTP):
-    def __init__(self,client_id,token,transport=None):
+    def __init__(self,client_id,token,transport=None,execution=False):
         super().__init__(client_id,token)
         self.transport=transport
+        self.execution=execution
         self.header['dhanClientId']=client_id
         # No requests from the SDK's unguarded default session are needed.
         self.session.close()
     def _send_request(self,method,endpoint,payload=None):
         verb=method.value
         if endpoint=='/trades/':endpoint='/trades'
-        allowed=(verb,endpoint) in READS or (verb=='GET' and bool(re.fullmatch(r'/orders/[A-Za-z0-9_-]{1,100}|/trades/\d{4}-\d{2}-\d{2}/\d{4}-\d{2}-\d{2}/\d{1,3}',endpoint)))
-        if not allowed:raise DhanError('DHAN_OPERATION_NOT_ENABLED')
+        allowed=(verb,endpoint) in READS or (verb=='GET' and bool(re.fullmatch(r'/orders/[A-Za-z0-9_-]{1,100}|/trades/[A-Za-z0-9_-]{1,100}|/trades/\d{4}-\d{2}-\d{2}/\d{4}-\d{2}-\d{2}/\d{1,3}',endpoint)))
+        write=bool(self.execution and ((verb=='POST' and endpoint=='/orders') or (verb=='DELETE' and re.fullmatch(r'/orders/[A-Za-z0-9_-]{1,100}',endpoint))))
+        if not allowed and not write:raise DhanError('DHAN_OPERATION_NOT_ENABLED')
         if self.transport is None:guard(self.client_id)
         if payload is not None:
             payload=dict(payload)
@@ -48,27 +50,27 @@ class SafeDhanHTTP(DhanHTTP):
                 with client.stream(verb,self.base_url+endpoint,headers=self.header,json=payload) as response:
                     if response.status_code==401:raise DhanError('SESSION_EXPIRED')
                     if response.status_code==403:raise DhanError('PERMISSION_DENIED')
-                    if response.status_code==429:raise DhanError('RATE_LIMITED')
-                    if response.status_code>=500:raise DhanError('DHAN_UNAVAILABLE')
+                    if response.status_code==429:raise DhanError('RATE_LIMITED',write)
+                    if response.status_code>=500:raise DhanError('DHAN_UNAVAILABLE',write)
                     if response.status_code!=200:raise DhanError('DHAN_REQUEST_REJECTED')
                     data=bytearray()
                     for chunk in response.iter_bytes():
                         data.extend(chunk)
-                        if len(data)>8_000_000:raise DhanError('DHAN_RESPONSE_TOO_LARGE')
+                        if len(data)>8_000_000:raise DhanError('DHAN_RESPONSE_TOO_LARGE',write)
             value=json.loads(data,parse_float=Decimal)
             if isinstance(value,dict) and value.get('errorCode'):raise DhanError('DHAN_REQUEST_REJECTED')
             return {'status':'success','remarks':'','data':value}
         except DhanError:raise
-        except httpx.HTTPError:raise DhanError('DHAN_UNAVAILABLE') from None
-        except (ValueError,TypeError):raise DhanError('INVALID_DHAN_RESPONSE') from None
+        except httpx.HTTPError:raise DhanError('DHAN_UNAVAILABLE',write) from None
+        except (ValueError,TypeError):raise DhanError('INVALID_DHAN_RESPONSE',write) from None
 
 class DhanClient:
     READ_METHODS={'holdings':'get_holdings','positions':'get_positions','funds':'get_fund_limits','orders':'get_order_list','trades':'get_trade_book'}
-    def __init__(self,client_id,token,transport=None):
+    def __init__(self,client_id,token,transport=None,execution=False):
         if not isinstance(client_id,str) or not client_id.strip() or not isinstance(token,str) or not token:raise DhanError('DHAN_CREDENTIALS_UNAVAILABLE')
         self.context=DhanContext(client_id,token)
         self.context.dhan_http.session.close()
-        self.context.dhan_http=SafeDhanHTTP(client_id,token,transport)
+        self.context.dhan_http=SafeDhanHTTP(client_id,token,transport,execution)
         self.sdk=dhanhq(self.context)
     def unwrap(self,result):
         if not isinstance(result,dict) or result.get('status')!='success' or 'data' not in result:raise DhanError('INVALID_DHAN_RESPONSE')

@@ -54,6 +54,11 @@ class Settings(BaseSettings):
     paper_trading_enabled: bool = True
     live_trading_enabled: bool = False
     upstox_execution_enabled: bool = False
+    dhan_execution_enabled: bool = False
+    dhan_execution_reference: str = ""
+    dhan_tick_size_multiplier: Decimal = Field(default=0,ge=0,le=1)
+    dhan_stream_enabled: bool = True
+    dhan_oauth_enabled: bool = False
     live_execution_reference: str = ''
     upstox_algo_name: str = ''
     live_price_deviation_percent: int = Field(default=2,ge=1,le=5)
@@ -86,10 +91,12 @@ class Settings(BaseSettings):
             raise ValueError('Provide the full verified office address before enabling map publication')
         if self.live_trading_enabled:
             import ipaddress
-            if not self.trading_enabled or not self.upstox_execution_enabled or not self.live_execution_reference.strip() or self.live_execution_reference.strip().lower() in ('false','true','pending') or not self.live_tick_size_multiplier:
+            if not self.trading_enabled or not (self.upstox_execution_enabled or self.dhan_execution_enabled) or (self.upstox_execution_enabled and (not self.live_execution_reference.strip() or self.live_execution_reference.strip().lower() in ('false','true','pending') or not self.live_tick_size_multiplier)):
                 raise ValueError('Live execution requires explicit Upstox enablement, reviewed reference and verified tick-size multiplier')
             if not ipaddress.ip_address(self.broker_egress_ip).is_global:
                 raise ValueError('Live execution requires the registered public egress IP')
+        if self.dhan_execution_enabled and (not self.dhan_execution_reference.strip() or self.dhan_execution_reference.strip().lower() in ('false','true','pending') or not self.dhan_tick_size_multiplier or not self.dhan_stream_enabled):
+            raise ValueError('Dhan execution requires reviewed reference, verified tick multiplier and private stream service')
         if '\n' in self.upstox_algo_name or '\r' in self.upstox_algo_name:
             raise ValueError('Invalid configured algo name')
         if self.app_env == 'production':

@@ -1,3 +1,4 @@
+from app.brokers.dhan import models as dhan_models
 from app.portfolio import models as portfolio_models
 from app.trade_details import models as trade_detail_models
 from app.execution import models as live_models

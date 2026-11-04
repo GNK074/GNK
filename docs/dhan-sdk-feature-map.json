@@ -1,0 +1,2618 @@
+{
+  "reference_sha": "8c6583e6e169fd0293e2271cb5fcb5aad3f8e805",
+  "reference_files": 98,
+  "reference_text_lines": 7417,
+  "sdk_version": "2.3.0",
+  "features": [
+    {
+      "sdk_module": "_conditional_order.py",
+      "method": "place_conditional_order",
+      "sdk_arguments": "self, condition, orders",
+      "reference_line": 7,
+      "reference_summary": "Create a conditional order (alert) that places one or more orders automatically",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_conditional_order.py",
+      "method": "get_conditional_orders",
+      "sdk_arguments": "self",
+      "reference_line": 38,
+      "reference_summary": "Retrieve all conditional orders (alerts) for the authenticated account.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_conditional_order.py",
+      "method": "get_conditional_order",
+      "sdk_arguments": "self, alert_id",
+      "reference_line": 47,
+      "reference_summary": "Retrieve the status and details of a specific conditional order.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_conditional_order.py",
+      "method": "modify_conditional_order",
+      "sdk_arguments": "self, alert_id, condition, orders=None",
+      "reference_line": 59,
+      "reference_summary": "Modify a conditional order's condition and/or associated orders.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_conditional_order.py",
+      "method": "cancel_conditional_order",
+      "sdk_arguments": "self, alert_id",
+      "reference_line": 79,
+      "reference_summary": "Delete an existing conditional order.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_forever_order.py",
+      "method": "place_forever",
+      "sdk_arguments": "self, security_id, exchange_segment, transaction_type, product_type, order_type, quantity, price, trigger_Price, order_flag='SINGLE', disclosed_quantity=0, validity='DAY', price1=0, trigger_Price1=0, quantity1=0, tag=None",
+      "reference_line": 8,
+      "reference_summary": "Place a new forever order in the Dhan account.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_forever_order.py",
+      "method": "modify_forever",
+      "sdk_arguments": "self, order_id, order_flag, order_type, leg_name, quantity, price, trigger_price, disclosed_quantity, validity",
+      "reference_line": 58,
+      "reference_summary": "Modify a forever order based on the specified leg name.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_forever_order.py",
+      "method": "get_forever",
+      "sdk_arguments": "self",
+      "reference_line": 92,
+      "reference_summary": "Retrieve a list of all existing Forever Orders.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_forever_order.py",
+      "method": "cancel_forever",
+      "sdk_arguments": "self, order_id",
+      "reference_line": 97,
+      "reference_summary": "Delete Forever orders using the order id of an order.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_funds.py",
+      "method": "get_fund_limits",
+      "sdk_arguments": "self",
+      "reference_line": 7,
+      "reference_summary": "Get all information of your trading account like balance, margin utilized, collateral, etc.",
+      "gnk_before": "funds snapshots",
+      "status_before": "integrated",
+      "target_phase": "account and research",
+      "status_after": "integrated",
+      "gnk_after": "Owner-bound guarded SDK reads reuse GNK portfolio/research services.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/client.py",
+        "backend/app/brokers/dhan/routes.py"
+      ]
+    },
+    {
+      "sdk_module": "_funds.py",
+      "method": "margin_calculator",
+      "sdk_arguments": "self, security_id, exchange_segment, transaction_type, quantity, product_type, price, trigger_price=0",
+      "reference_line": 17,
+      "reference_summary": "Calculate the margin required for a trade based on the provided parameters.",
+      "gnk_before": "funds snapshots",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_funds.py",
+      "method": "margin_calculator_multi",
+      "sdk_arguments": "self, scrip_list, include_position=False, include_order=False",
+      "reference_line": 49,
+      "reference_summary": "Calculate the combined margin required for multiple orders, with hedge benefits.",
+      "gnk_before": "funds snapshots",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_global_stocks.py",
+      "method": "place_global_order",
+      "sdk_arguments": "self, security_id, transaction_type, order_type, quantity=0, price=0, trigger_price=None, stop_loss_price=None, target_price=None, amount=None, after_market_order=False, tag=None",
+      "reference_line": 7,
+      "reference_summary": "Place a buy or sell order for a US (global) stock.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_global_stocks.py",
+      "method": "get_global_order_list",
+      "sdk_arguments": "self",
+      "reference_line": 49,
+      "reference_summary": "Retrieve the current trading day's US stock order book.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_global_stocks.py",
+      "method": "get_global_order_by_id",
+      "sdk_arguments": "self, order_id",
+      "reference_line": 58,
+      "reference_summary": "Retrieve the latest details and status for a specific US stock order.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_global_stocks.py",
+      "method": "modify_global_order",
+      "sdk_arguments": "self, order_id, order_type, transaction_type, security_id, quantity=None, price=None, leg_name=None",
+      "reference_line": 70,
+      "reference_summary": "Modify an existing pending US stock order.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_global_stocks.py",
+      "method": "cancel_global_order",
+      "sdk_arguments": "self, order_id",
+      "reference_line": 100,
+      "reference_summary": "Cancel an existing pending US stock order.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_global_stocks.py",
+      "method": "get_global_trades",
+      "sdk_arguments": "self",
+      "reference_line": 112,
+      "reference_summary": "Retrieve the current trading day's executed US stock trades.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_global_stocks.py",
+      "method": "get_global_trades_by_security",
+      "sdk_arguments": "self, security_id",
+      "reference_line": 121,
+      "reference_summary": "Retrieve executed US stock trades filtered by a specific security ID.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_global_stocks.py",
+      "method": "get_global_holdings",
+      "sdk_arguments": "self",
+      "reference_line": 133,
+      "reference_summary": "Retrieve the authenticated user's current US stock holdings.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_global_stocks.py",
+      "method": "global_trans_estimate",
+      "sdk_arguments": "self, security_id, price, quantity, transaction_type",
+      "reference_line": 142,
+      "reference_summary": "Estimate the applicable charges for a US stock order before submitting it.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_global_stocks.py",
+      "method": "global_margin_calculator",
+      "sdk_arguments": "self, security_id, price, quantity, transaction_type",
+      "reference_line": 163,
+      "reference_summary": "Calculate the margin required for a US stock order before submitting it.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_global_stocks.py",
+      "method": "get_global_market_status",
+      "sdk_arguments": "self",
+      "reference_line": 184,
+      "reference_summary": "Retrieve the current trading status and session timing for the US stock market.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_global_stocks.py",
+      "method": "get_global_fund_limit",
+      "sdk_arguments": "self",
+      "reference_line": 193,
+      "reference_summary": "Retrieve the authenticated user's fund limit details for US stock trading.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_historical_data.py",
+      "method": "intraday_minute_data",
+      "sdk_arguments": "self, security_id, exchange_segment, instrument_type, from_date, to_date, interval=1, oi=False",
+      "reference_line": 12,
+      "reference_summary": "Retrieve OHLC & Volume of minute candles for desired instrument for last 5 trading day.",
+      "gnk_before": "candles and research",
+      "status_before": "integrated",
+      "target_phase": "account and research",
+      "status_after": "integrated",
+      "gnk_after": "Owner-bound guarded SDK reads reuse GNK portfolio/research services.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/client.py",
+        "backend/app/brokers/dhan/routes.py"
+      ]
+    },
+    {
+      "sdk_module": "_historical_data.py",
+      "method": "historical_daily_data",
+      "sdk_arguments": "self, security_id, exchange_segment, instrument_type, from_date, to_date, expiry_code=0, oi=False",
+      "reference_line": 41,
+      "reference_summary": "Retrieve OHLC & Volume of daily candle for desired instrument.",
+      "gnk_before": "candles and research",
+      "status_before": "integrated",
+      "target_phase": "account and research",
+      "status_after": "integrated",
+      "gnk_after": "Owner-bound guarded SDK reads reuse GNK portfolio/research services.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/client.py",
+        "backend/app/brokers/dhan/routes.py"
+      ]
+    },
+    {
+      "sdk_module": "_historical_data.py",
+      "method": "expired_options_data",
+      "sdk_arguments": "self, security_id, exchange_segment, instrument_type, expiry_flag, expiry_code, strike, drv_option_type, required_data, from_date, to_date, interval=1",
+      "reference_line": 77,
+      "reference_summary": "Fetch expired options data on a rolling basis.",
+      "gnk_before": "candles and research",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_market_feed.py",
+      "method": "ticker_data",
+      "sdk_arguments": "self, securities",
+      "reference_line": 7,
+      "reference_summary": "Retrieve the latest market price for specified instruments.",
+      "gnk_before": "personal REST snapshots",
+      "status_before": "integrated",
+      "target_phase": "account and research",
+      "status_after": "integrated",
+      "gnk_after": "Owner-bound guarded SDK reads reuse GNK portfolio/research services.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/client.py",
+        "backend/app/brokers/dhan/routes.py"
+      ]
+    },
+    {
+      "sdk_module": "_market_feed.py",
+      "method": "ohlc_data",
+      "sdk_arguments": "self, securities",
+      "reference_line": 25,
+      "reference_summary": "Retrieve the Open, High, Low and Close price along with LTP for specified instruments.",
+      "gnk_before": "personal REST snapshots",
+      "status_before": "integrated",
+      "target_phase": "account and research",
+      "status_after": "integrated",
+      "gnk_after": "Owner-bound guarded SDK reads reuse GNK portfolio/research services.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/client.py",
+        "backend/app/brokers/dhan/routes.py"
+      ]
+    },
+    {
+      "sdk_module": "_market_feed.py",
+      "method": "quote_data",
+      "sdk_arguments": "self, securities",
+      "reference_line": 43,
+      "reference_summary": "Retrieve full details including market depth, OHLC data, OI and volume along with LTP for specified instruments.",
+      "gnk_before": "personal REST snapshots",
+      "status_before": "integrated",
+      "target_phase": "account and research",
+      "status_after": "integrated",
+      "gnk_after": "Owner-bound guarded SDK reads reuse GNK portfolio/research services.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/client.py",
+        "backend/app/brokers/dhan/routes.py"
+      ]
+    },
+    {
+      "sdk_module": "_option_chain.py",
+      "method": "option_chain",
+      "sdk_arguments": "self, under_security_id, under_exchange_segment, expiry",
+      "reference_line": 7,
+      "reference_summary": "Retrieve the real-time Option Chain for a specified underlying instrument.",
+      "gnk_before": "expiry and options research",
+      "status_before": "integrated",
+      "target_phase": "account and research",
+      "status_after": "integrated",
+      "gnk_after": "Owner-bound guarded SDK reads reuse GNK portfolio/research services.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/client.py",
+        "backend/app/brokers/dhan/routes.py"
+      ]
+    },
+    {
+      "sdk_module": "_option_chain.py",
+      "method": "expiry_list",
+      "sdk_arguments": "self, under_security_id, under_exchange_segment",
+      "reference_line": 28,
+      "reference_summary": "Retrieve the dates of all expiries for a specified underlying instrument.",
+      "gnk_before": "expiry and options research",
+      "status_before": "integrated",
+      "target_phase": "account and research",
+      "status_after": "integrated",
+      "gnk_after": "Owner-bound guarded SDK reads reuse GNK portfolio/research services.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/client.py",
+        "backend/app/brokers/dhan/routes.py"
+      ]
+    },
+    {
+      "sdk_module": "_order.py",
+      "method": "get_order_list",
+      "sdk_arguments": "self",
+      "reference_line": 7,
+      "reference_summary": "Retrieve a list of all orders requested in a day with their last updated status.",
+      "gnk_before": "broker books; Upstox-only execution ledger",
+      "status_before": "integrated",
+      "target_phase": "core execution and private streams",
+      "status_after": "integrated",
+      "gnk_after": "Owner-bound guarded SDK reads reuse GNK portfolio/research services.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/client.py",
+        "backend/app/brokers/dhan/routes.py"
+      ]
+    },
+    {
+      "sdk_module": "_order.py",
+      "method": "get_order_by_id",
+      "sdk_arguments": "self, order_id",
+      "reference_line": 16,
+      "reference_summary": "Retrieve the details and status of an order from the orderbook placed during the day.",
+      "gnk_before": "broker books; Upstox-only execution ledger",
+      "status_before": "not_integrated",
+      "target_phase": "core execution and private streams",
+      "status_after": "equivalent_workflow",
+      "gnk_after": "GNK reconciles its durable IDs/correlation tags against the complete broker order book with strict identity matching; these SDK helpers are not separately exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_order.py",
+      "method": "get_order_by_correlationID",
+      "sdk_arguments": "self, correlation_id",
+      "reference_line": 28,
+      "reference_summary": "Retrieve the order status using a field called correlation_id.",
+      "gnk_before": "broker books; Upstox-only execution ledger",
+      "status_before": "not_integrated",
+      "target_phase": "core execution and private streams",
+      "status_after": "equivalent_workflow",
+      "gnk_after": "GNK reconciles its durable IDs/correlation tags against the complete broker order book with strict identity matching; these SDK helpers are not separately exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_order.py",
+      "method": "modify_order",
+      "sdk_arguments": "self, order_id, order_type, leg_name, quantity, price, trigger_price, disclosed_quantity, validity",
+      "reference_line": 40,
+      "reference_summary": "Modify a pending order in the orderbook.",
+      "gnk_before": "broker books; Upstox-only execution ledger",
+      "status_before": "not_integrated",
+      "target_phase": "core execution and private streams",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_order.py",
+      "method": "cancel_order",
+      "sdk_arguments": "self, order_id",
+      "reference_line": 70,
+      "reference_summary": "Cancel a pending order in the orderbook using the order ID.",
+      "gnk_before": "broker books; Upstox-only execution ledger",
+      "status_before": "not_integrated",
+      "target_phase": "core execution and private streams",
+      "status_after": "integrated_scoped",
+      "gnk_after": "GNK durable NSE equity intraday LIMIT/DAY intents, idempotency, owner approval, risk, cancellation and REST reconciliation; operator activation required.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/execution.py",
+        "backend/app/execution/live_service.py"
+      ]
+    },
+    {
+      "sdk_module": "_order.py",
+      "method": "place_order",
+      "sdk_arguments": "self, security_id, exchange_segment, transaction_type, quantity, order_type, product_type, price, trigger_price=0, disclosed_quantity=0, after_market_order=False, validity='DAY', amo_time='OPEN', bo_profit_value=None, bo_stop_loss_Value=None, tag=None, should_slice=False",
+      "reference_line": 82,
+      "reference_summary": "Place a new order in the Dhan account.",
+      "gnk_before": "broker books; Upstox-only execution ledger",
+      "status_before": "not_integrated",
+      "target_phase": "core execution and private streams",
+      "status_after": "integrated_scoped",
+      "gnk_after": "GNK durable NSE equity intraday LIMIT/DAY intents, idempotency, owner approval, risk, cancellation and REST reconciliation; operator activation required.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/execution.py",
+        "backend/app/execution/live_service.py"
+      ]
+    },
+    {
+      "sdk_module": "_order.py",
+      "method": "place_slice_order",
+      "sdk_arguments": "self, security_id, exchange_segment, transaction_type, quantity, order_type, product_type, price, trigger_price=0, disclosed_quantity=0, after_market_order=False, validity='DAY', amo_time='OPEN', bo_profit_value=None, bo_stop_loss_Value=None, tag=None",
+      "reference_line": 141,
+      "reference_summary": "Place a new slice order in the Dhan account.",
+      "gnk_before": "broker books; Upstox-only execution ledger",
+      "status_before": "not_integrated",
+      "target_phase": "core execution and private streams",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_portfolio.py",
+      "method": "get_holdings",
+      "sdk_arguments": "self",
+      "reference_line": 7,
+      "reference_summary": "Retrieve all holdings bought/sold in previous trading sessions.",
+      "gnk_before": "portfolio snapshots",
+      "status_before": "integrated",
+      "target_phase": "account and research",
+      "status_after": "integrated",
+      "gnk_after": "Owner-bound guarded SDK reads reuse GNK portfolio/research services.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/client.py",
+        "backend/app/brokers/dhan/routes.py"
+      ]
+    },
+    {
+      "sdk_module": "_portfolio.py",
+      "method": "get_positions",
+      "sdk_arguments": "self",
+      "reference_line": 16,
+      "reference_summary": "Retrieve a list of all open positions for the day.",
+      "gnk_before": "portfolio snapshots",
+      "status_before": "integrated",
+      "target_phase": "account and research",
+      "status_after": "integrated",
+      "gnk_after": "Owner-bound guarded SDK reads reuse GNK portfolio/research services.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/client.py",
+        "backend/app/brokers/dhan/routes.py"
+      ]
+    },
+    {
+      "sdk_module": "_portfolio.py",
+      "method": "exit_all_positions",
+      "sdk_arguments": "self",
+      "reference_line": 25,
+      "reference_summary": "Exit all open positions for the day.",
+      "gnk_before": "portfolio snapshots",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_portfolio.py",
+      "method": "convert_position",
+      "sdk_arguments": "self, from_product_type, exchange_segment, position_type, security_id, convert_qty, to_product_type",
+      "reference_line": 34,
+      "reference_summary": "Convert Position from Intraday to Delivery or vice versa.",
+      "gnk_before": "portfolio snapshots",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_security.py",
+      "method": "generate_tpin",
+      "sdk_arguments": "self",
+      "reference_line": 30,
+      "reference_summary": "Generate T-Pin on registered mobile number.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_security.py",
+      "method": "open_browser_for_tpin",
+      "sdk_arguments": "self, isin, qty, exchange, segment='EQ', bulk=False",
+      "reference_line": 48,
+      "reference_summary": "Opens the default web browser to enter T-Pin.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_security.py",
+      "method": "edis_inquiry",
+      "sdk_arguments": "self, isin",
+      "reference_line": 81,
+      "reference_summary": "Inquire about the eDIS status of the provided ISIN.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_security.py",
+      "method": "fetch_security_list",
+      "sdk_arguments": "mode='compact', filename='security_id_list.csv'",
+      "reference_line": 95,
+      "reference_summary": "Fetch CSV file from dhan based on the specified mode and save it to the current directory.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "adapted_scoped",
+      "gnk_after": "Bounded streaming official master import, provider namespace, atomic upsert; unit-lot Indian equity scope.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/instruments.py"
+      ]
+    },
+    {
+      "sdk_module": "_security.py",
+      "method": "fetch_global_security_list",
+      "sdk_arguments": "filename='global_security_id_list.csv'",
+      "reference_line": 127,
+      "reference_summary": "Fetch the Global Stocks (US) instrument list CSV from Dhan and save it to the",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_statement.py",
+      "method": "get_trade_book",
+      "sdk_arguments": "self, order_id=None",
+      "reference_line": 8,
+      "reference_summary": "Retrieve a list of all trades executed in a day.",
+      "gnk_before": "broker trades/history",
+      "status_before": "integrated",
+      "target_phase": "account and research",
+      "status_after": "integrated",
+      "gnk_after": "Owner-bound guarded SDK reads reuse GNK portfolio/research services.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/client.py",
+        "backend/app/brokers/dhan/routes.py"
+      ]
+    },
+    {
+      "sdk_module": "_statement.py",
+      "method": "get_trade_history",
+      "sdk_arguments": "self, from_date, to_date, page_number=0",
+      "reference_line": 23,
+      "reference_summary": "Retrieve the trade history for a specific date range.",
+      "gnk_before": "broker trades/history",
+      "status_before": "integrated",
+      "target_phase": "account and research",
+      "status_after": "integrated",
+      "gnk_after": "Owner-bound guarded SDK reads reuse GNK portfolio/research services.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/client.py",
+        "backend/app/brokers/dhan/routes.py"
+      ]
+    },
+    {
+      "sdk_module": "_statement.py",
+      "method": "ledger_report",
+      "sdk_arguments": "self, from_date, to_date",
+      "reference_line": 38,
+      "reference_summary": "Retrieve the ledger details for a specific date range.",
+      "gnk_before": "broker trades/history",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_super_order.py",
+      "method": "get_super_order_list",
+      "sdk_arguments": "self",
+      "reference_line": 15,
+      "reference_summary": "Retrieve a list of all live/requested super orders with their latest status.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_super_order.py",
+      "method": "modify_super_order",
+      "sdk_arguments": "self, order_id, order_type, leg_name, quantity=0, price=0.0, targetPrice=0.0, stopLossPrice=0.0, trailingJump=0.0",
+      "reference_line": 24,
+      "reference_summary": "Modify a pending super order leg.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_super_order.py",
+      "method": "cancel_super_order",
+      "sdk_arguments": "self, order_id, order_leg",
+      "reference_line": 84,
+      "reference_summary": "Cancel a super order or a specific leg.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_super_order.py",
+      "method": "place_super_order",
+      "sdk_arguments": "self, security_id, exchange_segment, transaction_type, quantity, order_type, product_type, price, targetPrice=0.0, stopLossPrice=0.0, trailingJump=0.0, tag=None",
+      "reference_line": 108,
+      "reference_summary": "Place a new Super Order on Dhan platform with entry, target and stop-loss legs.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_trader_control.py",
+      "method": "kill_switch",
+      "sdk_arguments": "self, action",
+      "reference_line": 7,
+      "reference_summary": "Control kill switch for user, which will disable trading for current trading day.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_trader_control.py",
+      "method": "status_kill_switch",
+      "sdk_arguments": "self",
+      "reference_line": 40,
+      "reference_summary": "Retrieve the status of the kill switch for the account.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_trader_control.py",
+      "method": "set_pnl_exit",
+      "sdk_arguments": "self, profit_value, loss_value, product_type, enable_kill_switch=False",
+      "reference_line": 50,
+      "reference_summary": "Configure automatic exit rules based on cumulative profit or loss thresholds.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_trader_control.py",
+      "method": "get_pnl_exit",
+      "sdk_arguments": "self",
+      "reference_line": 71,
+      "reference_summary": "Fetch the currently active P&L based exit configuration.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "_trader_control.py",
+      "method": "stop_pnl_exit",
+      "sdk_arguments": "self",
+      "reference_line": 80,
+      "reference_summary": "Disable the active P&L based exit configuration.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "auth.py",
+      "method": "generate_login_session",
+      "sdk_arguments": "self, app_id, app_secret",
+      "reference_line": 16,
+      "reference_summary": "Step 1 & 2 of OAuth flow: Generate Consent and Open Browser for Login.",
+      "gnk_before": "token verification and renewal",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "adapted",
+      "gnk_after": "GNK server-side transport replaces browser opening/raw logging; registered consent is explicitly configured; IP read protects execution.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/authentication.py",
+        "backend/app/brokers/dhan/execution.py"
+      ]
+    },
+    {
+      "sdk_module": "auth.py",
+      "method": "consume_token_id",
+      "sdk_arguments": "self, token_id, app_id, app_secret",
+      "reference_line": 53,
+      "reference_summary": "Step 3 of OAuth flow: Consume Token ID to get Access Token.",
+      "gnk_before": "token verification and renewal",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "adapted",
+      "gnk_after": "GNK server-side transport replaces browser opening/raw logging; registered consent is explicitly configured; IP read protects execution.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/authentication.py",
+        "backend/app/brokers/dhan/execution.py"
+      ]
+    },
+    {
+      "sdk_module": "auth.py",
+      "method": "generate_token",
+      "sdk_arguments": "self, pin, totp",
+      "reference_line": 87,
+      "reference_summary": "Generate Access Token via PIN and TOTP.",
+      "gnk_before": "token verification and renewal",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Broker PIN/TOTP collection intentionally excluded; use broker-hosted login or individual token.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "auth.py",
+      "method": "renew_token",
+      "sdk_arguments": "self, access_token",
+      "reference_line": 122,
+      "reference_summary": "Renew Access Token.",
+      "gnk_before": "token verification and renewal",
+      "status_before": "integrated",
+      "target_phase": "account and research",
+      "status_after": "adapted",
+      "gnk_after": "GNK server-side transport replaces browser opening/raw logging; registered consent is explicitly configured; IP read protects execution.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/authentication.py",
+        "backend/app/brokers/dhan/execution.py"
+      ]
+    },
+    {
+      "sdk_module": "auth.py",
+      "method": "user_profile",
+      "sdk_arguments": "self, access_token",
+      "reference_line": 151,
+      "reference_summary": "Check validity of access token and account setup.",
+      "gnk_before": "token verification and renewal",
+      "status_before": "integrated",
+      "target_phase": "account and research",
+      "status_after": "adapted",
+      "gnk_after": "GNK server-side transport replaces browser opening/raw logging; registered consent is explicitly configured; IP read protects execution.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/authentication.py",
+        "backend/app/brokers/dhan/execution.py"
+      ]
+    },
+    {
+      "sdk_module": "auth.py",
+      "method": "set_ip",
+      "sdk_arguments": "self, access_token, ip, ip_flag, dhan_client_id=None",
+      "reference_line": 180,
+      "reference_summary": "Set Primary or Secondary IP for the account.",
+      "gnk_before": "token verification and renewal",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "auth.py",
+      "method": "modify_ip",
+      "sdk_arguments": "self, access_token, ip, ip_flag, dhan_client_id=None",
+      "reference_line": 203,
+      "reference_summary": "Modify Primary or Secondary IP for the account.",
+      "gnk_before": "token verification and renewal",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "auth.py",
+      "method": "get_ip",
+      "sdk_arguments": "self, access_token, dhan_client_id=None",
+      "reference_line": 226,
+      "reference_summary": "Get the list of currently set IPs.",
+      "gnk_before": "token verification and renewal",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "adapted",
+      "gnk_after": "GNK server-side transport replaces browser opening/raw logging; registered consent is explicitly configured; IP read protects execution.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/authentication.py",
+        "backend/app/brokers/dhan/execution.py"
+      ]
+    },
+    {
+      "sdk_module": "dhan_context.py",
+      "method": "get_client_id",
+      "sdk_arguments": "self",
+      "reference_line": 32,
+      "reference_summary": "Return client's id that is used to identify the client interacting with Dhan API",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "plumbing",
+      "gnk_after": "SDK context/transport helpers are dependency internals. SafeDhanHTTP enforces fixed endpoints and read-only default; no raw generic API proxy.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/client.py"
+      ]
+    },
+    {
+      "sdk_module": "dhan_context.py",
+      "method": "get_access_token",
+      "sdk_arguments": "self",
+      "reference_line": 39,
+      "reference_summary": "Return authorization token that is used for connecting to Dhan API",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "plumbing",
+      "gnk_after": "SDK context/transport helpers are dependency internals. SafeDhanHTTP enforces fixed endpoints and read-only default; no raw generic API proxy.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/client.py"
+      ]
+    },
+    {
+      "sdk_module": "dhan_context.py",
+      "method": "get_dhan_http",
+      "sdk_arguments": "self",
+      "reference_line": 46,
+      "reference_summary": "Return HTTP Connection Request object that has all necessary context to connect to Dhan API",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "plumbing",
+      "gnk_after": "SDK context/transport helpers are dependency internals. SafeDhanHTTP enforces fixed endpoints and read-only default; no raw generic API proxy.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/client.py"
+      ]
+    },
+    {
+      "sdk_module": "dhan_context.py",
+      "method": "get_dhan_login",
+      "sdk_arguments": "self",
+      "reference_line": 55,
+      "reference_summary": "Return DhanLogin object to handle authentication",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "plumbing",
+      "gnk_after": "SDK context/transport helpers are dependency internals. SafeDhanHTTP enforces fixed endpoints and read-only default; no raw generic API proxy.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/client.py"
+      ]
+    },
+    {
+      "sdk_module": "dhan_http.py",
+      "method": "get",
+      "sdk_arguments": "self, endpoint",
+      "reference_line": 106,
+      "reference_summary": "Do HTTP-GET request to Dhan Endpoint.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "plumbing",
+      "gnk_after": "SDK context/transport helpers are dependency internals. SafeDhanHTTP enforces fixed endpoints and read-only default; no raw generic API proxy.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/client.py"
+      ]
+    },
+    {
+      "sdk_module": "dhan_http.py",
+      "method": "post",
+      "sdk_arguments": "self, endpoint, payload",
+      "reference_line": 118,
+      "reference_summary": "Do HTTP-POST request to Dhan Endpoint.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "plumbing",
+      "gnk_after": "SDK context/transport helpers are dependency internals. SafeDhanHTTP enforces fixed endpoints and read-only default; no raw generic API proxy.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/client.py"
+      ]
+    },
+    {
+      "sdk_module": "dhan_http.py",
+      "method": "put",
+      "sdk_arguments": "self, endpoint, payload",
+      "reference_line": 131,
+      "reference_summary": "Do HTTP-PUT request to Dhan Endpoint.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "plumbing",
+      "gnk_after": "SDK context/transport helpers are dependency internals. SafeDhanHTTP enforces fixed endpoints and read-only default; no raw generic API proxy.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/client.py"
+      ]
+    },
+    {
+      "sdk_module": "dhan_http.py",
+      "method": "delete",
+      "sdk_arguments": "self, endpoint",
+      "reference_line": 144,
+      "reference_summary": "Do HTTP-DELETE request to Dhan Endpoint.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "plumbing",
+      "gnk_after": "SDK context/transport helpers are dependency internals. SafeDhanHTTP enforces fixed endpoints and read-only default; no raw generic API proxy.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/client.py"
+      ]
+    },
+    {
+      "sdk_module": "dhanhq.py",
+      "method": "convert_to_date_time",
+      "sdk_arguments": "self, epoch",
+      "reference_line": 65,
+      "reference_summary": "Convert EPOCH time to Python datetime object in IST.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "not_integrated",
+      "target_phase": "selective advanced integration",
+      "status_after": "plumbing",
+      "gnk_after": "SDK context/transport helpers are dependency internals. SafeDhanHTTP enforces fixed endpoints and read-only default; no raw generic API proxy.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/client.py"
+      ]
+    },
+    {
+      "sdk_module": "fulldepth.py",
+      "method": "run_forever",
+      "sdk_arguments": "self",
+      "reference_line": 62,
+      "reference_summary": "Starts the WebSocket connection and runs the event loop.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "fulldepth.py",
+      "method": "get_data",
+      "sdk_arguments": "self",
+      "reference_line": 66,
+      "reference_summary": "Fetch instruments data while the event loop is open.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "fulldepth.py",
+      "method": "close_connection",
+      "sdk_arguments": "self",
+      "reference_line": 100,
+      "reference_summary": "Close WebSocket connection with this.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "fulldepth.py",
+      "method": "connect",
+      "sdk_arguments": "self",
+      "reference_line": 104,
+      "reference_summary": "Initiates the connection to the Websockets.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "fulldepth.py",
+      "method": "get_instrument_data",
+      "sdk_arguments": "self",
+      "reference_line": 118,
+      "reference_summary": "Fetches data and processes messages one at a time",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "fulldepth.py",
+      "method": "disconnect",
+      "sdk_arguments": "self",
+      "reference_line": 132,
+      "reference_summary": "Closes the WebSocket connection and sends a disconnect message.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "fulldepth.py",
+      "method": "validate_and_process_tuples",
+      "sdk_arguments": "self, tuples_list, batch_size=None",
+      "reference_line": 144,
+      "reference_summary": "Create a list of all instruments to be added with appropriate batch size based on depth level",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "fulldepth.py",
+      "method": "subscribe_instruments",
+      "sdk_arguments": "self",
+      "reference_line": 166,
+      "reference_summary": "Subscribe Instruments on the Open Websocket",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "fulldepth.py",
+      "method": "get_exchange_segment",
+      "sdk_arguments": "self, exchange_code",
+      "reference_line": 193,
+      "reference_summary": "Convert numeric exchange code to string representation",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "fulldepth.py",
+      "method": "process_data",
+      "sdk_arguments": "self, data",
+      "reference_line": 201,
+      "reference_summary": "Read binary data and process messages one at a time",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "fulldepth.py",
+      "method": "process_20_depth_data",
+      "sdk_arguments": "self, data, offset",
+      "reference_line": 214,
+      "reference_summary": "Process data for 20 depth level",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "fulldepth.py",
+      "method": "process_200_depth_data",
+      "sdk_arguments": "self, data, offset",
+      "reference_line": 239,
+      "reference_summary": "Process data for 200 depth level",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "fulldepth.py",
+      "method": "process_20_depth_data_body",
+      "sdk_arguments": "self, data, is_bid=True",
+      "reference_line": 266,
+      "reference_summary": "Parse and process depth data for 20 depth level",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "fulldepth.py",
+      "method": "process_200_depth_data_body",
+      "sdk_arguments": "self, data, no_of_rows, is_bid=True",
+      "reference_line": 300,
+      "reference_summary": "Parse and process depth data for 200 depth level",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "fulldepth.py",
+      "method": "combine_and_format_depth",
+      "sdk_arguments": "self, bid_data, ask_data",
+      "reference_line": 335,
+      "reference_summary": "Combine and sort bid/ask data, then format for display",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "fulldepth.py",
+      "method": "server_disconnection",
+      "sdk_arguments": "self, data",
+      "reference_line": 361,
+      "reference_summary": "Parse and process server disconnection error",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "fulldepth.py",
+      "method": "pad_with_zeros",
+      "sdk_arguments": "self, data, length",
+      "reference_line": 381,
+      "reference_summary": "Pads a binary data string with zeros to a specified length for server to read.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "fulldepth.py",
+      "method": "create_header",
+      "sdk_arguments": "self, feed_request_code, message_length, client_id",
+      "reference_line": 386,
+      "reference_summary": "Creates header packet for the subscription packet.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "fulldepth.py",
+      "method": "utc_time",
+      "sdk_arguments": "self, epoch_time",
+      "reference_line": 392,
+      "reference_summary": "Converts EPOCH time to UTC time.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "fulldepth.py",
+      "method": "create_subscription_packet",
+      "sdk_arguments": "self, instruments, feed_request_code",
+      "reference_line": 396,
+      "reference_summary": "Creates the subscription packet with specified instruments and subscription code",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "fulldepth.py",
+      "method": "subscribe_symbols",
+      "sdk_arguments": "self, symbols",
+      "reference_line": 415,
+      "reference_summary": "Function to subscribe to additional symbols when connection is already established.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "fulldepth.py",
+      "method": "unsubscribe_symbols",
+      "sdk_arguments": "self, symbols",
+      "reference_line": 435,
+      "reference_summary": "Function to unsubscribe symbols from connection when connection is already active.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "global_stocks_feed.py",
+      "method": "run_forever",
+      "sdk_arguments": "self",
+      "reference_line": 75,
+      "reference_summary": "Start the WebSocket connection and run the event loop.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "global_stocks_feed.py",
+      "method": "get_data",
+      "sdk_arguments": "self",
+      "reference_line": 79,
+      "reference_summary": "Fetch instrument data while the event loop is open.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "global_stocks_feed.py",
+      "method": "run",
+      "sdk_arguments": "self",
+      "reference_line": 83,
+      "reference_summary": "Blocking call that connects, receives messages and dispatches callbacks.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "global_stocks_feed.py",
+      "method": "start",
+      "sdk_arguments": "self",
+      "reference_line": 91,
+      "reference_summary": "Start the WebSocket connection in a separate daemon thread. Returns the thread.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "global_stocks_feed.py",
+      "method": "connect",
+      "sdk_arguments": "self",
+      "reference_line": 136,
+      "reference_summary": "Open the WebSocket connection and subscribe to the configured instruments.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "global_stocks_feed.py",
+      "method": "get_instrument_data",
+      "sdk_arguments": "self",
+      "reference_line": 157,
+      "reference_summary": "Receive a binary message and process it.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "global_stocks_feed.py",
+      "method": "disconnect",
+      "sdk_arguments": "self",
+      "reference_line": 163,
+      "reference_summary": "Send a disconnect request and close the WebSocket connection.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "global_stocks_feed.py",
+      "method": "close_connection",
+      "sdk_arguments": "self",
+      "reference_line": 175,
+      "reference_summary": "Close the WebSocket connection.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "global_stocks_feed.py",
+      "method": "subscribe_instruments",
+      "sdk_arguments": "self",
+      "reference_line": 218,
+      "reference_summary": "Subscribe to all configured instruments on the open WebSocket.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "global_stocks_feed.py",
+      "method": "subscribe_symbols",
+      "sdk_arguments": "self, symbols",
+      "reference_line": 223,
+      "reference_summary": "Subscribe to additional instruments on an already-open connection.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "global_stocks_feed.py",
+      "method": "unsubscribe_symbols",
+      "sdk_arguments": "self, symbols",
+      "reference_line": 230,
+      "reference_summary": "Unsubscribe instruments from an already-open connection.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "global_stocks_feed.py",
+      "method": "process_data",
+      "sdk_arguments": "self, data",
+      "reference_line": 238,
+      "reference_summary": "Parse a binary message that may contain one or more concatenated packets.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "global_stocks_feed.py",
+      "method": "process_packet",
+      "sdk_arguments": "self, msg_code, packet",
+      "reference_line": 264,
+      "reference_summary": "Dispatch a single packet to its type-specific parser.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "global_stocks_feed.py",
+      "method": "process_trade",
+      "sdk_arguments": "self, packet",
+      "reference_line": 282,
+      "reference_summary": "Parse a Trade packet (MsgCode 1, 27 bytes). LTP is float32.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "global_stocks_feed.py",
+      "method": "process_ohlc",
+      "sdk_arguments": "self, packet",
+      "reference_line": 296,
+      "reference_summary": "Parse an OHLC packet (MsgCode 3, 27 bytes). O/H/L/C are float32.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "global_stocks_feed.py",
+      "method": "process_prev_close",
+      "sdk_arguments": "self, packet",
+      "reference_line": 310,
+      "reference_summary": "Parse a Previous Close packet (MsgCode 32, 15 bytes).",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "global_stocks_feed.py",
+      "method": "process_circuit_limit",
+      "sdk_arguments": "self, packet",
+      "reference_line": 321,
+      "reference_summary": "Parse a Circuit Limit packet (MsgCode 33, 19 bytes).",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "global_stocks_feed.py",
+      "method": "process_52_week",
+      "sdk_arguments": "self, packet",
+      "reference_line": 333,
+      "reference_summary": "Parse a 52-Week High/Low packet (MsgCode 36, 19 bytes).",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "global_stocks_feed.py",
+      "method": "process_market_status",
+      "sdk_arguments": "self, packet",
+      "reference_line": 345,
+      "reference_summary": "Parse a Market Status packet (MsgCode 29, 18 bytes).",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "global_stocks_feed.py",
+      "method": "process_error",
+      "sdk_arguments": "self, packet",
+      "reference_line": 357,
+      "reference_summary": "Parse an Error packet (MsgCode 50, 13 bytes): the 11-byte header followed by an int16 error code.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "global_stocks_feed.py",
+      "method": "utc_time",
+      "sdk_arguments": "self, epoch_time",
+      "reference_line": 379,
+      "reference_summary": "Convert EPOCH time to a UTC HH:MM:SS string.",
+      "gnk_before": "not integrated / SDK plumbing",
+      "status_before": "protocol_helper",
+      "target_phase": "selective advanced integration",
+      "status_after": "deferred",
+      "gnk_after": "Separate workflow, entitlement, ledger or recovery model required; not exposed.",
+      "implementation_files": []
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "run_forever",
+      "sdk_arguments": "self",
+      "reference_line": 62,
+      "reference_summary": "Starts the WebSocket connection and runs the event loop.",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "replaced_or_not_exposed",
+      "gnk_after": "GNK owns reconnect/cancellation/tickets/fencing; public streams expose only timestamped ticker/quote/full fields. V1 and other packet features are not independent UI features.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "get_data",
+      "sdk_arguments": "self",
+      "reference_line": 66,
+      "reference_summary": "Fetch instruments data while the event loop is open.",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "replaced_or_not_exposed",
+      "gnk_after": "GNK owns reconnect/cancellation/tickets/fencing; public streams expose only timestamped ticker/quote/full fields. V1 and other packet features are not independent UI features.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "close_connection",
+      "sdk_arguments": "self",
+      "reference_line": 70,
+      "reference_summary": "Close WebSocket connection with this.",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "replaced_or_not_exposed",
+      "gnk_after": "GNK owns reconnect/cancellation/tickets/fencing; public streams expose only timestamped ticker/quote/full fields. V1 and other packet features are not independent UI features.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "run",
+      "sdk_arguments": "self",
+      "reference_line": 87,
+      "reference_summary": "Blocking call to run the WebSocket connection.",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "replaced_or_not_exposed",
+      "gnk_after": "GNK owns reconnect/cancellation/tickets/fencing; public streams expose only timestamped ticker/quote/full fields. V1 and other packet features are not independent UI features.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "start",
+      "sdk_arguments": "self",
+      "reference_line": 98,
+      "reference_summary": "Starts the WebSocket connection in a separate thread.",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "replaced_or_not_exposed",
+      "gnk_after": "GNK owns reconnect/cancellation/tickets/fencing; public streams expose only timestamped ticker/quote/full fields. V1 and other packet features are not independent UI features.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "connect",
+      "sdk_arguments": "self",
+      "reference_line": 147,
+      "reference_summary": "Initiates the connection to the Websockets.",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "replaced_or_not_exposed",
+      "gnk_after": "GNK owns reconnect/cancellation/tickets/fencing; public streams expose only timestamped ticker/quote/full fields. V1 and other packet features are not independent UI features.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "get_instrument_data",
+      "sdk_arguments": "self",
+      "reference_line": 176,
+      "reference_summary": "Fetches data and initiates process for conversion.",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "replaced_or_not_exposed",
+      "gnk_after": "GNK owns reconnect/cancellation/tickets/fencing; public streams expose only timestamped ticker/quote/full fields. V1 and other packet features are not independent UI features.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "disconnect",
+      "sdk_arguments": "self",
+      "reference_line": 182,
+      "reference_summary": "Closes the WebSocket connection and sends a disconnect message.",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "replaced_or_not_exposed",
+      "gnk_after": "GNK owns reconnect/cancellation/tickets/fencing; public streams expose only timestamped ticker/quote/full fields. V1 and other packet features are not independent UI features.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "authorize",
+      "sdk_arguments": "self",
+      "reference_line": 201,
+      "reference_summary": "Establishes the WebSocket connection and authorizes the user",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "replaced_or_not_exposed",
+      "gnk_after": "GNK owns reconnect/cancellation/tickets/fencing; public streams expose only timestamped ticker/quote/full fields. V1 and other packet features are not independent UI features.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "validate_and_process_tuples",
+      "sdk_arguments": "self, tuples_list, batch_size=100",
+      "reference_line": 237,
+      "reference_summary": "Create a list of all instruments to be added and add in batches of 100",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "sdk_component_used",
+      "gnk_after": "Official SDK v2 parser/subscription helpers inside GNK private-account leased connection lifecycle.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "subscribe_instruments",
+      "sdk_arguments": "self",
+      "reference_line": 273,
+      "reference_summary": "Subscribe Instruments on the Open Websocket",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "sdk_component_used",
+      "gnk_after": "Official SDK v2 parser/subscription helpers inside GNK private-account leased connection lifecycle.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "get_exchange_segment",
+      "sdk_arguments": "self, exchange_code",
+      "reference_line": 311,
+      "reference_summary": "Convert numeric exchange code to string representation",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "sdk_component_used",
+      "gnk_after": "Official SDK v2 parser/subscription helpers inside GNK private-account leased connection lifecycle.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "process_data",
+      "sdk_arguments": "self, data",
+      "reference_line": 325,
+      "reference_summary": "Read binary data and initiate processing in received format",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "sdk_component_used",
+      "gnk_after": "Official SDK v2 parser/subscription helpers inside GNK private-account leased connection lifecycle.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "process_ticker",
+      "sdk_arguments": "self, data",
+      "reference_line": 345,
+      "reference_summary": "Parse and process Ticker Data",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "sdk_component_used",
+      "gnk_after": "Official SDK v2 parser/subscription helpers inside GNK private-account leased connection lifecycle.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "process_prev_close",
+      "sdk_arguments": "self, data",
+      "reference_line": 358,
+      "reference_summary": "Parse and process Previous Day Data",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "replaced_or_not_exposed",
+      "gnk_after": "GNK owns reconnect/cancellation/tickets/fencing; public streams expose only timestamped ticker/quote/full fields. V1 and other packet features are not independent UI features.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "process_market_depth",
+      "sdk_arguments": "self, data",
+      "reference_line": 371,
+      "reference_summary": "Parse and process Market Depth Data",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "replaced_or_not_exposed",
+      "gnk_after": "GNK owns reconnect/cancellation/tickets/fencing; public streams expose only timestamped ticker/quote/full fields. V1 and other packet features are not independent UI features.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "process_quote",
+      "sdk_arguments": "self, data",
+      "reference_line": 408,
+      "reference_summary": "Parse and process Quote Data",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "sdk_component_used",
+      "gnk_after": "Official SDK v2 parser/subscription helpers inside GNK private-account leased connection lifecycle.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "process_oi",
+      "sdk_arguments": "self, data",
+      "reference_line": 429,
+      "reference_summary": "Parse and process OI Data",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "replaced_or_not_exposed",
+      "gnk_after": "GNK owns reconnect/cancellation/tickets/fencing; public streams expose only timestamped ticker/quote/full fields. V1 and other packet features are not independent UI features.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "process_status",
+      "sdk_arguments": "self, data",
+      "reference_line": 440,
+      "reference_summary": "Parse and process market status",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "replaced_or_not_exposed",
+      "gnk_after": "GNK owns reconnect/cancellation/tickets/fencing; public streams expose only timestamped ticker/quote/full fields. V1 and other packet features are not independent UI features.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "process_full",
+      "sdk_arguments": "self, data",
+      "reference_line": 446,
+      "reference_summary": "Parse and process Full Packet Data",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "sdk_component_used",
+      "gnk_after": "Official SDK v2 parser/subscription helpers inside GNK private-account leased connection lifecycle.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "server_disconnection",
+      "sdk_arguments": "self, data",
+      "reference_line": 493,
+      "reference_summary": "Parse and process server disconnection error",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "replaced_or_not_exposed",
+      "gnk_after": "GNK owns reconnect/cancellation/tickets/fencing; public streams expose only timestamped ticker/quote/full fields. V1 and other packet features are not independent UI features.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "pad_with_zeros",
+      "sdk_arguments": "self, data, length",
+      "reference_line": 510,
+      "reference_summary": "Pads a binary data string with zeros to a specified length for server to read.",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "replaced_or_not_exposed",
+      "gnk_after": "GNK owns reconnect/cancellation/tickets/fencing; public streams expose only timestamped ticker/quote/full fields. V1 and other packet features are not independent UI features.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "create_header",
+      "sdk_arguments": "self, feed_request_code, message_length, client_id",
+      "reference_line": 515,
+      "reference_summary": "Creates header packet for the subscription packet.",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "replaced_or_not_exposed",
+      "gnk_after": "GNK owns reconnect/cancellation/tickets/fencing; public streams expose only timestamped ticker/quote/full fields. V1 and other packet features are not independent UI features.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "utc_time",
+      "sdk_arguments": "self, epoch_time",
+      "reference_line": 521,
+      "reference_summary": "Converts EPOCH time to UTC time.",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "sdk_component_used",
+      "gnk_after": "Official SDK v2 parser/subscription helpers inside GNK private-account leased connection lifecycle.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "create_subscription_packet",
+      "sdk_arguments": "self, instruments, feed_request_code",
+      "reference_line": 525,
+      "reference_summary": "Creates the subscription packet with specified instruments and subscription code",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "replaced_or_not_exposed",
+      "gnk_after": "GNK owns reconnect/cancellation/tickets/fencing; public streams expose only timestamped ticker/quote/full fields. V1 and other packet features are not independent UI features.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "subscribe_symbols",
+      "sdk_arguments": "self, symbols",
+      "reference_line": 544,
+      "reference_summary": "Function to subscribe to additional symbols when connection is already established.",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "replaced_or_not_exposed",
+      "gnk_after": "GNK owns reconnect/cancellation/tickets/fencing; public streams expose only timestamped ticker/quote/full fields. V1 and other packet features are not independent UI features.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "marketfeed.py",
+      "method": "unsubscribe_symbols",
+      "sdk_arguments": "self, symbols",
+      "reference_line": 581,
+      "reference_summary": "Function to unsubscribe symbols from connection when connection is already active.",
+      "gnk_before": "not yet integrated",
+      "status_before": "protocol_helper",
+      "target_phase": "core execution and private streams",
+      "status_after": "replaced_or_not_exposed",
+      "gnk_after": "GNK owns reconnect/cancellation/tickets/fencing; public streams expose only timestamped ticker/quote/full fields. V1 and other packet features are not independent UI features.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py",
+        "backend/app/brokers/dhan/stream_routes.py"
+      ]
+    },
+    {
+      "sdk_module": "orderupdate.py",
+      "method": "connect_order_update",
+      "sdk_arguments": "self",
+      "reference_line": 39,
+      "reference_summary": "Connects to the WebSocket and listens for order updates.",
+      "gnk_before": "not yet integrated",
+      "status_before": "not_integrated",
+      "target_phase": "core execution and private streams",
+      "status_after": "protocol_adapted",
+      "gnk_after": "GNK secret-safe bounded connection loop and whitelisted order notifications; REST fills remain authoritative. Native printing callbacks are not executed.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py"
+      ]
+    },
+    {
+      "sdk_module": "orderupdate.py",
+      "method": "handle_order_update",
+      "sdk_arguments": "self, order_update",
+      "reference_line": 62,
+      "reference_summary": "Handles incoming order update messages.",
+      "gnk_before": "not yet integrated",
+      "status_before": "not_integrated",
+      "target_phase": "core execution and private streams",
+      "status_after": "protocol_adapted",
+      "gnk_after": "GNK secret-safe bounded connection loop and whitelisted order notifications; REST fills remain authoritative. Native printing callbacks are not executed.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py"
+      ]
+    },
+    {
+      "sdk_module": "orderupdate.py",
+      "method": "connect_to_dhan_websocket_sync",
+      "sdk_arguments": "self",
+      "reference_line": 83,
+      "reference_summary": "Synchronously connects to the WebSocket.",
+      "gnk_before": "not yet integrated",
+      "status_before": "not_integrated",
+      "target_phase": "core execution and private streams",
+      "status_after": "protocol_adapted",
+      "gnk_after": "GNK secret-safe bounded connection loop and whitelisted order notifications; REST fills remain authoritative. Native printing callbacks are not executed.",
+      "implementation_files": [
+        "backend/app/brokers/dhan/streams.py"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": ".flake8",
+      "lines": 16,
+      "sha256": "65e82f8a823ddf2890ee588b0739bcecfe9a3c7b661d6e16b8f69969c507959b"
+    },
+    {
+      "path": ".github/workflows/python-pre-publish.yml",
+      "lines": 70,
+      "sha256": "04ec168b21a7e699072b3f7d6c126c3bb14f4748d1c6805aea134c809a0fb43a"
+    },
+    {
+      "path": ".github/workflows/python-publish.yml",
+      "lines": 46,
+      "sha256": "8ed4d515388e87cf344679eec5ae20336f340880172ab73adfeae1b13e3d0e89"
+    },
+    {
+      "path": ".gitignore",
+      "lines": 20,
+      "sha256": "22ed3e36f6264d011cd4c1c8b00e778b815eba0f7f99d4f5842f3b210695c397"
+    },
+    {
+      "path": ".pylintrc",
+      "lines": 647,
+      "sha256": "5be5f8a414b65bc66ee283731c8458430cc93beb2e12847f867d1e337f5322d3"
+    },
+    {
+      "path": ".test.env.sample",
+      "lines": 2,
+      "sha256": "23cf847600571042b454fc9b3f11bd1a2a991d67b188942c7809766c6d3e1462"
+    },
+    {
+      "path": "DEV_README.md",
+      "lines": 100,
+      "sha256": "daf258111141f84d82ab151f4e1cddbf91dee7f2d538893ead682158e6205e38"
+    },
+    {
+      "path": "examples/auth_example.py",
+      "lines": 49,
+      "sha256": "7461d0148d6c34735a642bf8547a48fdf509e9dc084aab7da6794551a398df1e"
+    },
+    {
+      "path": "examples/conditional_order_example.py",
+      "lines": 55,
+      "sha256": "62ca7474380ad0d08608c4d48a15cde6c3c4c145e5454a0ae6d92438bd8991f6"
+    },
+    {
+      "path": "examples/forever_order.py",
+      "lines": 44,
+      "sha256": "cf95972e7ba34de66e63864625cc1b1dff076acfc146e28c3073b6282284dee0"
+    },
+    {
+      "path": "examples/full_depth.py",
+      "lines": 32,
+      "sha256": "6170059fded4cc9cae140780311264eb73ac36a022a64dc6ff830343c787c692"
+    },
+    {
+      "path": "examples/global_stocks_example.py",
+      "lines": 62,
+      "sha256": "a0b5e34025c01013749da07fbbf01f06bdbc847481fff0ffb6213cd7d7a25cc9"
+    },
+    {
+      "path": "examples/global_stocks_feed_example.py",
+      "lines": 36,
+      "sha256": "072d5cc9576f4b177aed68425ae9bd9d57f821cb7f1bef4e653922a5dfc7afed"
+    },
+    {
+      "path": "examples/historical_data.py",
+      "lines": 35,
+      "sha256": "6c9217a04c96d36c7b014ef2c68a39f2e6cf0c29c5de6d8f2baa937a5135ea92"
+    },
+    {
+      "path": "examples/market_feed.py",
+      "lines": 32,
+      "sha256": "7c0fd8732f584e0d5fdd8765364d42af502b62be3e202c9ad59ee65f97b3fc03"
+    },
+    {
+      "path": "examples/option_chain.py",
+      "lines": 20,
+      "sha256": "a9e6265cb0b6f6191236358d925a7f2c55c42013ff5c5c859bb548acd7dcf40b"
+    },
+    {
+      "path": "examples/order.py",
+      "lines": 106,
+      "sha256": "80699de720f8bfabf478d219e70b35cdedf0d6ccb6f98e111f338a08f654c2e2"
+    },
+    {
+      "path": "examples/pnl_exit_and_multi_margin_example.py",
+      "lines": 43,
+      "sha256": "1415113b65f0a27b896984b51cef20bacb22c61ec845ab72e2eaaabeeb93bf63"
+    },
+    {
+      "path": "examples/statement.py",
+      "lines": 13,
+      "sha256": "caa0c9debd31e42f7b9a3273b3e4e01a206942dbe09344bd3f93672349e345ce"
+    },
+    {
+      "path": "examples/super_order.py",
+      "lines": 26,
+      "sha256": "df815ae77c4f8d56ace3d25f5aebaab9206b4dc10e16e3d3065058cf86032473"
+    },
+    {
+      "path": "init-dev-env.sh",
+      "lines": 9,
+      "sha256": "8431b6cc61874db187b742f1c2a7646babf8a16d8565763a6239b92c3535361b"
+    },
+    {
+      "path": "LICENSE",
+      "lines": 21,
+      "sha256": "6523caf2ef093ff6b41bbc4ce33f8987ce8e6df023199a775fa87b54bae7db05"
+    },
+    {
+      "path": "MANIFEST.in",
+      "lines": 1,
+      "sha256": "4a90a2c6db21452f73a778237d26e3c7686c7ff1bea8d6166caef946c1df0384"
+    },
+    {
+      "path": "pytest.ini",
+      "lines": 10,
+      "sha256": "02da70071c68f000a7b17229241ae5323214c9174cc58219f08310cd0c2ffd09"
+    },
+    {
+      "path": "README.md",
+      "lines": 465,
+      "sha256": "ecfd7c9702a5ccce64a5412ba76d9717111690bebf66278c6013c5b778bcbba9"
+    },
+    {
+      "path": "setup.py",
+      "lines": 53,
+      "sha256": "47ce53ba20bb53f4f2373dc5f4009ea1fece5255518175de2862b2888ee7ac1f"
+    },
+    {
+      "path": "src/dhanhq/__init__.py",
+      "lines": 21,
+      "sha256": "1ea250e847ba668cc2ee0b1be8a71107af82f64b891baa58c8103e8fcc8e6a6c"
+    },
+    {
+      "path": "src/dhanhq/_conditional_order.py",
+      "lines": 89,
+      "sha256": "b2605ba4b453fb6a5163235ed706e6347722613313db0cc12ab8c14ae3831cb3"
+    },
+    {
+      "path": "src/dhanhq/_forever_order.py",
+      "lines": 100,
+      "sha256": "59f66ece34a4de3df9aff957d1fdb6e10a312f6601a63fd56ea9c7961a7a2795"
+    },
+    {
+      "path": "src/dhanhq/_funds.py",
+      "lines": 70,
+      "sha256": "6942b810456c92b3fca37519a6b0ce3aa5ca5881df79a2fea8623b32556e3540"
+    },
+    {
+      "path": "src/dhanhq/_global_stocks.py",
+      "lines": 200,
+      "sha256": "251603e7121cf17c0c46c387ae6ff0f273fa22697126457c525678d7e847329c"
+    },
+    {
+      "path": "src/dhanhq/_historical_data.py",
+      "lines": 150,
+      "sha256": "cbf7faa17075dca036a4a840e66564363439acc0c082561354dc33236adc086d"
+    },
+    {
+      "path": "src/dhanhq/_market_feed.py",
+      "lines": 61,
+      "sha256": "ee027db1c87480be54ad5433084c844237a43d4f23d22c14672b23150f6bc9a2"
+    },
+    {
+      "path": "src/dhanhq/_option_chain.py",
+      "lines": 46,
+      "sha256": "f3214e8d062bec602aff727a3067a3d9d43b1c831616d63a039fe0a80b178924"
+    },
+    {
+      "path": "src/dhanhq/_order.py",
+      "lines": 172,
+      "sha256": "970d29acabf02d48650ffbb20aa208bcd3db8195acc148ba86ed3824bacae629"
+    },
+    {
+      "path": "src/dhanhq/_portfolio.py",
+      "lines": 60,
+      "sha256": "c059464886aca91bcbc5323ca3e5b871c2f16e6b98550fe548f703dfb498cfa8"
+    },
+    {
+      "path": "src/dhanhq/_security.py",
+      "lines": 153,
+      "sha256": "918027f73163b6aeaa5c22115e4bcd36f6c7a26d7f13255b5be3ffa90c67c87d"
+    },
+    {
+      "path": "src/dhanhq/_statement.py",
+      "lines": 50,
+      "sha256": "b330da6719b8b80f67cfdda6ebb7efd6f4152ccf60b38e44f70215736345f0ce"
+    },
+    {
+      "path": "src/dhanhq/_super_order.py",
+      "lines": 182,
+      "sha256": "90022cd534f34fe465d8a0ebee67dfb6b662c41b33cb0cda5e789d49b0d21559"
+    },
+    {
+      "path": "src/dhanhq/_trader_control.py",
+      "lines": 87,
+      "sha256": "bc950ac88493c6a053cdd8b3e60f299cd24b6ffd0f82db6f45dca5dd97a69869"
+    },
+    {
+      "path": "src/dhanhq/auth.py",
+      "lines": 240,
+      "sha256": "6f65423f43c77b8baf393e223e353235b342a4929699911a336d912540f53b69"
+    },
+    {
+      "path": "src/dhanhq/dhan_context.py",
+      "lines": 62,
+      "sha256": "0b3cfe8e130bbcc64da08755ef2a5e3c1f6672c61125f2acb7651fb9adb22c3f"
+    },
+    {
+      "path": "src/dhanhq/dhan_http.py",
+      "lines": 154,
+      "sha256": "c6bbb522864c6fc4647b91a3362806a9b15b2732d0fb84170e5cdf263e6e3d24"
+    },
+    {
+      "path": "src/dhanhq/dhanhq.py",
+      "lines": 80,
+      "sha256": "9a4f19f95c02e9b38ae4210e6378b5076d082062debd09bf300865a862ec3bb4"
+    },
+    {
+      "path": "src/dhanhq/fulldepth.py",
+      "lines": 453,
+      "sha256": "fa812920c369b476ff5d52fb4fd1a48ca2bb39cf1ee6cc83151627cc2a713f7b"
+    },
+    {
+      "path": "src/dhanhq/global_stocks_feed.py",
+      "lines": 381,
+      "sha256": "b840d4510605b757af64b27818302ea9a8c1a114d27e1e2ce806d839893aecfb"
+    },
+    {
+      "path": "src/dhanhq/marketfeed.py",
+      "lines": 619,
+      "sha256": "f02a5e3a172c219f08ee2f495aad063ac2248e7ab1d65d893ea3d98301e90bdf"
+    },
+    {
+      "path": "src/dhanhq/orderupdate.py",
+      "lines": 96,
+      "sha256": "10d60d5a389b8c04db26850cdf81c05d099269ab84710824946281abf64d3037"
+    },
+    {
+      "path": "tests/conftest.py",
+      "lines": 42,
+      "sha256": "f0938c632093b046e92e66056a5e373b94afa8e30db28b643961848782d8d14e"
+    },
+    {
+      "path": "tests/data/a-template-response.json",
+      "lines": 5,
+      "sha256": "12fc9eb6893293f56fbc8b91c8fc6a959c293d96d599ae40db8c26cb411f0503"
+    },
+    {
+      "path": "tests/data/cancel_given_order.json",
+      "lines": 8,
+      "sha256": "aade2b9ba90c32a7b60d9a7c31404148a173f1670d012be440c8a24280ca9b53"
+    },
+    {
+      "path": "tests/data/convert_position.json",
+      "lines": 5,
+      "sha256": "12fc9eb6893293f56fbc8b91c8fc6a959c293d96d599ae40db8c26cb411f0503"
+    },
+    {
+      "path": "tests/data/expired_options_data.json",
+      "lines": 5,
+      "sha256": "d582591587bb2130d2cec6af9b537b2cb345546360c80bfed05cfdc45b2f9541"
+    },
+    {
+      "path": "tests/data/get-current-holdings.json",
+      "lines": 19,
+      "sha256": "08eec0b6d9fa071ca82e322f511b0e4e7e60177c689db99dfd05908b76784d1e"
+    },
+    {
+      "path": "tests/data/get-current-orders-list.json",
+      "lines": 40,
+      "sha256": "cbf218e1875829578219831917ea619234730b087b5a6ec24dfae87751e325d0"
+    },
+    {
+      "path": "tests/data/get-forever-orders-list.json",
+      "lines": 27,
+      "sha256": "2e5b3e2f3765dd5d94926e0b4d6b893052f725e9156196a528351c2cbcc0ed15"
+    },
+    {
+      "path": "tests/data/get-order-by-correlation-id.json",
+      "lines": 38,
+      "sha256": "d31c8c9401a1dbe2a45599943ade6d8d757966f44df15399cfd4711eba1799b2"
+    },
+    {
+      "path": "tests/data/get-order-by-id.json",
+      "lines": 38,
+      "sha256": "d31c8c9401a1dbe2a45599943ade6d8d757966f44df15399cfd4711eba1799b2"
+    },
+    {
+      "path": "tests/data/get_all_trades.json",
+      "lines": 27,
+      "sha256": "05b45a5734dae88845d24ddc0f8337edb242a066770b59b6522788edb6ca5cf8"
+    },
+    {
+      "path": "tests/data/get_fund_limits.json",
+      "lines": 14,
+      "sha256": "645a8346bf66aa3e97f829063f309554904ff244b2b4d3551adac7adcdf3ba0b"
+    },
+    {
+      "path": "tests/data/get_ledger_report.json",
+      "lines": 15,
+      "sha256": "3521cfb4a56d3e8678981dbb4494b242f01a41f7883d4fb79790c8cf406aa3ad"
+    },
+    {
+      "path": "tests/data/get_positions.json",
+      "lines": 36,
+      "sha256": "7e6140640dec8e0bbe5465d3b01c3d392e0c2d805e5e5735854f9787210e53b4"
+    },
+    {
+      "path": "tests/data/get_trade_book_by_orderid.json",
+      "lines": 27,
+      "sha256": "05b45a5734dae88845d24ddc0f8337edb242a066770b59b6522788edb6ca5cf8"
+    },
+    {
+      "path": "tests/data/get_trade_history.json",
+      "lines": 34,
+      "sha256": "28394c37cdeafeeac81e75ed57b6100d2ba211a214b612b3535ac062fbd76a45"
+    },
+    {
+      "path": "tests/data/historical_daily_data.json",
+      "lines": 5,
+      "sha256": "d582591587bb2130d2cec6af9b537b2cb345546360c80bfed05cfdc45b2f9541"
+    },
+    {
+      "path": "tests/data/intraday_minute_data.json",
+      "lines": 5,
+      "sha256": "1bb3fb214ab498ff634c766045666b29e3498a7d2cd5ac7e8c3ab877cce7a231"
+    },
+    {
+      "path": "tests/data/margin_calculator.json",
+      "lines": 14,
+      "sha256": "4d0f163e27e2e5cb149d672a528741b82c5d09e3fdf4f90f59dbba2453372e3c"
+    },
+    {
+      "path": "tests/data/market_feed_ticker.json",
+      "lines": 8,
+      "sha256": "5ed7c579d22f4131293dca783dad9c3c674cad4ce5cd1f0d740b2c1c8a3d7575"
+    },
+    {
+      "path": "tests/data/modify_pending_order.json",
+      "lines": 8,
+      "sha256": "aade2b9ba90c32a7b60d9a7c31404148a173f1670d012be440c8a24280ca9b53"
+    },
+    {
+      "path": "tests/data/option_chain.json",
+      "lines": 10,
+      "sha256": "db79a8801b6281665f02576094e9a9843eb16f8d5552e3d63e01c9c9bc30fd26"
+    },
+    {
+      "path": "tests/data/place_order.json",
+      "lines": 8,
+      "sha256": "aade2b9ba90c32a7b60d9a7c31404148a173f1670d012be440c8a24280ca9b53"
+    },
+    {
+      "path": "tests/data/place_slice_order.json",
+      "lines": 10,
+      "sha256": "8f943bc92c2fa9026e89b024a1757ac1a68fd9e45bab77cf7a6c9d374e934145"
+    },
+    {
+      "path": "tests/data/security_list.json",
+      "lines": 13,
+      "sha256": "d075b8632a6dd1baf8482ce8e89197469f4004945f6646a39708f66db57eb696"
+    },
+    {
+      "path": "tests/integration/test_e2e_dhanhq_forever_orders.py",
+      "lines": 44,
+      "sha256": "afe2ca1f5bda6ffcc756109a05655208e8caa0abe59620765463d8910faf88de"
+    },
+    {
+      "path": "tests/integration/test_e2e_dhanhq_historical_data.py",
+      "lines": 55,
+      "sha256": "62b26e045b3deab648f67156f5075a9e54d68dca4fa2ae3d3079db9e9573c615"
+    },
+    {
+      "path": "tests/integration/test_e2e_dhanhq_marketfeed.py",
+      "lines": 17,
+      "sha256": "07975fb116b85bf0c5970a53dc57f1d872434950a164a43803efa3cd1e064632"
+    },
+    {
+      "path": "tests/integration/test_e2e_dhanhq_option_chain.py",
+      "lines": 21,
+      "sha256": "0d9f693871d1e6d5f81a86b8b7fa68912bca65050a59f3143328f3495537d0b3"
+    },
+    {
+      "path": "tests/integration/test_e2e_dhanhq_orders.py",
+      "lines": 69,
+      "sha256": "ee19faaf4b514e320a73f5cc59c1622b5d11ef28b06e3bbfcd83902db19bc586"
+    },
+    {
+      "path": "tests/integration/test_e2e_dhanhq_portfolio_and_funds.py",
+      "lines": 49,
+      "sha256": "b236a0ec8daf7eb07b9231412040769d63c0cc6db7413794cb0c2e8daeebc1d3"
+    },
+    {
+      "path": "tests/integration/test_e2e_dhanhq_statement_and_reports.py",
+      "lines": 46,
+      "sha256": "7cfb3d7eed99a777f4763d999cdbd06fa2559bb1fc13b6f9576c4ec3bd5a91c9"
+    },
+    {
+      "path": "tests/unit/test_dhan_http.py",
+      "lines": 121,
+      "sha256": "23253930b4d51f023fa3b01aef5ce52413351824691b3e6d57fcdc57aa6393dd"
+    },
+    {
+      "path": "tests/unit/test_dhanhq_conditional_order.py",
+      "lines": 56,
+      "sha256": "c66b5851cf8c5cc4ce3914ff523f01c0ec6913171eb8daa0d9c4b68d95046cf7"
+    },
+    {
+      "path": "tests/unit/test_dhanhq_electronic_delivery.py",
+      "lines": 63,
+      "sha256": "1f1fec69b4732cfecb7c5bf1e80e159188df971b64c35b867d8a26b0d8d19a89"
+    },
+    {
+      "path": "tests/unit/test_dhanhq_forever_order.py",
+      "lines": 46,
+      "sha256": "850585c2956d2ca6ceebaf268550c8322f1b546b1787eb7490bec94df00cf733"
+    },
+    {
+      "path": "tests/unit/test_dhanhq_fulldepth.py",
+      "lines": 16,
+      "sha256": "e95881af5aa1224253f077f8e4d300f1d138d5fbedee23d5e0437d977348c28e"
+    },
+    {
+      "path": "tests/unit/test_dhanhq_funds.py",
+      "lines": 43,
+      "sha256": "5c67316be9b0531466e03a33f617495cb08a64d16f0e75026edcb6359a96a79d"
+    },
+    {
+      "path": "tests/unit/test_dhanhq_global_stocks.py",
+      "lines": 79,
+      "sha256": "00a690a3064d38a70cc3851b43860a0dca1003d7473dcc61b4966b6bbb78717e"
+    },
+    {
+      "path": "tests/unit/test_dhanhq_global_stocks_feed.py",
+      "lines": 96,
+      "sha256": "3f8792d8f960c756b8723139e3e86e59fe00d73a35e302722b8ed138e5882f74"
+    },
+    {
+      "path": "tests/unit/test_dhanhq_historical_data.py",
+      "lines": 146,
+      "sha256": "51704b9f9ea65c000473ffe84f30076f9ec5e512577ec80c24c69ff68d9b0499"
+    },
+    {
+      "path": "tests/unit/test_dhanhq_marketfeed.py",
+      "lines": 29,
+      "sha256": "38d1d648f1d8a5bbda5cb4271cc3c4e293011ec58644b18d10487b8da03848ab"
+    },
+    {
+      "path": "tests/unit/test_dhanhq_option_chain.py",
+      "lines": 18,
+      "sha256": "bf41dc3c4ecd7f882aa492ec9605610ab65ed9e40008b52f44fcdfec3b3cbf30"
+    },
+    {
+      "path": "tests/unit/test_dhanhq_order.py",
+      "lines": 80,
+      "sha256": "24631a7f70e93ded71622a0b6b2b75dd68e660650ed268b29494283354ca748a"
+    },
+    {
+      "path": "tests/unit/test_dhanhq_orderupdate.py",
+      "lines": 37,
+      "sha256": "fe2317415dde1148c319ec13493b118e3c8101418d9f2c8090469a7b6e2aa4a7"
+    },
+    {
+      "path": "tests/unit/test_dhanhq_portfolio.py",
+      "lines": 25,
+      "sha256": "e96fe1ea8a250bce7e8321cdc4d9dce1dda6720094be8673494e140b4f89007d"
+    },
+    {
+      "path": "tests/unit/test_dhanhq_security.py",
+      "lines": 19,
+      "sha256": "64e5abe02d55a47a78f8040620bda30021a4df16312003d962fa0a517d5d9bb3"
+    },
+    {
+      "path": "tests/unit/test_dhanhq_statement.py",
+      "lines": 102,
+      "sha256": "26ab3c8dccb1ef50533f1ab75b8d6f2d0fcc49ba04235140aa865f140ddcd1b3"
+    },
+    {
+      "path": "tests/unit/test_dhanhq_super_order.py",
+      "lines": 102,
+      "sha256": "b09637b78698aa579fee08aa7d15dde0e537afb03e49370db7f172a2339f612b"
+    },
+    {
+      "path": "tests/unit/test_dhanhq_trader_controls.py",
+      "lines": 38,
+      "sha256": "91ac6ae1ab35b2d7a173d1ae5e485649a48ee80d3c601fddd29359c94ab69924"
+    }
+  ],
+  "implementation_scope": "Core personal account/data, private streams, registered consent, guarded NSE EQ LIMIT/DAY execution. Advanced products remain roadmap items."
+}

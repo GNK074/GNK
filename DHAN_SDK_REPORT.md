@@ -1,3 +1,5 @@
+> Historical account/research release report. The follow-up integration adds private streams, registered consent and guarded Dhan execution. See [DHAN_TECHNICAL_ASSESSMENT.md](DHAN_TECHNICAL_ASSESSMENT.md) and [DHAN_INTEGRATION_GUIDE.md](DHAN_INTEGRATION_GUIDE.md) for the current scope and deployment. Statements below describe the preceding release only.
+
 # Official DhanHQ SDK integration — implementation and deployment report
 
 ## Release scope

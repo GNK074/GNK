@@ -26,7 +26,7 @@ def entitlement(s,user_id,mode=None):
 
 def available_instrument(s,user_id,key,mode=None,allow_expired=False):
     allowed=entitlement(s,user_id,mode)
-    instrument=s.scalar(select(MarketInstrument).where(MarketInstrument.instrument_key==key))
+    instrument=s.scalar(select(MarketInstrument).where(MarketInstrument.provider=='upstox',MarketInstrument.instrument_key==key))
     if not instrument:raise HTTPException(404,'Instrument is not available in the synchronized master')
     if instrument.segment not in allowed.segments or instrument.segment not in cfg.segments:raise HTTPException(403,'Instrument segment is not permitted')
     if not allow_expired and instrument.status!='ACTIVE':raise HTTPException(409,'Instrument is not active for live subscription')
@@ -67,7 +67,7 @@ def active_provider_subscriptions(s):
     desired={};ranks={'ltpc':0,'option_greeks':1,'full':2}
     for sub,access,instrument,active,verified in rows:
         if not access.enabled or not active or not verified or (access.expires_at and expired(access.expires_at)):continue
-        if not instrument or instrument.status!='ACTIVE' or instrument.segment not in cfg.segments or instrument.segment not in access.segments or sub.mode not in access.modes or sub.mode not in cfg.modes:continue
+        if not instrument or instrument.provider!='upstox' or instrument.status!='ACTIVE' or instrument.segment not in cfg.segments or instrument.segment not in access.segments or sub.mode not in access.modes or sub.mode not in cfg.modes:continue
         prior=desired.get(sub.instrument_key,'ltpc')
         desired[sub.instrument_key]=max((prior,sub.mode),key=lambda x:ranks[x])
     return dict(list(sorted(desired.items()))[:cfg.marketdata_max_instruments])

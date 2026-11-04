@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from app.core.config import now,expired,settings
 from app.database.session import db
 from app.models.trading import BrokerAccount,BrokerCredential
-from app.security.authentication import auth,cache
+from app.security.authentication import auth,admin,cache
 from app.security.ownership import owned
 from app.security.encryption import open_credentials,seal_credentials
 from app.services.accounts import audit
@@ -21,7 +21,7 @@ from app.portfolio.service import serialized,version,public_accounts
 from app.portfolio.adapters import normalize
 from .client import DhanClient,DhanError,SDK_VERSION
 from .analytics import candles,aggregate,indicators
-router=APIRouter(prefix='/api/v1/dhan',tags=['DhanHQ SDK'])
+router=APIRouter(prefix='/api/v1/dhan',tags=['GNK Dhan integration'])
 SEGMENTS=Literal['NSE_EQ','BSE_EQ','NSE_FNO','BSE_FNO','NSE_CURRENCY','BSE_CURRENCY','MCX_COMM','IDX_I']
 
 def safe_number(value):
@@ -92,7 +92,7 @@ def read(s,uid,aid,operation,params,call,ttl=15):
 def status(u=Depends(auth),s:Session=Depends(db)):
     accounts=public_accounts(s,u.id,broker='dhan')
     for a in accounts:a['account']=mask(a['account'])
-    return output(dict(sdk_version=SDK_VERSION,accounts=accounts,portfolio=True,profile=True,token_renewal=True,quotes=True,option_chain=True,historical=True,trade_history=True,technical_research=True,live_dhan_execution=False,live_feed=False,ml_model='NOT_CONFIGURED',execution_note='Existing Upstox execution is separate. This Dhan SDK release does not submit orders.'))
+    return output(dict(sdk_version=SDK_VERSION,accounts=accounts,portfolio=True,profile=True,token_renewal=True,quotes=True,option_chain=True,historical=True,trade_history=True,technical_research=True,live_dhan_execution=bool(settings.trading_enabled and settings.live_trading_enabled and settings.dhan_execution_enabled),live_feed=settings.dhan_stream_enabled,oauth=settings.dhan_oauth_enabled,master_sync_allowed=u.role=='SUPER_ADMIN',ml_model='NOT_CONFIGURED',execution_note='Dhan NSE equity intraday LIMIT/DAY uses GNK intent, account approval, risk and REST fill reconciliation gates. Private feeds require your own connected account.'))
 
 @router.get('/profile')
 def profile(account_id:str,u=Depends(auth),s:Session=Depends(db)):
@@ -191,3 +191,20 @@ def trade_history(account_id:str,from_date:date,to_date:date,page:int=Query(0,ge
         data=normalize('dhan','trades',client.trade_history(str(from_date),str(to_date),page))
         return [r for r in data if (not symbol or symbol.casefold() in r['symbol'].casefold()) and (not side or r['side']==side)]
     return output(read(s,u.id,account_id,'trades',{'from':str(from_date),'to':str(to_date),'page':page,'symbol':symbol,'side':side},load,30))
+
+@router.get('/instruments')
+def instruments(q:str=Query('',max_length=100),u=Depends(auth),s:Session=Depends(db)):
+    from app.market_data.models import MarketInstrument
+    statement=select(MarketInstrument).where(MarketInstrument.provider=='dhan',MarketInstrument.status=='ACTIVE',MarketInstrument.segment=='NSE_EQ')
+    if q.strip():statement=statement.where(MarketInstrument.symbol.ilike('%'+q.strip().replace('%','').replace('_','')+'%'))
+    rows=s.scalars(statement.order_by(MarketInstrument.symbol).limit(50))
+    return output({'items':[{k:getattr(r,k) for k in ('id','instrument_key','symbol','segment','tick_size','lot_size','synced_at')} for r in rows]})
+
+@router.post('/instruments/sync')
+def sync_instruments(u=Depends(admin),s:Session=Depends(db)):
+    if u.role!='SUPER_ADMIN':raise HTTPException(403,'Super administrator required')
+    from .instruments import download,store
+    try:
+        rows=download();count=store(s,rows);audit(s,u.id,'dhan_instrument_master_synced:'+str(count));s.commit()
+        return {'imported':count,'scope':'NSE/BSE unit-lot equity','version':rows[0]['version']}
+    except DhanError as e:s.rollback();raise HTTPException(409,e.code) from None

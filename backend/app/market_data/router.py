@@ -59,7 +59,7 @@ def health(u=Depends(auth),s:Session=Depends(db)):
 def instruments(q:str=Query(default='',max_length=100),exchange:str|None=None,segment:str|None=None,instrument_type:str|None=None,expiry:date|None=None,include_expired:bool=False,limit:int=Query(50,ge=1,le=100),offset:int=Query(0,ge=0,le=100000),u=Depends(auth),s:Session=Depends(db)):
     limited(u);access=entitlement(s,u.id)
     allowed=set(access.segments)&cfg.segments
-    statement=select(MarketInstrument).where(MarketInstrument.segment.in_(allowed))
+    statement=select(MarketInstrument).where(MarketInstrument.provider=='upstox',MarketInstrument.segment.in_(allowed))
     if q:statement=statement.where(MarketInstrument.symbol.ilike('%'+q.replace('%','').replace('_','')+'%') | MarketInstrument.name.ilike('%'+q.replace('%','').replace('_','')+'%'))
     if exchange:
         if exchange not in ('NSE','BSE'):raise HTTPException(422,'Choose NSE or BSE')

@@ -105,6 +105,24 @@ services:
       interval: 30s
       start_period: 45s
       retries: 3
+  dhan-stream-worker:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/backend.Dockerfile
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://gnk:${POSTGRES_PASSWORD:-}@postgres:5432/gnk
+      REDIS_URL: redis://redis:6379/0
+    command: ["python", "-m", "app.brokers.dhan.streams"]
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "from app.security.authentication import cache; assert cache.exists('gnk:dhan:stream:heartbeat')"]
+      interval: 30s
+      start_period: 45s
+      retries: 3
   frontend:
     build:
       context: .

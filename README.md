@@ -64,3 +64,5 @@ The connected-account portfolio, read-only adapters, worker, migration 0009, cap
 ## Official DhanHQ SDK release
 
 See [DHAN_SDK_REPORT.md](DHAN_SDK_REPORT.md) for the pinned SDK, tested account/research features, remaining master-plan phases, API/security notes and the dedicated redeployment script.
+
+Dhan integration: [assessment and roadmap](DHAN_TECHNICAL_ASSESSMENT.md), [complete SDK feature map](docs/dhan-sdk-feature-map.json), [API and deployment guide](DHAN_INTEGRATION_GUIDE.md).

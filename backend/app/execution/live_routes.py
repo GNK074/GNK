@@ -17,7 +17,7 @@ router=APIRouter(prefix='/api/v1/live')
 admin_router=APIRouter(prefix='/api/v1/admin/live')
 class ArmInput(BaseModel):
     model_config=ConfigDict(extra='forbid')
-    confirmation:Literal['ENABLE LIVE UPSTOX']
+    confirmation:Literal['ENABLE LIVE UPSTOX','ENABLE LIVE DHAN']
 class GrantInput(BaseModel):
     model_config=ConfigDict(extra='forbid')
     user_id:str
@@ -26,9 +26,9 @@ class GrantInput(BaseModel):
 
 def handle(error):raise HTTPException(409,error.code) from None
 @router.get('/readiness')
-def readiness(u=Depends(auth),s:Session=Depends(db)):
-    accounts=list(s.scalars(select(BrokerAccount).where(BrokerAccount.user_id==u.id,BrokerAccount.broker=='upstox')))
-    return {'server_enabled':live.enabled(),'broker_approved':live.broker_approved(s),'reconciliation_healthy':live.worker_ready(),'scope':'NSE EQ intraday LIMIT DAY; no short selling','accounts':[{'id':a.id,'broker':a.broker,'status':a.status,'live_authorized':a.live_authorized,'armed':not a.kill_switch} for a in accounts]}
+def readiness(broker:Literal['upstox','dhan']='upstox',u=Depends(auth),s:Session=Depends(db)):
+    accounts=list(s.scalars(select(BrokerAccount).where(BrokerAccount.user_id==u.id,BrokerAccount.broker==broker)))
+    return {'server_enabled':live.enabled(broker) if broker=='dhan' else live.enabled(),'broker_approved':live.broker_approved(s,broker) if broker=='dhan' else live.broker_approved(s),'reconciliation_healthy':live.worker_ready(),'scope':'NSE EQ intraday LIMIT DAY; no short selling','accounts':[{'id':a.id,'broker':a.broker,'status':a.status,'live_authorized':a.live_authorized,'armed':not a.kill_switch} for a in accounts]}
 @router.get('/orders')
 def orders(u=Depends(auth),s:Session=Depends(db)):
     return [live.public(x) for x in s.scalars(select(LiveOrder).where(LiveOrder.user_id==u.id).order_by(LiveOrder.created_at.desc()).limit(200))]
@@ -43,7 +43,8 @@ def positions(account_id:str,u=Depends(auth),s:Session=Depends(db)):
 @router.post('/accounts/{account_id}/arm')
 def arm(account_id:str,data:ArmInput,u=Depends(auth),s:Session=Depends(db)):
     a=owned(s,BrokerAccount,account_id,u.id,lock=True)
-    if not live.enabled() or not live.broker_approved(s) or not live.worker_ready() or not a.live_authorized:live.fail('Server, production approval, reconciliation and account authorization must be ready')
+    if data.confirmation!='ENABLE LIVE '+a.broker.upper():raise HTTPException(422,'Confirmation must name the selected broker')
+    if not (live.enabled(a.broker) if a.broker=='dhan' else live.enabled()) or not (live.broker_approved(s,a.broker) if a.broker=='dhan' else live.broker_approved(s)) or not live.worker_ready() or not a.live_authorized:live.fail('Server, production approval, reconciliation and account authorization must be ready')
     try:live.client(s,a).verify_identity(a.account_identifier)
     except ExecutionError as error:handle(error)
     a.kill_switch=False;audit(s,u.id,'live_account_armed:'+a.id);s.commit();return {'armed':True}
@@ -76,8 +77,8 @@ def authorize(account_id:str,data:GrantInput,u=Depends(admin),s:Session=Depends(
     if u.role!='SUPER_ADMIN':raise HTTPException(403,'Super administrator required')
     set_context(s,data.user_id)
     a=owned(s,BrokerAccount,account_id,data.user_id,lock=True)
-    if a.broker!='upstox':live.fail('Live execution is implemented for Upstox only')
-    if data.enabled and not live.broker_approved(s):live.fail('Upstox production approval is required')
+    if a.broker not in ('upstox','dhan'):live.fail('Execution is not implemented for this broker')
+    if data.enabled and not (live.broker_approved(s,a.broker) if a.broker=='dhan' else live.broker_approved(s)):live.fail('Selected broker production approval is required')
     strategies=[owned(s,Strategy,sid,data.user_id,lock=True) for sid in set(data.strategy_ids)]
     a.live_authorized=data.enabled;a.kill_switch=True
     for strategy in strategies:strategy.approved=data.enabled
