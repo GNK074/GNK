@@ -13,4 +13,6 @@ def dashboard(u=Depends(auth),s:Session=Depends(db)):
     strategies=[{'id':x.id,'name':x.name,'approved':x.approved} for x in s.scalars(select(Strategy).where(Strategy.user_id==u.id))]
     from app.execution import live_service as live
     live_ready=live.enabled() and live.broker_approved(s) and live.worker_ready()
-    return {'mode':'broker_connected' if count else 'disconnected','live_trading':live_ready,'connections':count,'broker_accounts':accounts,'portfolio':None,'strategies':strategies,'market_data':None,'connection_scope':'live_placement_gated' if live_ready else 'identity_validation_only'}
+    from app.portfolio.service import summary as portfolio_summary,serialized
+    portfolio=serialized(portfolio_summary(s,u.id))
+    return {'mode':'broker_connected' if count else 'disconnected','live_trading':live_ready,'connections':count,'broker_accounts':accounts,'portfolio':portfolio,'strategies':strategies,'market_data':None,'connection_scope':'live_placement_gated' if live_ready else 'identity_validation_only'}

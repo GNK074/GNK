@@ -81,3 +81,6 @@ app.include_router(trade_details_router)
 
 from app.portfolio.routes import router as portfolio_router
 app.include_router(portfolio_router)
+
+from app.brokers.dhan.routes import router as dhan_router
+app.include_router(dhan_router)

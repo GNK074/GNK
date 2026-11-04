@@ -40,7 +40,7 @@ def refresh(data:Refresh,u=Depends(auth),s:Session=Depends(db)):
 @router.get('/{kind}/export')
 def export(kind:Kind,f=Depends(filters),u=Depends(auth),s:Session=Depends(db)):
     items,coverage=svc.dataset(s,u.id,kind,**f)
-    headers=['broker','account','symbol','exchange','product','currency','quantity','average_cost','current_price','invested_value','current_value','pnl','net_quantity','realized_pnl','unrealized_pnl','segment','available','used_margin','order_id','trade_id','status','source','price_status','fetched_at']
+    headers=['broker','account','symbol','exchange','product','currency','quantity','average_cost','current_price','invested_value','current_value','pnl','net_quantity','realized_pnl','unrealized_pnl','segment','available','used_margin','order_id','trade_id','status','source','price_status','fetched_at','instrument_id','order_type','trigger_price','filled_quantity','average_buy_price','average_sell_price','withdrawable']
     data=workbook(headers,[[r.get(k) for k in headers] for r in items])
     return Response(data,media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',headers={'Content-Disposition':f'attachment; filename="gnk-portfolio-{kind}.xlsx"'})
 

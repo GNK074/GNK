@@ -38,7 +38,9 @@ class ProfileVerifier:
 
 class DhanVerifier(ProfileVerifier):
     def validate(self,c):
-        d=self.request('GET','https://api.dhan.co/v2/profile',headers={'access-token':c['access_token']})
+        from app.brokers.dhan.client import DhanClient,DhanError
+        try:d=DhanClient(str(c['client_id']),c['access_token'],self.transport).profile()
+        except DhanError:raise ValidationError('Dhan authentication failed. Check the client ID, access token and token validity.') from None
         account=identity(d.get('dhanClientId'))
         try:
             raw=d['tokenValidity']

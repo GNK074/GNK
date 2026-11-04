@@ -96,3 +96,5 @@ A regression using the actual worker discovery loop and the published Dhan holdi
 Unexpected account-sync exceptions now persist a safe error code and retry backoff, retain previous snapshots and appear in coverage/account status. Worker logs include only a fixed code, never exception text, SQL parameters, credentials or broker response bodies.
 
 This correction changes no schema, broker credentials or execution flags. Update and rebuild backend and portfolio-worker, recreate those services, then recreate Nginx after the backend address changes. No additional migration beyond 0009 is needed.
+
+The official SDK follow-up release routes Dhan profile and portfolio reads through `dhanhq==2.3.0`. See [DHAN_SDK_REPORT.md](DHAN_SDK_REPORT.md) for the new account/research UI, dependency/security boundary and exact phase limitations.

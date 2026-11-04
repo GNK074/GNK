@@ -1,3 +1,3 @@
-# dhan individual account connection
+# DhanHQ
 
-Individual credential validation is implemented in brokers/individual/verifiers.py and exposed through POST /api/v1/brokers/{broker}/individual. Setup metadata and required fields are in brokers/individual/catalog.py. No broker password/PIN/OTP is collected. The response identity must match the entered account/client ID before encrypted storage. Full automated OAuth callbacks, trading execution and provider production approval are separate capabilities and are not claimed by this module. See INDIVIDUAL_BROKER_SETUP.md.
+Official `dhanhq==2.3.0` integration. `client.py` wraps SDK account/data methods in a bounded transport; `routes.py` enforces owner/session/CSRF controls; `analytics.py` provides deterministic research only. See the root DHAN_SDK_REPORT.md for implemented scope, deployment and remaining phases.

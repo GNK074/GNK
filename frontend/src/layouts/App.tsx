@@ -1,3 +1,4 @@
+import { DhanWorkspace } from "../brokers/DhanWorkspace";
 import { Portfolio } from "../portfolio/Portfolio";
 import { TradeDetails } from "../trade-details/TradeDetails";
 import { LiveWorkspace } from "../strategies/LiveWorkspace";
@@ -163,6 +164,7 @@ export function App() {
                 [LayoutDashboard, "Overview", "/user/dashboard"],
                 [BarChart3, "Markets", "/markets"],
                 [Cable, "Brokers & exchanges", "/user/broker-and-exchanges"],
+                [Activity, "Dhan workspace", "/user/dhan"],
                 [Blocks, "Strategies", "/user/strategies"],
                 [BarChart3, "Orders", "/tradedetails/orders"],
                 [BarChart3, "Trade History", "/tradedetails/client-trade-history"],
@@ -221,7 +223,7 @@ export function App() {
                     ? "Markets"
                     : loc.pathname.includes("broker")
                     ? "Brokers & exchanges"
-                    : loc.pathname === "/user/portfolio" ? "Portfolio" : loc.pathname.includes("settings")
+                    : loc.pathname === "/user/dhan" ? "Dhan workspace" : loc.pathname === "/user/portfolio" ? "Portfolio" : loc.pathname.includes("settings")
                       ? "Profile & settings"
                       : "Overview"}
                 </b>
@@ -242,6 +244,8 @@ export function App() {
             <div className="content">
               {loc.pathname.startsWith("/tradedetails/") ? (
                 <TradeDetails key={loc.pathname} />
+              ) : loc.pathname === "/user/dhan" ? (
+                <DhanWorkspace />
               ) : loc.pathname === "/user/live-orders" ? (
                 <DisclosureGate key={user.id}><LiveWorkspace /></DisclosureGate>
               ) : loc.pathname.startsWith("/markets") ? (

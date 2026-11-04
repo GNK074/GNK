@@ -23,7 +23,7 @@ export function Dashboard({ user, notify }: { user: User; notify: (message: stri
       <div className="stats">
         {[
           ["Connected brokers", summary ? String(count) : "—", count > 0 ? "Individual credentials verified" : "Connect your own account", Cable],
-          ["Portfolio value", "—", "No broker data available", BarChart3],
+          ["Holdings value", summary?.portfolio?.holdings_current?.value != null ? new Intl.NumberFormat("en-IN",{style:"currency",currency:"INR"}).format(Number(summary.portfolio.holdings_current.value)) : "—", summary?.portfolio?.holdings_current?.complete ? "Latest complete broker snapshots" : "Missing or stale broker valuation", BarChart3],
           ["Research strategies", summary ? String(summary.strategies.length) : "—", "Saved paper research strategies", Blocks],
           ["Execution controls", summary ? (summary.live_trading ? "Configured" : "Locked") : "—", "Account and risk checks apply", ShieldCheck],
         ].map(([label, value, sub, Icon]: any) => (

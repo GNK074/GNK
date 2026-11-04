@@ -60,3 +60,7 @@ See [UPSTOX_LIVE_EXECUTION.md](UPSTOX_LIVE_EXECUTION.md) for the NSE equity intr
 ## Unified broker portfolio
 
 The connected-account portfolio, read-only adapters, worker, migration 0009, capability matrix and production instructions are documented in [PORTFOLIO.md](PORTFOLIO.md).
+
+## Official DhanHQ SDK release
+
+See [DHAN_SDK_REPORT.md](DHAN_SDK_REPORT.md) for the pinned SDK, tested account/research features, remaining master-plan phases, API/security notes and the dedicated redeployment script.

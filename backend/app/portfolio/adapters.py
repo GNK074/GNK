@@ -76,11 +76,15 @@ class Zerodha(Adapter):
 
 class Dhan(Adapter):
     name='dhan'
-    paths={'holdings':'holdings','positions':'positions','funds':'fundlimit','orders':'orders','trades':'trades'}
-    def endpoint(self,k):return 'GET','https://api.dhan.co/v2/'+self.paths[k],{'access-token':self.c['access_token'],'Accept':'application/json'},None
-    def unwrap(self,k,d):
-        if isinstance(d,dict) and d.get('errorCode'):raise PortfolioError('BROKER_REJECTED')
-        return d
+    def fetch(self,kind):
+        from app.brokers.dhan.client import DhanClient,DhanError
+        try:
+            if not hasattr(self,'sdk_client'):self.sdk_client=DhanClient(self.account,self.c['access_token'],self.transport)
+            self.sleep(self.interval)
+            return normalize(self.name,kind,self.sdk_client.read(kind))
+        except DhanError as error:raise PortfolioError(error.code) from None
+        except (KeyError,TypeError,AttributeError):raise PortfolioError('INVALID_RESPONSE') from None
+
 
 class Fyers(Adapter):
     name='fyers'
@@ -164,10 +168,13 @@ def normalize(broker,kind,data):
             total=number(pick(r,'pnl','pl','PnL'))
             if total is None and out['realized_pnl'] is not None and out['unrealized_pnl'] is not None:total=out['realized_pnl']+out['unrealized_pnl']
             out['total_pnl']=total
+            out['average_buy_price']=number(pick(r,'buyAvg','buy_price','buyAvgRate','BuyAvgRate'))
+            out['average_sell_price']=number(pick(r,'sellAvg','sell_price','sellAvgRate','SellAvgRate'))
         else:
             oid=pick(r,'order_id','orderId','orderid','id','BrokerOrderId','OrderID','ExchOrderID')
-            tid=pick(r,'trade_id','tradeId','tradeid','TradeID','ExchTradeID','ExchangeTradeID')
-            out.update(order_id=text(oid),trade_id=text(tid) if kind=='trades' else None,status=text(pick(r,'status','orderStatus','OrderStatus')),side=text(pick(r,'transaction_type','transactionType','transactiontype','side','BuySell')),quantity=number(pick(r,'quantity','qty','Qty','TradedQty')),price=number(pick(r,'average_price','price','tradePrice','fillprice','TradeRate','Rate')),broker_time=text(pick(r,'order_timestamp','exchange_timestamp','orderDateTime','exchtime','orderEntryTime','OrderDateTime','TradeDate','ExchangeTradeTime')))
+            tid=pick(r,'trade_id','tradeId','tradeid','TradeID','exchangeTradeId','ExchTradeID','ExchangeTradeID')
+            out.update(order_id=text(oid),trade_id=text(tid) if kind=='trades' else None,status=text(pick(r,'status','orderStatus','OrderStatus')),side=text(pick(r,'transaction_type','transactionType','transactiontype','side','BuySell')),quantity=number(pick(r,'tradedQuantity','quantity','qty','Qty','TradedQty')),price=number(pick(r,'tradedPrice','average_price','price','tradePrice','fillprice','TradeRate','Rate')),broker_time=text(pick(r,'order_timestamp','exchange_timestamp','orderDateTime','exchtime','orderEntryTime','OrderDateTime','TradeDate','exchangeTime','ExchangeTradeTime')))
+        if kind=='orders':out.update(order_type=text(pick(r,'orderType','order_type','ordertype')),trigger_price=number(pick(r,'triggerPrice','trigger_price','triggerprice')),filled_quantity=number(pick(r,'filledQty','filled_quantity','filledshares')),validity=text(r.get('validity')))
         result.append(out)
     return result
 
@@ -179,7 +186,7 @@ def funds(b,d):
     if b=='zerodha':
         if not isinstance(d,dict) or not d:raise PortfolioError('INVALID_RESPONSE')
         return [row(k,v.get('net'),v.get('utilised',{}).get('debits'),v.get('available',{}).get('collateral'),v.get('available',{}).get('cash')) for k,v in d.items()]
-    if b=='dhan':return [row('ALL',d.get('availabelBalance'),d.get('utilizedAmount'),d.get('collateralAmount'),d.get('sodLimit'))]
+    if b=='dhan':return [dict(row('ALL',d.get('availabelBalance'),d.get('utilizedAmount'),d.get('collateralAmount'),d.get('sodLimit')),withdrawable=number(d.get('withdrawableBalance')))]
     if b=='angelone':return [row('ALL',d.get('net'),d.get('utiliseddebits'),d.get('collateral'),d.get('availablecash'))]
     if b=='fyers':
         data=rows(d);available=next((v for v in data if v.get('title')=='Available Balance'),None)
