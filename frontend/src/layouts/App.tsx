@@ -1,3 +1,4 @@
+import { Portfolio } from "../portfolio/Portfolio";
 import { TradeDetails } from "../trade-details/TradeDetails";
 import { LiveWorkspace } from "../strategies/LiveWorkspace";
 import { LiveExecutionAdmin } from "../admin/LiveExecutionAdmin";
@@ -220,7 +221,7 @@ export function App() {
                     ? "Markets"
                     : loc.pathname.includes("broker")
                     ? "Brokers & exchanges"
-                    : loc.pathname.includes("settings")
+                    : loc.pathname === "/user/portfolio" ? "Portfolio" : loc.pathname.includes("settings")
                       ? "Profile & settings"
                       : "Overview"}
                 </b>
@@ -261,8 +262,9 @@ export function App() {
                   <Admin />
                   {user.role === "SUPER_ADMIN" && <><MfaRecoveryReview /><MarketDataAdmin /><LiveExecutionAdmin /></>}
                 </>
-              ) : loc.pathname === "/user/strategies" ||
-                loc.pathname === "/user/portfolio" ? (
+              ) : loc.pathname === "/user/portfolio" ? (
+                <Portfolio />
+              ) : loc.pathname === "/user/strategies" ? (
                 <DisclosureGate key={user.id}>
                   <PaperWorkspace notify={notify} />
                 </DisclosureGate>

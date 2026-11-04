@@ -1,3 +1,3 @@
 # Portfolio
 
-Reserved module boundary for `backend/app/portfolio`. No runtime implementation is claimed by this directory. See the root ARCHITECTURE.md for responsibilities and dependencies.
+Owner-scoped read-only broker snapshots, aggregation, refresh queue and periodic worker. See [PORTFOLIO.md](../../../PORTFOLIO.md) for supported broker contracts, limitations and deployment.

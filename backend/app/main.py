@@ -1,3 +1,4 @@
+from app.portfolio import models as portfolio_models
 from app.trade_details import models as trade_detail_models
 from app.execution import models as live_models
 from fastapi import FastAPI
@@ -77,3 +78,6 @@ app.include_router(live_admin_router)
 
 from app.trade_details.routes import router as trade_details_router
 app.include_router(trade_details_router)
+
+from app.portfolio.routes import router as portfolio_router
+app.include_router(portfolio_router)

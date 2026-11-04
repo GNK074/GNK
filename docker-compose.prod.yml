@@ -96,6 +96,30 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD:?Set SMTP password}
       SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:?Set sender email}
     secrets: [app_db_password, redis_password]
+  portfolio-worker:
+    init: true
+    mem_limit: ${PORTFOLIO_WORKER_MEMORY_LIMIT:-1g}
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    read_only: true
+    tmpfs: ["/tmp"]
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+    environment:
+      APP_ENV: production
+      ENVIRONMENT: production
+      DATABASE_URL: postgresql+psycopg://gnk_app@postgres:5432/gnk
+      DATABASE_PASSWORD_FILE: /run/secrets/app_db_password
+      REDIS_PASSWORD_FILE: /run/secrets/redis_password
+      FRONTEND_URL: ${FRONTEND_URL:?Set HTTPS public origin}
+      SMTP_HOST: ${SMTP_HOST:?Set production SMTP host}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USE_TLS: "true"
+      SMTP_USERNAME: ${SMTP_USERNAME:?Set SMTP username}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:?Set SMTP password}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:?Set sender email}
+    secrets: [app_db_password, redis_password]
   nginx:
     mem_limit: ${NGINX_MEMORY_LIMIT:-128m}
     logging:

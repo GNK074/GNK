@@ -32,11 +32,17 @@ def test_postgres_rls_and_composite_ownership_constraints():
             conn.execute("INSERT INTO live_orders(id,user_id,account_id,strategy_id,instrument_id,instrument_key,symbol,side,quantity,price,product,status,tag,idempotency_key,request_hash,filled_quantity,fills,created_at,updated_at) VALUES(%s,%s,%s,%s,'market-test','NSE_EQ|TEST','TEST','BUY',1,100,'I','UNKNOWN',%s,%s,'hash',0,'[]',now(),now())",(str(uuid.uuid4()),uid,account_id,sid,str(uuid.uuid4()),str(uuid.uuid4())))
         for uid in ids:
             conn.execute("INSERT INTO trade_signals(id,user_id,strategy_id,account_id,instrument_id,symbol,order_type,side,quantity,signal_time,source,source_order_id,note,created_at) SELECT %s,user_id,strategy_id,account_id,'market-test','TEST','LIMIT','BUY',1,now(),'ORDER_REQUEST',id,'Fixture',now() FROM live_orders WHERE user_id=%s",(str(uuid.uuid4()),uid))
+        for uid in ids:
+            conn.execute("INSERT INTO portfolio_snapshots(id,user_id,account_id,kind,rows,fetched_at,credential_version,created_at) SELECT %s,user_id,id,'holdings','[]',now(),'fixture',now() FROM broker_accounts WHERE user_id=%s",(str(uuid.uuid4()),uid))
+            conn.execute("INSERT INTO portfolio_sync_states(id,user_id,account_id,state,failures,errors,created_at) SELECT %s,user_id,id,'QUEUED',0,'{}',now() FROM broker_accounts WHERE user_id=%s",(str(uuid.uuid4()),uid))
         for i,uid in enumerate(ids):
             with conn.transaction():
                 conn.execute('SET LOCAL ROLE gnk_rls_test')
                 conn.execute("SELECT set_config('app.user_id',%s,true)",(uid,))
                 assert conn.execute('SELECT user_id FROM live_orders').fetchall()==[(uid,)]
+                assert conn.execute('SELECT user_id FROM portfolio_snapshots').fetchall()==[(uid,)]
+                assert conn.execute('SELECT user_id FROM portfolio_sync_states').fetchall()==[(uid,)]
+                assert conn.execute("UPDATE portfolio_snapshots SET credential_version='intrusion' WHERE user_id<>%s",(uid,)).rowcount==0
                 assert conn.execute('SELECT user_id FROM trade_signals').fetchall()==[(uid,)]
                 assert conn.execute("UPDATE trade_signals SET note='intrusion' WHERE user_id<>%s",(uid,)).rowcount==0
                 assert conn.execute("UPDATE live_orders SET status='FILLED' WHERE user_id<>%s",(uid,)).rowcount==0
@@ -88,6 +94,8 @@ def test_postgres_rls_and_composite_ownership_constraints():
             assert conn.execute('SELECT count(*) FROM strategies').fetchone()[0]==0
             assert conn.execute('SELECT count(*) FROM live_orders').fetchone()[0]==0
             assert conn.execute('SELECT count(*) FROM trade_signals').fetchone()[0]==0
+            assert conn.execute('SELECT count(*) FROM portfolio_snapshots').fetchone()[0]==0
+            assert conn.execute('SELECT count(*) FROM portfolio_sync_states').fetchone()[0]==0
             assert conn.execute('SELECT count(*) FROM market_data_subscriptions').fetchone()[0]==0
             conn.execute("SELECT set_config('app.market_worker','true',true)")
             assert conn.execute('SELECT count(*) FROM market_data_subscriptions').fetchone()[0]==3

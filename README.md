@@ -56,3 +56,7 @@ See [UPSTOX_LIVE_EXECUTION.md](UPSTOX_LIVE_EXECUTION.md) for the NSE equity intr
 ## Trade details
 
 [Orders, Trade History and Signals](TRADE_DETAILS.md) documents the new pages, owner-scoped reporting, fill-based gross P&L, Excel export and migration 0008. Live execution settings are unchanged.
+
+## Unified broker portfolio
+
+The connected-account portfolio, read-only adapters, worker, migration 0009, capability matrix and production instructions are documented in [PORTFOLIO.md](PORTFOLIO.md).
