@@ -1,7 +1,7 @@
 """Owner-scoped portfolio queries and idempotent snapshot synchronization."""
 from datetime import timedelta,timezone
 from decimal import Decimal
-import hashlib,uuid
+import hashlib,uuid,json
 from sqlalchemy import select
 from fastapi import HTTPException
 from app.core.config import now,expired
@@ -55,11 +55,25 @@ def account_data(s,uid,account_id=None,broker=None):
         elif not valid:state='ERROR' if sync and sync.errors else 'PENDING'
         elif any((now()-utc(v.fetched_at)).total_seconds()>STALE_SECONDS for v in valid) or len(valid)!=len(KINDS) or (sync and sync.errors):state='STALE'
         stamps=[utc(v.fetched_at) for v in valid]
-        result.append(dict(id=a.id,broker=a.broker,account=a.account_identifier,status=state,connection_status=a.status,capabilities={k:a.broker in ADAPTERS for k in KINDS},last_success=min(stamps) if len(valid)==len(KINDS) else None,last_attempt=sync.attempted_at if sync else None,errors=sync.errors if sync else {},requested_at=sync.requested_at if sync else None,reauthorize_url='/user/broker-and-exchanges',snapshots={v.kind:v for v in valid}))
+        result.append(dict(id=a.id,broker=a.broker,account=a.account_identifier,status=state,connection_status=a.status,sync_state=sync.state if sync else 'PENDING',next_attempt_at=sync.next_attempt_at if sync else None,completed_at=sync.completed_at if sync else None,capabilities={k:a.broker in ADAPTERS for k in KINDS},last_success=min(stamps) if len(valid)==len(KINDS) else None,last_attempt=sync.attempted_at if sync else None,errors=sync.errors if sync else {},requested_at=sync.requested_at if sync else None,reauthorize_url='/user/broker-and-exchanges',snapshots={v.kind:v for v in valid}))
     return result
 
 def public_accounts(s,uid,**filters):
     return [{k:v for k,v in a.items() if k!='snapshots'} for a in account_data(s,uid,**filters)]
+
+def connected(s,uid,aid,broker):
+    """Queue a newly verified credential in the connection's own transaction.
+
+    Old credentials' errors/backoff must not survive replacement. Ordinary UI
+    refreshes still respect backoff. Existing snapshots are retained and remain
+    excluded by their credential fingerprint until the new session succeeds.
+    """
+    if broker not in ADAPTERS:return
+    state=s.scalar(select(PortfolioSync).where(PortfolioSync.user_id==uid,PortfolioSync.account_id==aid).with_for_update())
+    if not state:state=PortfolioSync(user_id=uid,account_id=aid);s.add(state)
+    state.state='QUEUED';state.errors={};state.failures=0
+    state.requested_at=now();state.next_attempt_at=now()
+    state.attempted_at=None;state.completed_at=None
 
 def queue(s,uid,account_id=None):
     accounts=owned_accounts(s,uid,account_id)
@@ -142,12 +156,17 @@ def sync_account(uid,aid):
         if not cache.eval("if redis.call('GET',KEYS[1])==ARGV[1] then redis.call('EXPIRE',KEYS[1],300); return 1 end return 0",1,key,token):return False
         with DB() as s:
             set_context(s,uid)
+            a=s.scalar(select(BrokerAccount).where(BrokerAccount.user_id==uid,BrokerAccount.id==aid).with_for_update())
+            c=s.scalar(select(BrokerCredential).where(BrokerCredential.user_id==uid,BrokerCredential.account_id==aid))
+            # An old in-flight failure cannot overwrite a reconnect's new queue.
+            if not a or a.status!='connected' or not c or version(c)!=fingerprint or c.expires_at is None or expired(c.expires_at):return False
             state=s.scalar(select(PortfolioSync).where(PortfolioSync.user_id==uid,PortfolioSync.account_id==aid))
             if not state:return False
             state.errors=errors;state.completed_at=now();state.failures=state.failures+1 if errors else 0
             state.state='SESSION_EXPIRED' if 'SESSION_EXPIRED' in errors.values() else 'PARTIAL' if errors and success else 'ERROR' if errors else 'CONNECTED'
             state.next_attempt_at=now()+timedelta(seconds=min(900,SYNC_SECONDS*2**min(state.failures,4)))
             s.commit()
+            if errors:print('Portfolio sync incomplete. Broker: '+a.broker+' Codes: '+json.dumps(errors,sort_keys=True),flush=True)
         return True
     except Exception as error:
         # Keep unexpected failures visible and bounded instead of retrying every
@@ -156,8 +175,10 @@ def sync_account(uid,aid):
             if cache.eval("if redis.call('GET',KEYS[1])==ARGV[1] then return 1 end return 0",1,key,token):
                 with DB() as s:
                     set_context(s,uid)
+                    a=s.scalar(select(BrokerAccount).where(BrokerAccount.user_id==uid,BrokerAccount.id==aid).with_for_update())
+                    c=s.scalar(select(BrokerCredential).where(BrokerCredential.user_id==uid,BrokerCredential.account_id==aid))
                     state=s.scalar(select(PortfolioSync).where(PortfolioSync.user_id==uid,PortfolioSync.account_id==aid).with_for_update())
-                    if state and state.state=='SYNCING':
+                    if a and a.status=='connected' and c and version(c)==fingerprint and state and state.state=='SYNCING':
                         state.state='ERROR';state.errors={'sync':safe_failure_code(error)}
                         state.failures+=1;state.completed_at=now()
                         state.next_attempt_at=now()+timedelta(seconds=min(900,SYNC_SECONDS*2**min(state.failures,4)))

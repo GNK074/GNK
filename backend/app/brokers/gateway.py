@@ -131,6 +131,8 @@ def callback(broker: str, request: Request, state: str='', code: str='', s: Sess
         credential.expires_at = tokens.expires_at
         credential.key_version = settings.encryption_key_version
         credential.ciphertext = seal_credentials(row.user_id, account.id, dict(access_token=tokens.access_token, refresh_token=tokens.refresh_token))
+        from app.portfolio.service import connected
+        connected(s,row.user_id,account.id,broker)
         audit(s, row.user_id, 'broker_connected:' + broker)
         s.commit()
     except Exception:

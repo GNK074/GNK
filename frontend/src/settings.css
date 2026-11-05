@@ -33,6 +33,35 @@
   --accent-soft: #2878ff20;
   color-scheme: dark;
 }
+/* Native option popups need their own colors on Windows/Chromium; styling
+   only the closed select can leave white options behind white text. */
+select {
+  font: inherit;
+  color: var(--ink);
+  background-color: var(--surface-2);
+}
+:root:not([data-theme="light"]) select {
+  color-scheme: dark;
+}
+:root[data-theme="light"] select {
+  color-scheme: light;
+}
+select option,
+select optgroup {
+  background-color: var(--surface);
+  color: var(--ink);
+}
+select option:checked {
+  background-color: var(--accent);
+  color: #fff;
+}
+select option:disabled {
+  color: var(--muted);
+}
+select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 body,
 .app {
   background: var(--page);

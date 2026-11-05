@@ -116,8 +116,8 @@ def renew(aid:str,u=Depends(auth),s:Session=Depends(db)):
         if verified.account_identifier!=a.account_identifier:raise DhanError('DHAN_IDENTITY_MISMATCH')
         c.ciphertext=seal_credentials(u.id,aid,{'credentials':verified.credentials,'connection_method':'individual_credentials','verified_at':now().isoformat(),'expiry_basis':verified.expiry_basis})
         c.expires_at=verified.expires_at;c.key_version=settings.encryption_key_version
-        sync=s.scalar(select(PortfolioSync).where(PortfolioSync.user_id==u.id,PortfolioSync.account_id==aid))
-        if sync:sync.state='QUEUED';sync.errors={};sync.next_attempt_at=now();sync.requested_at=now()
+        from app.portfolio.service import connected
+        connected(s,u.id,aid,'dhan')
         audit(s,u.id,'dhan_session_renewed:'+aid);s.commit()
         return {'message':'Dhan session renewed and portfolio refresh scheduled.','expires_at':verified.expires_at}
     except Exception as error:

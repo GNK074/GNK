@@ -78,6 +78,8 @@ def connect_individual(broker:str,data:IndividualInput,request:Request,u=Depends
             credential=BrokerCredential(user_id=u.id,account_id=account.id,ciphertext='',key_version=settings.encryption_key_version);s.add(credential)
         credential.ciphertext=seal_credentials(u.id,account.id,{'credentials':verified.credentials,'connection_method':'individual_credentials','verified_at':now().isoformat(),'expiry_basis':verified.expiry_basis})
         credential.key_version=settings.encryption_key_version;credential.expires_at=verified.expires_at
+        from app.portfolio.service import connected
+        connected(s,u.id,account.id,broker)
         audit(s,u.id,'individual_broker_identity_verified:'+broker);s.commit()
     except IntegrityError:
         s.rollback();raise HTTPException(409,'This broker account could not be linked because its identity is already registered') from None
