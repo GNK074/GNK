@@ -30,7 +30,7 @@ DHAN_TICK_SIZE_MULTIPLIER=0
 DHAN_STREAM_WORKER_MEMORY_LIMIT=1g
 ```
 
-These are new-feature defaults, not instructions to change your current global live-trading settings. Dhan placement requires `TRADING_ENABLED=true`, `LIVE_TRADING_ENABLED=true`, `DHAN_EXECUTION_ENABLED=true`, a real operator-reviewed `DHAN_EXECUTION_REFERENCE`, positive verified `DHAN_TICK_SIZE_MULTIPLIER`, enabled private streams and the registered `BROKER_EGRESS_IP`. It also requires current GNK broker approval evidence, administrator authorization of the owner/account/strategy, owner arming, worker readiness, fresh master/quote and all existing risk checks. Do not invent approval references. A reference string does not verify broker approval by itself.
+These are new-feature defaults, not instructions to change your current global live-trading settings. Dhan placement requires `TRADING_ENABLED=true`, `LIVE_TRADING_ENABLED=true`, `DHAN_EXECUTION_ENABLED=true`, an internal configuration-review tracking ID in `DHAN_EXECUTION_REFERENCE`, positive verified `DHAN_TICK_SIZE_MULTIPLIER`, enabled private streams and the registered `BROKER_EGRESS_IP`. It also requires current GNK broker approval evidence, administrator authorization of the owner/account/strategy, owner arming, worker readiness, fresh master/quote and all existing risk checks. The reference is not a Dhan-issued authorization code. A pending internal review case can be created before the production review; only the separate evidence/production/account gates can authorize trading.
 
 The public master preserves original tick units. An observed master sample had raw tick sizes `5.0000` and `10.0000`; determine the permitted instrument's INR conversion from broker documentation and acceptance testing before configuring the multiplier. No default conversion is assumed. NSE equity intraday LIMIT/DAY, unit lots, no new short selling, weekday entry window 09:15–15:20 IST are the implemented execution scope; fresh exchange timestamps also prevent entry on inactive sessions.
 
@@ -122,6 +122,22 @@ GNK_ENV=production ./deploy/live_placement_status.sh dhan
 
 This command prints fixed check names/actions without owner IDs, broker client IDs, tokens, secrets or raw broker errors. It never changes configuration, approval evidence, account arming or orders.
 
-To activate Dhan on the real server, the operator must configure the existing global live flags and `DHAN_EXECUTION_ENABLED=true`, retain `DHAN_STREAM_ENABLED=true`, supply the real reviewed `DHAN_EXECUTION_REFERENCE`, verified `DHAN_TICK_SIZE_MULTIPLIER` and registered `BROKER_EGRESS_IP`, then validate/recreate the application containers. Preserve all existing encryption keys, credentials and Upstox settings. The super administrator completes existing broker production approval, authorizes the owned account and strategy, and reviews the platform stop. The owner clears any personal stop, resolves uncertain orders and types `ENABLE LIVE DHAN` to arm the account. The checklist identifies the responsible role for each missing step; it does not fabricate approval evidence or silently arm an account.
+To activate Dhan on the real server, the operator must configure the existing global live flags and `DHAN_EXECUTION_ENABLED=true`, retain `DHAN_STREAM_ENABLED=true`, supply an internal review tracking ID in `DHAN_EXECUTION_REFERENCE`, verified `DHAN_TICK_SIZE_MULTIPLIER` and registered `BROKER_EGRESS_IP`, then validate/recreate the application containers. Preserve all existing encryption keys, credentials and Upstox settings. The super administrator completes existing broker production approval, authorizes the owned account and strategy, and reviews the platform stop. The owner clears any personal stop, resolves uncertain orders and types `ENABLE LIVE DHAN` to arm the account. The checklist identifies the responsible role for each missing step; it does not fabricate approval evidence or silently arm an account.
 
 No new database migration is needed for this activation-status update. Real server activation requires access to that server and its actual readiness results. Automated tests use fake brokers and never submit real orders.
+
+## Repair a missing Dhan execution reference
+
+The environment reference is an internal GNK review tracking ID, not proof of completed broker approval. Requiring a completed approval before the server can load configuration leads to a circular setup instruction. The supported order is: create a pending case, validate configuration, then complete the existing approval workflow before account authorization/arming.
+
+```bash
+cd /opt/gnk
+./deploy/configure_dhan_reference.sh
+./deploy/validate_environment.sh
+```
+
+The first command works without importing application settings. When the reference is missing/invalid it creates a local `deploy/review_records/GNK-DHAN-REVIEW-*.json` record explicitly marked PENDING with broker_approved=false and review_completed=false, then atomically changes only DHAN_EXECUTION_REFERENCE in .env. It preserves global/Dhan flags, multiplier, keys, passwords and an existing valid reference. Runtime review records are ignored by Git. It never creates approval evidence, marks requirements passed, changes account authorization/arming or calls a broker.
+
+The existing numeric multiplier check does not independently establish its INR conversion. Keep the verified multiplier and stream setting. After validation passes, recreate containers to load changed environment values and use the activation checklist to finish actual broker review. Configuration success alone does not enable order placement.
+
+Validator errors now identify the specific missing reference, zero multiplier or disabled stream separately and suppress all settings/secrets.

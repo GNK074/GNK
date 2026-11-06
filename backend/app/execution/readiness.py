@@ -19,7 +19,7 @@ def snapshot(s,uid,broker):
     risk=s.scalar(select(RiskConfiguration).where(RiskConfiguration.user_id==uid))
     strategy=bool(s.scalar(select(Strategy.id).where(Strategy.user_id==uid,Strategy.approved.is_(True)).limit(1)))
     checks=[
-        check('SERVER_ACTIVATION','Server live placement',server,'Operator: configure '+', '.join(disabled or flags)+' and the broker-specific reviewed reference, tick multiplier and registered egress IP.','operator'),
+        check('SERVER_ACTIVATION','Server live placement',server,'Operator: configure '+', '.join(disabled or flags)+' and the broker-specific review tracking reference, tick multiplier and registered egress IP.','operator'),
         check('BROKER_APPROVAL','Broker production approval',approved,'Super administrator: complete the existing broker evidence review and production approval.','super_admin'),
         check('RECONCILIATION_WORKER','Execution reconciliation worker',worker,'Operator: restore the execution-worker service and Redis heartbeat.','operator'),
         check('PLATFORM_STOP','Platform emergency stop cleared',platform and not platform.kill_switch,'Super administrator: review and clear the platform emergency stop in Administration.','super_admin'),

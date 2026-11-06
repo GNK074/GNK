@@ -11,4 +11,6 @@ __pycache__/
 !.env.production.example
 secrets/
 backups/
+/deploy/review_records/
+/.gnk-env-*
 *.dump

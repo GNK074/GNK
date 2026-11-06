@@ -30,3 +30,19 @@ def test_offline_configuration_validation_passes():
     assert result.returncode==0,result.stderr
     assert 'PASS market-data configuration' in result.stdout
     assert 'Environment validation passed' in result.stdout
+
+def test_dhan_missing_reference_names_only_the_missing_field():
+    result=run_validation(DHAN_EXECUTION_ENABLED='true',DHAN_EXECUTION_REFERENCE='',DHAN_TICK_SIZE_MULTIPLIER='0.01',DHAN_STREAM_ENABLED='true')
+    assert result.returncode==1 and 'DHAN_EXECUTION_REFERENCE is missing/invalid' in result.stderr
+    assert 'configure_dhan_reference.sh' in result.stderr and 'PENDING' in result.stderr
+    assert 'DHAN_TICK_SIZE_MULTIPLIER' not in result.stderr and 'never-print' not in result.stderr
+
+def test_dhan_multiplier_and_stream_failures_are_specific():
+    result=run_validation(DHAN_EXECUTION_ENABLED='true',DHAN_EXECUTION_REFERENCE='internal-review-case',DHAN_TICK_SIZE_MULTIPLIER='0',DHAN_STREAM_ENABLED='true')
+    assert result.returncode==1 and 'DHAN_TICK_SIZE_MULTIPLIER must be greater than zero' in result.stderr
+    result=run_validation(DHAN_EXECUTION_ENABLED='true',DHAN_EXECUTION_REFERENCE='internal-review-case',DHAN_TICK_SIZE_MULTIPLIER='0.01',DHAN_STREAM_ENABLED='false')
+    assert result.returncode==1 and 'DHAN_STREAM_ENABLED must be true' in result.stderr
+
+def test_pending_internal_case_passes_configuration_without_claiming_approval():
+    result=run_validation(DHAN_EXECUTION_ENABLED='true',DHAN_EXECUTION_REFERENCE='GNK-DHAN-REVIEW-fixture',DHAN_TICK_SIZE_MULTIPLIER='0.01',DHAN_STREAM_ENABLED='true')
+    assert result.returncode==0,result.stderr

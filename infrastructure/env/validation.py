@@ -7,6 +7,9 @@ sys.path.insert(0,str(ROOT/'backend'))
 # Only messages authored by this application may be exposed. Never print a
 # Pydantic error's input, arbitrary message, context, exception repr or URL.
 SAFE_MESSAGES={
+    'Dhan execution reference is missing or invalid':'DHAN_EXECUTION_REFERENCE is missing/invalid. Run ./deploy/configure_dhan_reference.sh to create a PENDING internal review record. This does not approve trading.',
+    'Dhan execution tick-size multiplier must be positive':'DHAN_TICK_SIZE_MULTIPLIER must be greater than zero; verify the instrument master conversion to INR.',
+    'Dhan execution requires the private stream service':'DHAN_STREAM_ENABLED must be true for Dhan execution.',
     'Dhan execution requires reviewed reference, verified tick multiplier and private stream service':'Check DHAN_EXECUTION_REFERENCE, DHAN_TICK_SIZE_MULTIPLIER and DHAN_STREAM_ENABLED.',
     'Live execution requires explicit Upstox enablement, reviewed reference and verified tick-size multiplier':
         'Live activation requires TRADING_ENABLED, UPSTOX_EXECUTION_ENABLED, LIVE_EXECUTION_REFERENCE and a positive verified LIVE_TICK_SIZE_MULTIPLIER. Check spelling of LIVE_EXECUTION_REFERENCE.',

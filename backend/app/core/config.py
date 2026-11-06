@@ -95,8 +95,13 @@ class Settings(BaseSettings):
                 raise ValueError('Live execution requires explicit Upstox enablement, reviewed reference and verified tick-size multiplier')
             if not ipaddress.ip_address(self.broker_egress_ip).is_global:
                 raise ValueError('Live execution requires the registered public egress IP')
-        if self.dhan_execution_enabled and (not self.dhan_execution_reference.strip() or self.dhan_execution_reference.strip().lower() in ('false','true','pending') or not self.dhan_tick_size_multiplier or not self.dhan_stream_enabled):
-            raise ValueError('Dhan execution requires reviewed reference, verified tick multiplier and private stream service')
+        if self.dhan_execution_enabled:
+            if not self.dhan_execution_reference.strip() or self.dhan_execution_reference.strip().lower() in ('false','true','pending'):
+                raise ValueError('Dhan execution reference is missing or invalid')
+            if not self.dhan_tick_size_multiplier:
+                raise ValueError('Dhan execution tick-size multiplier must be positive')
+            if not self.dhan_stream_enabled:
+                raise ValueError('Dhan execution requires the private stream service')
         if '\n' in self.upstox_algo_name or '\r' in self.upstox_algo_name:
             raise ValueError('Invalid configured algo name')
         if self.app_env == 'production':
