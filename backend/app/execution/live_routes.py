@@ -27,8 +27,8 @@ class GrantInput(BaseModel):
 def handle(error):raise HTTPException(409,error.code) from None
 @router.get('/readiness')
 def readiness(broker:Literal['upstox','dhan']='upstox',u=Depends(auth),s:Session=Depends(db)):
-    accounts=list(s.scalars(select(BrokerAccount).where(BrokerAccount.user_id==u.id,BrokerAccount.broker==broker)))
-    return {'server_enabled':live.enabled(broker) if broker=='dhan' else live.enabled(),'broker_approved':live.broker_approved(s,broker) if broker=='dhan' else live.broker_approved(s),'reconciliation_healthy':live.worker_ready(),'scope':'NSE EQ intraday LIMIT DAY; no short selling','accounts':[{'id':a.id,'broker':a.broker,'status':a.status,'live_authorized':a.live_authorized,'armed':not a.kill_switch} for a in accounts]}
+    from .readiness import snapshot
+    return snapshot(s,u.id,broker)
 @router.get('/orders')
 def orders(u=Depends(auth),s:Session=Depends(db)):
     return [live.public(x) for x in s.scalars(select(LiveOrder).where(LiveOrder.user_id==u.id).order_by(LiveOrder.created_at.desc()).limit(200))]

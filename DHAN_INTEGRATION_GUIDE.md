@@ -107,3 +107,21 @@ Verified individual connections, browser-consent connections and token renewal n
 Native select controls and their option popups now use the active GNK theme's colors across the application, with explicit dark/light native color schemes, readable selected/disabled states and keyboard focus. This covers Dhan exchange/quote/account controls, portfolio filters and existing settings/trading selects.
 
 This correction requires updated backend, portfolio-worker and frontend images, but no new schema migration. Existing live flags, broker approvals and encrypted credentials are preserved. Use the existing redeploy script for a complete checked rollout.
+
+## Live placement activation status
+
+Live placement is already implemented for the documented NSE equity intraday LIMIT/DAY scope. The header now shows **Live placement enabled** only when the selected broker has an owned account passing the existing server, broker-approval, reconciliation, emergency-stop, strategy, credential, account-authorization, arming and uncertain-order checks. It refreshes every ten seconds and after account controls change. On `/user/dhan`, the header checks Dhan rather than a different broker. Click the status to open `/user/live-orders?broker=dhan` and its activation checklist.
+
+The readiness API adds `placement_ready`, global `checks`/`blockers`, and per-account checks/blockers. These are read-only status fields, not approval or arming operations. Each individual order still rechecks identity, fresh quote, instrument/tick/price, risk and broker state; a ready label is not an executed order.
+
+After deploying, diagnose existing configuration without disclosing credentials:
+
+```bash
+GNK_ENV=production ./deploy/live_placement_status.sh dhan
+```
+
+This command prints fixed check names/actions without owner IDs, broker client IDs, tokens, secrets or raw broker errors. It never changes configuration, approval evidence, account arming or orders.
+
+To activate Dhan on the real server, the operator must configure the existing global live flags and `DHAN_EXECUTION_ENABLED=true`, retain `DHAN_STREAM_ENABLED=true`, supply the real reviewed `DHAN_EXECUTION_REFERENCE`, verified `DHAN_TICK_SIZE_MULTIPLIER` and registered `BROKER_EGRESS_IP`, then validate/recreate the application containers. Preserve all existing encryption keys, credentials and Upstox settings. The super administrator completes existing broker production approval, authorizes the owned account and strategy, and reviews the platform stop. The owner clears any personal stop, resolves uncertain orders and types `ENABLE LIVE DHAN` to arm the account. The checklist identifies the responsible role for each missing step; it does not fabricate approval evidence or silently arm an account.
+
+No new database migration is needed for this activation-status update. Real server activation requires access to that server and its actual readiness results. Automated tests use fake brokers and never submit real orders.

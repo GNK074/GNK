@@ -44,7 +44,7 @@ export function App() {
     [loading, setLoading] = useState(true),
     [note, setNote] = useState("");
   const [liveReady,setLiveReady] = useState(false);
-  useEffect(()=>{if(user)Promise.allSettled([api("/live/readiness?broker=upstox"),api("/live/readiness?broker=dhan")]).then(results=>setLiveReady(results.some(result=>result.status==="fulfilled"&&result.value.server_enabled&&result.value.broker_approved&&result.value.reconciliation_healthy&&result.value.accounts.some((a:any)=>a.armed&&a.live_authorized)))).catch(()=>setLiveReady(false));},[user?.id,location.pathname]);
+
   const [signOutOpen, setSignOutOpen] = useState(false);
   useEffect(()=>{
     const ended=(event:StorageEvent)=>{
@@ -59,6 +59,15 @@ export function App() {
   }
   const loc = useLocation(),
     nav = useNavigate();
+  const liveBroker=loc.pathname==="/user/dhan"||new URLSearchParams(loc.search).get("broker")==="dhan"?"dhan":"upstox";
+  useEffect(()=>{
+    if(!user){setLiveReady(false);return}
+    let active=true,inFlight=false;
+    setLiveReady(false);
+    async function refresh(){if(inFlight)return;inFlight=true;try{const r=await api("/live/readiness?broker="+liveBroker);if(active)setLiveReady(r.placement_ready===true)}catch{if(active)setLiveReady(false)}finally{inFlight=false}}
+    refresh();const timer=window.setInterval(refresh,10000);window.addEventListener("focus",refresh);window.addEventListener("gnk:live-readiness-changed",refresh);
+    return()=>{active=false;clearInterval(timer);window.removeEventListener("focus",refresh);window.removeEventListener("gnk:live-readiness-changed",refresh)};
+  },[user?.id,liveBroker,loc.pathname]);
   useEffect(()=>{
     if(!user)return;
     let active=true,inFlight=false;
@@ -230,7 +239,7 @@ export function App() {
               </span>
               <div>
                 <span className="status-dot" />
-                {liveReady?"Live account armed":"Live placement locked"} <span className="header-divider">│</span>
+                <Link to={"/user/live-orders?broker="+liveBroker} title="View live placement activation checks">{liveReady?"Live placement enabled":"Live placement locked"}</Link> <span className="header-divider">│</span>
                 <CircleHelp size={18} />
                 <span className="avatar">
                   {user.avatar_url ? (
