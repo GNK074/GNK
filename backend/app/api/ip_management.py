@@ -46,7 +46,8 @@ def current_connection(request: Request, response: Response, user=Depends(auth))
 class RegistrationDraft(BaseModel):
     model_config = ConfigDict(extra='forbid')
     broker: Literal['dhan', 'fyers', 'upstox']
-    primary_ip: str = Field(max_length=15)
+    source: Literal['manual', 'connection'] = 'manual'
+    primary_ip: str | None = Field(default=None, max_length=15)
     secondary_ip: str | None = Field(default=None, max_length=15)
     ownership_confirmed: Literal[True]
 
@@ -65,9 +66,14 @@ def read_registration(response: Response, user=Depends(auth), session: Session=D
 
 
 @router.put('/registrations')
-def save_registration(data: RegistrationDraft, response: Response, user=Depends(auth), session: Session=Depends(db)):
+def save_registration(data: RegistrationDraft, request: Request, response: Response, user=Depends(auth), session: Session=Depends(db)):
     response.headers['Cache-Control'] = 'no-store'
-    primary = public_address(data.primary_ip)
+    if data.source == 'connection':
+        primary = public_address(request.client.host) if request.client else None
+        if not primary or primary.version != 4:
+            raise HTTPException(422, 'A public IPv4 connection is required. Enter your broker static IPv4 manually.')
+    else:
+        primary = public_address(data.primary_ip or '')
     secondary = public_address(data.secondary_ip) if data.secondary_ip else None
     if not primary or primary.version != 4 or (data.secondary_ip and (not secondary or secondary.version != 4 or secondary == primary)):
         raise HTTPException(422, 'Enter distinct public IPv4 addresses.')

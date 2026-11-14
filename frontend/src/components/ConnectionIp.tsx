@@ -11,6 +11,7 @@ type Connection = {
 export function ConnectionIp({ notify }: { notify: (message: string) => void }) {
   const [connection, setConnection] = useState<Connection>();
   const [draft, setDraft] = useState<{broker: string; primary_ip: string; secondary_ip: string | null; status: string} | null>();
+  const [source, setSource] = useState<"manual" | "connection">("manual");
   const [saving, setSaving] = useState(false);
   const [draftError, setDraftError] = useState("");
   const [failed, setFailed] = useState(false);
@@ -59,7 +60,8 @@ export function ConnectionIp({ notify }: { notify: (message: string) => void }) 
       try {
         const result = await api("/ip-management/registrations", "PUT", {
           broker: fields.get("broker"),
-          primary_ip: String(fields.get("primary_ip")).trim(),
+          source,
+          primary_ip: source === "manual" ? String(fields.get("primary_ip")).trim() : null,
           secondary_ip: String(fields.get("secondary_ip")).trim() || null,
           ownership_confirmed: fields.has("ownership"),
         });
@@ -74,11 +76,22 @@ export function ConnectionIp({ notify }: { notify: (message: string) => void }) 
       <label>Broker <select name="broker" defaultValue={draft?.broker ?? "dhan"}>
         <option value="dhan">Dhan</option><option value="fyers">FYERS</option><option value="upstox">Upstox</option>
       </select></label>
-      <label>Primary IPv4 <input name="primary_ip" required maxLength={15} defaultValue={draft?.primary_ip} /></label>
+      <fieldset>
+        <legend>Primary IP source</legend>
+        <label><input type="radio" name="source" checked={source === "connection"}
+          disabled={connection?.ip_version !== 4}
+          onChange={() => setSource("connection")} /> Use detected connection IPv4</label>
+        <label><input type="radio" name="source" checked={source === "manual"}
+          onChange={() => setSource("manual")} /> Enter broker static IPv4</label>
+      </fieldset>
+      {source === "connection" ? <p>
+        GNK will check your address again when saving. This address may change and requires broker confirmation.
+      </p> : <label>Primary IPv4 <input name="primary_ip" required maxLength={15} defaultValue={draft?.primary_ip} /></label>}
+      {connection?.ip_version === 6 && <p>IPv6 is displayed for connection information. Broker drafts currently require IPv4.</p>}
       <label>Secondary IPv4 (optional) <input name="secondary_ip" maxLength={15} defaultValue={draft?.secondary_ip ?? ""} /></label>
       <label><input name="ownership" type="checkbox" required /> I control the addresses provided.</label>
       <button type="submit" disabled={saving}>{saving ? "Saving…" : "Save draft"}</button>
-      {draft && <p>Saved draft · Pending verification</p>}
+      {draft && <p>Saved draft · Primary IP {draft.primary_ip} · Pending verification</p>}
     </form>}
     {draft?.status === "DRAFT" && <form onSubmit={async event => {
       event.preventDefault();
