@@ -1196,3 +1196,23 @@ body,
 .market-session-badge { display: flex; align-items: center; gap: .4rem; border: 1px solid currentColor; border-radius: .5rem; padding: .3rem .5rem; font-size: .75rem; }
 .market-session-open { color: #219866; }
 .market-session-panel { width: min(15rem, 65vw); gap: .45rem; padding: .75rem; white-space: normal; }
+
+.ip-management-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); align-items: start; gap: 1rem; }
+.ip-management-card { min-width: 0; }
+.ip-management-card h2 { margin: 0 0 .7rem; font-size: 1.2rem; }
+.ip-management-card form, .ip-management-card fieldset { display: grid; gap: .65rem; }
+.ip-management-card fieldset { min-width: 0; padding: .75rem; border: 1px solid currentColor; border-radius: .5rem; }
+.ip-management-card form + form { margin-top: 1rem; }
+.profile-settings .ip-management-card input:is([type="radio"], [type="checkbox"]) {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  min-height: 0;
+  margin: 0 .45rem 0 0;
+  padding: 0;
+  vertical-align: middle;
+}
+.ip-management-card .ip-status { display: inline-block; padding: .3rem .55rem; border: 1px solid currentColor; border-radius: .4rem; font-weight: 650; }
+.ip-management-card .ip-address-row { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
+.ip-address-row code { overflow-wrap: anywhere; }
+.ip-management-card button { justify-self: start; padding: .45rem .75rem; border: 1px solid currentColor; border-radius: .45rem; }

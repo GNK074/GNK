@@ -36,19 +36,23 @@ export function ConnectionIp({ notify }: { notify: (message: string) => void }) 
     }
   }
 
-  return <section className="profile-meta connection-ip" aria-labelledby="connection-ip-heading">
-    <h3 id="connection-ip-heading">IP Management</h3>
+  return <div className="ip-management-grid">
+    <section className="settings-card ip-management-card" aria-labelledby="connection-ip-heading">
+    <h2 id="connection-ip-heading">IP Whitelist</h2>
+    <p className="ip-status">Broker whitelist: unverified</p>
     {!connection ? <p role="status">{failed ? "Could not load connection information." : "Checking connection…"}</p> : <>
       <span>Public connection IP</span>
-      {connection.public_ip ? <div>
+      {connection.public_ip ? <div className="ip-address-row">
         <code>{connection.public_ip}</code>
         <button type="button" onClick={() => void copyIp(connection.public_ip!)}>Copy IP</button>
-      </div> : <p>Public IP unavailable through the current connection.</p>}
+      </div> : <p>Public IP unavailable. You can enter a static IPv4 manually in the registration card.</p>}
       {connection.ip_version && <small>IPv{connection.ip_version} · </small>}
       <small>Checked <time dateTime={connection.detected_at}>{new Date(connection.detected_at).toLocaleString()}</time></small>
       <p>Cloud execution IP {connection.egress_status === "configured_unverified" ? "configured, verification pending" : "unconfigured"}.</p>
     </>}
-    <h4>Static IP registration draft</h4>
+    </section>
+    <section className="settings-card ip-management-card" aria-labelledby="static-ip-heading">
+    <h2 id="static-ip-heading">Static IP Registration</h2>
     <p>Save addresses for review. Broker verification is required before registration.</p>
     {draftError && <p role="alert">{draftError}</p>}
     {draft !== undefined && (!draft || draft.status === "DRAFT") && <form onSubmit={async event => {
@@ -116,5 +120,6 @@ export function ConnectionIp({ notify }: { notify: (message: string) => void }) 
     </form>}
     {draft?.status === "PENDING_ADMIN" && <p>Awaiting GNK administrator review.</p>}
     {draft?.status === "PENDING_BROKER" && <p>GNK review complete. Awaiting broker confirmation.</p>}
-  </section>;
+    </section>
+  </div>;
 }

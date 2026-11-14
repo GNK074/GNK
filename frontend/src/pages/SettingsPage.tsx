@@ -259,7 +259,6 @@ export function SettingsPage({
             </div>
             {copied && <small role="status">User ID copied</small>}
           </div>
-          <ConnectionIp notify={notify} />
           <div className="profile-note">
             <ShieldCheck size={20} />
             <p>
@@ -271,6 +270,7 @@ export function SettingsPage({
           </div>
         </section>
         <div className="settings-main">
+          <ConnectionIp notify={notify} />
           <section className="settings-card" id="profile-details">
             <div className="card-heading">
               <div className="section-icon">
