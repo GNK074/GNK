@@ -95,8 +95,8 @@ export function MfaEnrollment() {
         </>
       ) : enabled ? (
         <>
-          <Link className="button" to="/user/settings">
-            Return to account settings
+          <Link className="button" to="/user/dashboard">
+            Return to dashboard
           </Link>
           <Link className="text-link" to="/forgot-mfa">
             Forgot MFA?

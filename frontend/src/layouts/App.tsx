@@ -18,7 +18,6 @@ import {
   CircleHelp,
   Gauge,
   LayoutDashboard,
-  Settings,
   ShieldCheck,
 } from "lucide-react";
 import { api, SESSION_ENDED_KEY } from "../services/api";
@@ -27,7 +26,6 @@ import { Logo } from "../components/Logo";
 import { Landing } from "../pages/Landing";
 import { Auth } from "../pages/Auth";
 import { Dashboard } from "../dashboard/Dashboard";
-import { SettingsPage } from "../pages/SettingsPage";
 import { Admin } from "../admin/Admin";
 
 export function App() {
@@ -98,7 +96,7 @@ export function App() {
   if (loading)
     return <div className="loading">GNK ALGO · Loading workspace…</div>;
   if (/^\/markets(?:\/|$)/.test(loc.pathname) ||
-      /^\/user\/(broker-and-exchanges|dhan|strategies|security|live-orders)(?:\/|$)/.test(loc.pathname) ||
+      /^\/user\/(broker-and-exchanges|dhan|strategies|security|settings|live-orders)(?:\/|$)/.test(loc.pathname) ||
       (loc.pathname.startsWith("/tradedetails/") && loc.pathname !== "/tradedetails/client-trade-history")) {
     return <Navigate to={user ? "/user/dashboard" : "/login"} replace />;
   }
@@ -159,7 +157,6 @@ export function App() {
                 [LayoutDashboard, "Overview", "/user/dashboard"],
                 [BarChart3, "Trade History", "/tradedetails/client-trade-history"],
                 [BarChart3, "Portfolio", "/user/portfolio"],
-                [Settings, "Account settings", "/user/settings"],
                 ...(user.role !== "USER"
                   ? [[Gauge, "Administration", "/admin"]]
                   : []),
@@ -204,7 +201,6 @@ export function App() {
                 <b>
                   {loc.pathname === "/tradedetails/client-trade-history" ? "Trade History"
                     : loc.pathname === "/user/portfolio" ? "Portfolio"
-                    : loc.pathname === "/user/settings" ? "Account settings"
                     : loc.pathname === "/admin" ? "Administration" : "Overview"}
                 </b>
               </span>
@@ -223,13 +219,6 @@ export function App() {
             <div className="content">
               {loc.pathname === "/tradedetails/client-trade-history" ? (
                 <TradeDetails key={loc.pathname} />
-              ) : loc.pathname === "/user/settings" ? (
-                <SettingsPage
-                  user={user}
-                  notify={notify}
-                  onUpdate={updateUser}
-                  onSignOut={() => setSignOutOpen(true)}
-                />
               ) : loc.pathname === "/admin" ? (
                 <>
                   <Admin />
