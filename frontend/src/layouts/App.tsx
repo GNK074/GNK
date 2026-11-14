@@ -1,8 +1,6 @@
 import { SettingsPage } from "../pages/SettingsPage";
 import { Portfolio } from "../portfolio/Portfolio";
 import { TradeDetails } from "../trade-details/TradeDetails";
-import { LiveExecutionAdmin } from "../admin/LiveExecutionAdmin";
-import { MarketDataAdmin } from "../admin/MarketDataAdmin";
 import { MfaRecoveryPage } from "../pages/MfaRecoveryPage";
 import { MfaRecoveryReview } from "../admin/MfaRecoveryReview";
 import { ContactUsPage } from "../pages/ContactUsPage";
@@ -280,7 +278,7 @@ export function App() {
               ) : loc.pathname === "/admin" ? (
                 <>
                   <Admin />
-                  {user.role === "SUPER_ADMIN" && <><MfaRecoveryReview /><MarketDataAdmin /><LiveExecutionAdmin /></>}
+                  {user.role === "SUPER_ADMIN" && <MfaRecoveryReview />}
                 </>
               ) : loc.pathname === "/user/portfolio" ? (
                 <Portfolio />
