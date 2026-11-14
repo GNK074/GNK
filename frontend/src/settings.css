@@ -1219,3 +1219,30 @@ body,
 
 .ip-mode-picker { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .75rem 1.25rem; }
 .ip-management-grid > section { grid-column: 1 / -1; }
+
+.profile-settings .ip-mode-picker label {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .4rem .65rem;
+}
+.profile-settings .ip-mode-picker label input { flex: none; margin: 0; }
+.ip-management-card .ip-lookup {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  margin-top: 1.25rem;
+}
+.ip-management-card .ip-lookup button { min-height: 44px; }
+.ip-lookup-help { font-size: .875rem; line-height: 1.55; }
+.ip-lookup-result {
+  display: grid;
+  gap: .65rem;
+  padding: .9rem;
+  margin-top: 1rem;
+  border: 1px solid currentColor;
+  border-radius: .65rem;
+}
+.ip-version { font-size: .75rem; border: 1px solid currentColor; border-radius: .35rem; padding: .15rem .35rem; }
+@media (max-width: 640px) {
+  .ip-management-card .ip-lookup { grid-template-columns: minmax(0, 1fr); }
+}

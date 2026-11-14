@@ -58,7 +58,7 @@ export function ConnectionIp({ notify }: { notify: (message: string) => void }) 
       {connection.ip_version && <small>IPv{connection.ip_version} · </small>}
       <small>Checked <time dateTime={connection.detected_at}>{new Date(connection.detected_at).toLocaleString()}</time></small>
     </>}
-    <form onSubmit={async event => {
+    <form className="ip-lookup" onSubmit={async event => {
       event.preventDefault();
       if (checking) return;
       const value = String(new FormData(event.currentTarget).get("address") ?? "").trim();
@@ -74,20 +74,22 @@ export function ConnectionIp({ notify }: { notify: (message: string) => void }) 
         setChecking(false);
       }
     }}>
-      <label>Enter hostname or public IP
+      <label>Hostname or public IP
         <input name="address" placeholder="49.205.39.45 or example.com" required maxLength={253}
-          autoCapitalize="none" spellCheck={false} readOnly={checking} onChange={() => {
+          aria-describedby="ip-lookup-help" autoCapitalize="none" spellCheck={false} readOnly={checking} onChange={() => {
             setAddresses([]);
             setLookupError("");
           }} />
       </label>
       <button type="submit" disabled={checking}>{checking ? "Checking…" : "Verify address"}</button>
     </form>
+    <p id="ip-lookup-help" className="ip-lookup-help">Checks whether an entered IP is public or a hostname resolves to public IPv4 or IPv6 addresses. Broker approval is a separate step.</p>
     {lookupError && <p role="alert">{lookupError}</p>}
-    {addresses.length > 0 && <div role="status">
-      <p>Public address lookup result</p>
+    {addresses.length > 0 && <div role="status" className="ip-lookup-result">
+      <strong>Public address lookup result</strong>
       {addresses.map(address => <div key={address} className="ip-address-row">
         <code>{address}</code>
+        <span className="ip-version">{address.includes(":") ? "IPv6" : "IPv4"}</span>
         <button type="button" onClick={() => void copyIp(address)}>Copy IP</button>
       </div>)}
     </div>}
