@@ -1192,3 +1192,7 @@ body,
 @media (prefers-reduced-motion: reduce) {
   .workspace-spark { animation: none; }
 }
+
+.market-session-badge { display: flex; align-items: center; gap: .4rem; border: 1px solid currentColor; border-radius: .5rem; padding: .3rem .5rem; font-size: .75rem; }
+.market-session-open { color: #219866; }
+.market-session-panel { width: min(15rem, 65vw); gap: .45rem; padding: .75rem; white-space: normal; }

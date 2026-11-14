@@ -182,3 +182,8 @@ def set_access(user_id:str,data:EntitlementInput,u=Depends(admin),s:Session=Depe
     if not row:row=MarketEntitlement(user_id=user_id);s.add(row)
     for key,value in data.model_dump().items():setattr(row,key,value)
     audit(s,u.id,'market_access_changed:'+user_id);s.commit();return {'user_id':row.user_id,'enabled':row.enabled,'segments':row.segments,'modes':row.modes,'max_instruments':row.max_instruments,'expires_at':row.expires_at}
+
+@router.get('/session-schedule')
+def session_schedule(u=Depends(auth)):
+    from app.market_data.market_calendar import market_session
+    return market_session('NSE_EQ')

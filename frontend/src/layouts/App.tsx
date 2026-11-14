@@ -1,3 +1,4 @@
+import { MarketStatus } from "../components/MarketStatus";
 import { SettingsPage } from "../pages/SettingsPage";
 import { Portfolio } from "../portfolio/Portfolio";
 import { TradeDetails } from "../trade-details/TradeDetails";
@@ -235,6 +236,7 @@ export function App() {
                     <span>{note || "No new notifications."}</span>
                   </div>
                 </details>
+                <MarketStatus />
                 <CircleHelp size={18} />
                 <details className="profile-menu appearance-menu"
                   onBlur={event => {
