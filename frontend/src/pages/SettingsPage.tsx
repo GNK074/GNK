@@ -1,3 +1,4 @@
+import { ConnectionIp } from "../components/ConnectionIp";
 import { MfaRecoveryCodes } from "../components/MfaRecoveryCodes";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -258,6 +259,7 @@ export function SettingsPage({
             </div>
             {copied && <small role="status">User ID copied</small>}
           </div>
+          <ConnectionIp notify={notify} />
           <div className="profile-note">
             <ShieldCheck size={20} />
             <p>

@@ -95,3 +95,6 @@ app.include_router(dhan_consent_router)
 
 from app.notifications.inbox import router as notification_router
 app.include_router(notification_router)
+
+from app.api.ip_management import router as ip_management_router
+app.include_router(ip_management_router)

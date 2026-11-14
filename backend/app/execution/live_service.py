@@ -113,6 +113,11 @@ def validate_risk(s,uid,risk,data,instrument,positions,book):
         if len(active)>risk.max_positions:fail('Position limit reached')
         if exposure+data.price*data.quantity>risk.max_order_value*risk.max_positions:fail('Portfolio exposure limit reached')
 
+def require_verified_execution_ip():
+    # Draft and admin approval do not establish broker whitelisting or actual egress.
+    fail('Live placement requires verified broker IP registration and verified execution egress')
+
+
 def submit(s,u,data):
     # Ownership checks precede global activation information, preventing ID probing.
     s.scalar(select(User).where(User.id==u.id).with_for_update())
@@ -124,6 +129,7 @@ def submit(s,u,data):
         if old.request_hash!=fingerprint:fail('Idempotency key belongs to a different live order')
         return old
     risk=gates(s,account,strategy)
+    require_verified_execution_ip()
     if account.broker=='dhan':
         clock=now().astimezone(ZoneInfo('Asia/Kolkata'))
         if clock.weekday()>4 or not (9,15)<=(clock.hour,clock.minute)<(15,20):fail('Dhan intraday entry window is 09:15–15:20 IST on trading weekdays; fresh exchange ticks are also required')
@@ -162,6 +168,7 @@ def submit(s,u,data):
         current_user=s.get(User,u.id)
         if not current_user.active or not current_user.verified:fail('Account access was revoked before submission')
         gates(s,account,strategy)
+        require_verified_execution_ip()
         broker=client(s,account)
         fresh=quote_for(s,u.id,account,instrument)
         if abs(data.price-decimal(fresh['ltp']))*100>decimal(fresh['ltp'])*settings.live_price_deviation_percent:fail('Quote moved outside price band before submission')

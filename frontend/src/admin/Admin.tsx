@@ -1,3 +1,4 @@
+import { StaticIpReview } from "./StaticIpReview";
 import React, { useEffect, useState } from "react";
 import {
   BrowserRouter,
@@ -38,6 +39,7 @@ export function Admin() {
   return (
     <>
       <h1>Administration</h1>
+      <StaticIpReview />
       <p>{error || `${users.length} registered accounts`}</p>
       <article className="panel">
         {users.map((u) => (
