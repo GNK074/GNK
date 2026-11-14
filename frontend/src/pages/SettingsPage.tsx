@@ -538,13 +538,13 @@ export function SettingsPage({
                     : "Add an authenticator to protect sign-ins."}
                 </p>
               </div>
-              <Link
-                to={user.mfa_enabled ? "/user/security" : "/mfa"}
+              {!user.mfa_enabled && <Link
+                to="/mfa"
                 className="settings-text-button"
               >
-                {user.mfa_enabled ? "View security" : "Set up"}
+                Set up
                 <ChevronRight size={14} />
-              </Link>
+              </Link>}
             </div>
             <div className="setting-row">
               <div>
@@ -703,10 +703,6 @@ export function SettingsPage({
                 </div>
               </dl>
             </details>
-            <Link to="/user/security" className="account-link">
-              Security preferences
-              <ChevronRight size={16} />
-            </Link>
             <button className="account-signout" onClick={onSignOut}>
               <span>
                 <LogOut size={16} />

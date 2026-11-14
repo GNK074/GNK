@@ -1,4 +1,3 @@
-from app.core.config import settings
 from fastapi import Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -16,4 +15,4 @@ def health(s: Session=Depends(db)):
         raise HTTPException(503, "Database migrations are required. Run ./deploy/migrate_database.sh before starting this release.") from None
     s.execute(select(1))
     cache.ping()
-    return {'status': 'ok', 'live_trading': settings.live_trading_enabled}
+    return {'status': 'ok'}

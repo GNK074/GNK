@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { ArrowRight, BarChart3, Blocks, Cable, ShieldCheck } from "lucide-react";
+import { BarChart3, Blocks, Cable, ShieldCheck } from "lucide-react";
 import { api } from "../services/api";
 import type { User } from "../store/session";
 
@@ -18,7 +17,6 @@ export function Dashboard({ user, notify }: { user: User; notify: (message: stri
           <h1>Good to see you, {user.name.split(" ")[0]} <span className="wave">↗</span></h1>
           <p>A clear view of your trading workspace.</p>
         </div>
-        <Link className="button" to="/user/broker-and-exchanges">Connect a broker <ArrowRight size={17} /></Link>
       </div>
       <div className="stats">
         {[

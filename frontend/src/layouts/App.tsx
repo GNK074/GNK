@@ -1,10 +1,7 @@
-import { DhanWorkspace } from "../brokers/DhanWorkspace";
 import { Portfolio } from "../portfolio/Portfolio";
 import { TradeDetails } from "../trade-details/TradeDetails";
-import { LiveWorkspace } from "../strategies/LiveWorkspace";
 import { LiveExecutionAdmin } from "../admin/LiveExecutionAdmin";
 import { MarketDataAdmin } from "../admin/MarketDataAdmin";
-import { MarketsPage } from "../markets/MarketsPage";
 import { MfaRecoveryPage } from "../pages/MfaRecoveryPage";
 import { MfaRecoveryReview } from "../admin/MfaRecoveryReview";
 import { ContactUsPage } from "../pages/ContactUsPage";
@@ -12,15 +9,11 @@ import { DisclosureGate } from "../compliance/DisclosureGate";
 import { SignOutDialog } from "../components/SignOutDialog";
 import { applyTheme } from "../services/theme";
 import { MfaEnrollment } from "../pages/MfaEnrollment";
-import { PaperWorkspace } from "../strategies/PaperWorkspace";
 import { useEffect, useLayoutEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Navigate, Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  Activity,
   ArrowRight,
   BarChart3,
-  Blocks,
-  Cable,
   ChevronRight,
   CircleHelp,
   Gauge,
@@ -34,16 +27,13 @@ import { Logo } from "../components/Logo";
 import { Landing } from "../pages/Landing";
 import { Auth } from "../pages/Auth";
 import { Dashboard } from "../dashboard/Dashboard";
-import { Brokers } from "../brokers/Brokers";
 import { SettingsPage } from "../pages/SettingsPage";
-import { Security } from "../risk-management/Security";
 import { Admin } from "../admin/Admin";
 
 export function App() {
   const [user, setUser] = useState<User | null>(null),
     [loading, setLoading] = useState(true),
     [note, setNote] = useState("");
-  const [liveReady,setLiveReady] = useState(false);
 
   const [signOutOpen, setSignOutOpen] = useState(false);
   useEffect(()=>{
@@ -59,15 +49,6 @@ export function App() {
   }
   const loc = useLocation(),
     nav = useNavigate();
-  const liveBroker=loc.pathname==="/user/dhan"||new URLSearchParams(loc.search).get("broker")==="dhan"?"dhan":"upstox";
-  useEffect(()=>{
-    if(!user){setLiveReady(false);return}
-    let active=true,inFlight=false;
-    setLiveReady(false);
-    async function refresh(){if(inFlight)return;inFlight=true;try{const r=await api("/live/readiness?broker="+liveBroker);if(active)setLiveReady(r.placement_ready===true)}catch{if(active)setLiveReady(false)}finally{inFlight=false}}
-    refresh();const timer=window.setInterval(refresh,10000);window.addEventListener("focus",refresh);window.addEventListener("gnk:live-readiness-changed",refresh);
-    return()=>{active=false;clearInterval(timer);window.removeEventListener("focus",refresh);window.removeEventListener("gnk:live-readiness-changed",refresh)};
-  },[user?.id,liveBroker,loc.pathname]);
   useEffect(()=>{
     if(!user)return;
     let active=true,inFlight=false;
@@ -77,7 +58,7 @@ export function App() {
       try{
         const response=await fetch("/api/v1/auth/session",{credentials:"include",cache:"no-store"});
         if(active&&response.status===401){
-          setUser(null);setSignOutOpen(false);setLiveReady(false);
+          setUser(null);setSignOutOpen(false);
           nav("/login",{replace:true});
         }
       }catch{/* A temporary network failure does not prove session revocation. */}
@@ -116,6 +97,11 @@ export function App() {
   if (loc.pathname === "/mfa") return <MfaEnrollment />;
   if (loading)
     return <div className="loading">GNK ALGO · Loading workspace…</div>;
+  if (/^\/markets(?:\/|$)/.test(loc.pathname) ||
+      /^\/user\/(broker-and-exchanges|dhan|strategies|security|live-orders)(?:\/|$)/.test(loc.pathname) ||
+      (loc.pathname.startsWith("/tradedetails/") && loc.pathname !== "/tradedetails/client-trade-history")) {
+    return <Navigate to={user ? "/user/dashboard" : "/login"} replace />;
+  }
   return (
     <>
       {signOutOpen && (
@@ -171,28 +157,20 @@ export function App() {
             <nav>
               {[
                 [LayoutDashboard, "Overview", "/user/dashboard"],
-                [BarChart3, "Markets", "/markets"],
-                [Cable, "Brokers & exchanges", "/user/broker-and-exchanges"],
-                [Activity, "Dhan workspace", "/user/dhan"],
-                [Blocks, "Strategies", "/user/strategies"],
-                [BarChart3, "Orders", "/tradedetails/orders"],
                 [BarChart3, "Trade History", "/tradedetails/client-trade-history"],
-                [Activity, "Signals", "/tradedetails/signals"],
                 [BarChart3, "Portfolio", "/user/portfolio"],
-                [ShieldCheck, "Risk & security", "/user/security"],
                 [Settings, "Account settings", "/user/settings"],
                 ...(user.role !== "USER"
                   ? [[Gauge, "Administration", "/admin"]]
                   : []),
               ].map(([Icon, title, path]: any) => (
                 <Link
-                  className={loc.pathname === path || (path === "/tradedetails/orders" && loc.pathname === "/user/live-orders") ? "selected" : ""}
+                  className={loc.pathname === path ? "selected" : ""}
                   to={path}
                   key={path}
                 >
                   <Icon size={19} />
                   {title}
-                  {title === "Strategies" && <span className="new">SOON</span>}
                 </Link>
               ))}
             </nav>
@@ -224,22 +202,14 @@ export function App() {
               <span>
                 Workspace <ChevronRight size={14} />{" "}
                 <b>
-                  {loc.pathname.startsWith("/tradedetails/")
-                    ? loc.pathname.endsWith("/signals") ? "Signals" : loc.pathname.endsWith("/client-trade-history") ? "Trade History" : "Orders"
-                    : loc.pathname === "/user/live-orders"
-                    ? "Orders"
-                    : loc.pathname.startsWith("/markets")
-                    ? "Markets"
-                    : loc.pathname.includes("broker")
-                    ? "Brokers & exchanges"
-                    : loc.pathname === "/user/dhan" ? "Dhan workspace" : loc.pathname === "/user/portfolio" ? "Portfolio" : loc.pathname.includes("settings")
-                      ? "Profile & settings"
-                      : "Overview"}
+                  {loc.pathname === "/tradedetails/client-trade-history" ? "Trade History"
+                    : loc.pathname === "/user/portfolio" ? "Portfolio"
+                    : loc.pathname === "/user/settings" ? "Account settings"
+                    : loc.pathname === "/admin" ? "Administration" : "Overview"}
                 </b>
               </span>
               <div>
                 <span className="status-dot" />
-                <Link to={"/user/live-orders?broker="+liveBroker} title="View live placement activation checks">{liveReady?"Live placement enabled":"Live placement locked"}</Link> <span className="header-divider">│</span>
                 <CircleHelp size={18} />
                 <span className="avatar">
                   {user.avatar_url ? (
@@ -251,16 +221,8 @@ export function App() {
               </div>
             </header>
             <div className="content">
-              {loc.pathname.startsWith("/tradedetails/") ? (
+              {loc.pathname === "/tradedetails/client-trade-history" ? (
                 <TradeDetails key={loc.pathname} />
-              ) : loc.pathname === "/user/dhan" ? (
-                <DhanWorkspace />
-              ) : loc.pathname === "/user/live-orders" ? (
-                <DisclosureGate key={user.id}><LiveWorkspace /></DisclosureGate>
-              ) : loc.pathname.startsWith("/markets") ? (
-                <MarketsPage />
-              ) : loc.pathname.includes("broker") ? (
-                <Brokers notify={notify} />
               ) : loc.pathname === "/user/settings" ? (
                 <SettingsPage
                   user={user}
@@ -268,8 +230,6 @@ export function App() {
                   onUpdate={updateUser}
                   onSignOut={() => setSignOutOpen(true)}
                 />
-              ) : loc.pathname === "/user/security" ? (
-                <Security notify={notify} />
               ) : loc.pathname === "/admin" ? (
                 <>
                   <Admin />
@@ -277,10 +237,6 @@ export function App() {
                 </>
               ) : loc.pathname === "/user/portfolio" ? (
                 <Portfolio />
-              ) : loc.pathname === "/user/strategies" ? (
-                <DisclosureGate key={user.id}>
-                  <PaperWorkspace notify={notify} />
-                </DisclosureGate>
               ) : (
                 <DisclosureGate key={user.id}>
                   <Dashboard user={user} notify={notify} />
