@@ -36,6 +36,8 @@ services:
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--no-access-log", "--ws-max-size", "65536", "--ws-max-queue", "32"]
     secrets: [app_db_password, redis_password]
     environment:
+      GNK_PORTFOLIO_SECRET: ${GNK_PORTFOLIO_SECRET:-}
+      GNK_PORTFOLIO_ACCOUNT_LINKS: ${GNK_PORTFOLIO_ACCOUNT_LINKS:-}
       APP_ENV: production
       DATABASE_URL: postgresql+psycopg://gnk_app@postgres:5432/gnk
       DATABASE_PASSWORD_FILE: /run/secrets/app_db_password
