@@ -149,7 +149,7 @@ export function App() {
       ) : ["/contact", "/contact-us", "/contact-us/"].includes(loc.pathname) ? (
         <ContactUsPage signedIn={!!user} />
       ) : loc.pathname === "/" ? (
-        <Landing />
+        user ? <Navigate to="/user/dashboard" replace /> : <Landing />
       ) : !user ? (
         <div className="auth-wrap">
           <Logo />
@@ -162,7 +162,7 @@ export function App() {
       ) : (
         <div className="app">
           <aside>
-            <Logo />
+            <Logo signedIn />
             <div className="workspace">
               <span className="avatar">G</span>
               <div>
@@ -222,10 +222,19 @@ export function App() {
                     : loc.pathname === "/user/portfolio" ? "Portfolio"
                     : loc.pathname === "/user/profile" ? "Profile"
                     : loc.pathname === "/admin" ? "Administration" : "Overview"}
+                  {loc.pathname === "/user/dashboard" && <span className="workspace-spark workspace-spark-delayed" aria-hidden="true"> ✳</span>}
                 </b>
               </span>
               <div>
-                <span className="status-dot" />
+                <details className="profile-menu appearance-menu">
+                  <summary aria-label="Notifications" title="Notifications">
+                    <span aria-hidden="true">🔔</span>
+                  </summary>
+                  <div className="profile-menu-links">
+                    <strong>Notifications <span className="workspace-spark" aria-hidden="true">✳</span></strong>
+                    <span>{note || "No new notifications."}</span>
+                  </div>
+                </details>
                 <CircleHelp size={18} />
                 <details className="profile-menu appearance-menu"
                   onBlur={event => {

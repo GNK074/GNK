@@ -1179,3 +1179,16 @@ body,
   border-radius: .4rem;
 }
 .appearance-menu .profile-menu-links button { display: flex; justify-content: space-between; align-items: center; gap: .6rem; }
+
+.workspace-spark {
+  color: #e8ba69;
+  animation: workspace-spark 5s ease-in-out infinite;
+}
+.workspace-spark-delayed { animation-delay: 1.5s; }
+@keyframes workspace-spark {
+  0%, 18%, 100% { opacity: .75; text-shadow: none; }
+  9% { opacity: 1; text-shadow: 0 0 .45rem currentColor; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .workspace-spark { animation: none; }
+}
