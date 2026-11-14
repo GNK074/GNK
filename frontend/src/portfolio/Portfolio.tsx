@@ -28,13 +28,22 @@ export function Portfolio(){
  useEffect(()=>{setPage(1);setDetail(null)},[query,tab,book,consolidated,size]);
  useEffect(()=>{if(detail)dialog.current?.showModal()},[detail]);
  useEffect(()=>{if(!cooldown)return;const t=setInterval(()=>setCooldown(v=>Math.max(0,v-1)),1000);return()=>clearInterval(t)},[cooldown>0]);
- useEffect(()=>{let active=true;async function load(){
+ useEffect(()=>{
+  let active=true;
+  let timer: ReturnType<typeof setTimeout>;
+  async function load(){
    try{
     const p=new URLSearchParams(query);p.set("page",String(page));p.set("page_size",String(size));p.set("sort",sort);p.set("direction",direction);p.set("consolidated",String(consolidated));
     const [a,s,d,f]=await Promise.all([api("/portfolio/accounts"),api("/portfolio/summary?"+query),api(`/portfolio/${kind}?${p}`),api("/portfolio/funds?"+query+"&page_size=100")]);
     if(active){setAccounts(a.items);setSummary(s);setData(d);setFunds(f.items);setError("")}
-   }catch(e){if(active){setError((e as Error).message);setData(null);setSummary(null);setFunds([])}}finally{if(active)setLoading(false)}
-  }setLoading(true);load();const t=setInterval(load,15000);return()=>{active=false;clearInterval(t)};
+   }catch(e){if(active){setError((e as Error).message);setData(null);setSummary(null);setFunds([])}}finally{if(active){
+     setLoading(false);
+     timer=setTimeout(load,5000);
+    }}
+  }
+  setLoading(true);
+  void load();
+  return()=>{active=false;clearTimeout(timer)};
  },[query,kind,page,size,sort,direction,consolidated,revision,tab]);
  function filter(k:string,v:string){setFilters(f=>({...f,[k]:v,...(k==="broker"?{account_id:""}:{})}))}
  function changeTab(t:Tab){setTab(t);setSort("symbol");setPage(1);setNotice("")}
