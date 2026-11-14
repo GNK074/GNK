@@ -1,4 +1,6 @@
 services:
+  mailpit:
+    profiles: [local-mail]
   frontend:
     mem_limit: ${WEB_MEMORY_LIMIT:-128m}
     logging:
@@ -51,6 +53,7 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD:?Set SMTP password}
       SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:?Set sender email}
   market-worker:
+    profiles: [market-data]
     init: true
     mem_limit: ${MARKET_WORKER_MEMORY_LIMIT:-1g}
     security_opt: ["no-new-privileges:true"]
@@ -75,6 +78,7 @@ services:
       SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:?Set sender email}
     secrets: [app_db_password, redis_password]
   execution-worker:
+    profiles: [execution]
     init: true
     mem_limit: ${EXECUTION_WORKER_MEMORY_LIMIT:-1g}
     security_opt: ["no-new-privileges:true"]
@@ -123,6 +127,7 @@ services:
       SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:?Set sender email}
     secrets: [app_db_password, redis_password]
   dhan-stream-worker:
+    profiles: [dhan-stream]
     init: true
     mem_limit: ${DHAN_STREAM_WORKER_MEMORY_LIMIT:-1g}
     security_opt: ["no-new-privileges:true"]
