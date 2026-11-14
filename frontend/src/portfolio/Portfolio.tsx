@@ -22,6 +22,8 @@ export function Portfolio(){
  const [tab,setTab]=useState<Tab>("overview"),[book,setBook]=useState("orders"),[accounts,setAccounts]=useState<Row[]>([]),[summary,setSummary]=useState<Row|null>(null),[data,setData]=useState<Row|null>(null),[funds,setFunds]=useState<Row[]>([]);
  const [filters,setFilters]=useState({account_id:"",broker:"",exchange:"",product:"",asset_class:"",q:""}),[page,setPage]=useState(1),[size,setSize]=useState(20),[sort,setSort]=useState("symbol"),[direction,setDirection]=useState("asc"),[consolidated,setConsolidated]=useState(false);
  const [loading,setLoading]=useState(true),[error,setError]=useState(""),[notice,setNotice]=useState(""),[refreshing,setRefreshing]=useState(false),[cooldown,setCooldown]=useState(0),[detail,setDetail]=useState<Row|null>(null),[download,setDownload]=useState(false),[revision,setRevision]=useState(0);
+ const [autoRefresh,setAutoRefresh]=useState(true);
+ const [lastUpdated,setLastUpdated]=useState<string>();
  const dialog=useRef<HTMLDialogElement>(null);const kind=tab==="overview"?"holdings":tab==="orders"?book:tab;
  function params(){const p=new URLSearchParams();Object.entries(filters).forEach(([k,v])=>{if(v)p.set(k,v)});return p;}
  const query=params().toString();
@@ -35,16 +37,16 @@ export function Portfolio(){
    try{
     const p=new URLSearchParams(query);p.set("page",String(page));p.set("page_size",String(size));p.set("sort",sort);p.set("direction",direction);p.set("consolidated",String(consolidated));
     const [a,s,d,f]=await Promise.all([api("/portfolio/accounts"),api("/portfolio/summary?"+query),api(`/portfolio/${kind}?${p}`),api("/portfolio/funds?"+query+"&page_size=100")]);
-    if(active){setAccounts(a.items);setSummary(s);setData(d);setFunds(f.items);setError("")}
+    if(active){setAccounts(a.items);setSummary(s);setData(d);setFunds(f.items);setLastUpdated(new Date().toISOString());setError("")}
    }catch(e){if(active){setError((e as Error).message);setData(null);setSummary(null);setFunds([])}}finally{if(active){
      setLoading(false);
-     timer=setTimeout(load,5000);
+     if(autoRefresh)timer=setTimeout(load,5000);
     }}
   }
   setLoading(true);
   void load();
   return()=>{active=false;clearTimeout(timer)};
- },[query,kind,page,size,sort,direction,consolidated,revision,tab]);
+ },[query,kind,page,size,sort,direction,consolidated,revision,tab,autoRefresh]);
  function filter(k:string,v:string){setFilters(f=>({...f,[k]:v,...(k==="broker"?{account_id:""}:{})}))}
  function changeTab(t:Tab){setTab(t);setSort("symbol");setPage(1);setNotice("")}
  async function refresh(){setRefreshing(true);setNotice("");try{await api("/auth/session");const r=await api("/portfolio/refresh","POST",{account_id:filters.account_id||null});setNotice(r.queued.length?`Refresh queued for ${r.queued.length} account(s). Snapshots update in the background.`:"No refresh queued. Accounts may be disconnected or within the refresh cooldown.");setCooldown(r.refresh_after_seconds);setRevision(v=>v+1)}catch(e){setError((e as Error).message)}finally{setRefreshing(false)}}
@@ -55,6 +57,12 @@ export function Portfolio(){
  function table(rows:Row[],tableKind:string){const cols=columns[tableKind];return <div className="pf-table-wrap"><table><thead><tr>{cols.map(([k,title])=><th key={k} aria-sort={sort===k?(direction==="asc"?"ascending":"descending"):undefined}>{sortable.has(k)?<button onClick={()=>sortBy(k)}>{title}<ArrowDownUp size={12}/></button>:title}</th>)}<th>Freshness</th><th>Details</th></tr></thead><tbody>{rows.length?rows.map((r,i)=><tr key={`${r.account_id}-${r.row_key}-${i}`}>{cols.map(([k])=><td key={k} className={k.includes("pnl")&&r[k]!=null?(Number(r[k])<0?"pf-loss":"pf-profit"):""}>{value(r[k],k)}</td>)}<td><span className={`pf-status ${r.fresh?"connected":"stale"}`}>{r.fresh?"Snapshot":"Stale"}</span><small>{when(r.fetched_at)}</small></td><td><button onClick={()=>setDetail(r)}>View <ChevronRight size={13}/></button></td></tr>):<tr><td colSpan={cols.length+2} className="pf-empty">{loading?"Loading broker snapshots…":`No ${tableKind} available for these filters. Connect an account and request a refresh.`}</td></tr>}</tbody></table></div>}
  return <section className="portfolio-page">
   <div className="pf-heading"><div><div className="eyebrow">YOUR ACCOUNTS, ONE VIEW</div><h1>Portfolio</h1><p>Holdings, positions and funds across your connected brokers.</p></div><button className="pf-refresh" disabled={refreshing||cooldown>0} onClick={refresh}><RefreshCw size={16}/>{refreshing?"Queuing…":cooldown?`Refresh in ${cooldown}s`:"Refresh accounts"}</button></div>
+  <div className="pf-toolbar">
+    <span>{lastUpdated ? <>Last successful refresh <time dateTime={lastUpdated}>{when(lastUpdated)}</time></> : "Waiting for first refresh"}</span>
+    <button type="button" onClick={()=>setAutoRefresh(value=>!value)}>
+      {autoRefresh ? "Pause auto-refresh" : "Resume auto-refresh"}
+    </button>
+  </div>
   <div className="pf-context"><span><Building2 size={15}/>{activeAccounts.filter(a=>!["DISCONNECTED","UNSUPPORTED","SESSION_EXPIRED"].includes(a.status)).length} connected accounts</span><span><Clock3 size={15}/>Snapshots in India Standard Time · read-only</span></div>
   <nav className="pf-tabs" aria-label="Portfolio sections">{tabs.map(([k,title])=><button className={tab===k?"selected":""} key={k} onClick={()=>changeTab(k)}>{title}</button>)}</nav>
   {error&&<div role="alert" className="pf-error">{error}<button onClick={()=>setRevision(v=>v+1)}>Try again</button></div>}{notice&&<div role="status" className="pf-notice">{notice}</div>}
