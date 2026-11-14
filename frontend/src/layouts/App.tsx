@@ -1,3 +1,4 @@
+import { Notifications } from "../components/Notifications";
 import { MarketStatus } from "../components/MarketStatus";
 import { SettingsPage } from "../pages/SettingsPage";
 import { Portfolio } from "../portfolio/Portfolio";
@@ -79,7 +80,7 @@ export function App() {
   }, []);
   useLayoutEffect(() => {
     document.documentElement.dataset.workspace = String(
-      loc.pathname.startsWith("/user/") || loc.pathname.startsWith("/markets") || loc.pathname.startsWith("/tradedetails/") || loc.pathname === "/admin",
+      loc.pathname.startsWith("/user/") || loc.pathname.startsWith("/markets") || loc.pathname.startsWith("/tradedetails/") || ["/admin", "/notification"].includes(loc.pathname),
     );
   }, [loc.pathname]);
   useEffect(() => {
@@ -221,6 +222,7 @@ export function App() {
                 <b>
                   {loc.pathname === "/tradedetails/client-trade-history" ? "Trade History"
                     : loc.pathname === "/user/portfolio" ? "Portfolio"
+                    : loc.pathname === "/notification" ? "Notifications"
                     : loc.pathname === "/user/profile" ? "Profile"
                     : loc.pathname === "/admin" ? "Administration" : "Overview"}
                   {loc.pathname === "/user/dashboard" && <span className="workspace-spark workspace-spark-delayed" aria-hidden="true"> ✳</span>}
@@ -233,7 +235,8 @@ export function App() {
                   </summary>
                   <div className="profile-menu-links">
                     <strong>Notifications <span className="workspace-spark" aria-hidden="true">✳</span></strong>
-                    <span>{note || "No new notifications."}</span>
+                    {note && <span>{note}</span>}
+                    <Link to="/notification">Open notification inbox</Link>
                   </div>
                 </details>
                 <MarketStatus />
@@ -284,6 +287,8 @@ export function App() {
             <div className="content">
               {loc.pathname === "/tradedetails/client-trade-history" ? (
                 <TradeDetails key={loc.pathname} />
+              ) : loc.pathname === "/notification" ? (
+                <Notifications />
               ) : loc.pathname === "/user/profile" ? (
                 <SettingsPage user={user} notify={notify} onUpdate={updateUser} onSignOut={() => setSignOutOpen(true)} />
               ) : loc.pathname === "/admin" ? (

@@ -92,3 +92,6 @@ app.include_router(dhan_stream_router)
 
 from app.brokers.dhan.authentication import router as dhan_consent_router
 app.include_router(dhan_consent_router)
+
+from app.notifications.inbox import router as notification_router
+app.include_router(notification_router)
