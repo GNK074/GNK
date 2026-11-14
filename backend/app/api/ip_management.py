@@ -153,3 +153,37 @@ def decide_registration(owner_id: str, data: ReviewDecision, reviewer=Depends(ad
     audit(session, owner_id, 'static_ip_approved' if data.decision == 'approve' else 'static_ip_rejected')
     session.commit()
     return {'status': status}
+
+
+class AddressLookup(BaseModel):
+    value: str = Field(min_length=1, max_length=253)
+
+
+@router.post('/verify-address')
+def verify_address(data: AddressLookup, request: Request, response: Response, user=Depends(auth)):
+    import re
+    import socket
+
+    limit(request, 'ip_address_lookup', user.id)
+    response.headers['Cache-Control'] = 'no-store'
+    value = data.value.strip()
+    try:
+        ip_address(value)
+    except ValueError:
+        hostname = value.removesuffix('.')
+        labels = hostname.split('.')
+        if len(labels) < 2 or not re.fullmatch(r'[A-Za-z]{2,63}', labels[-1]) or not all(
+            re.fullmatch(r'[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?', label) for label in labels
+        ):
+            raise HTTPException(422, 'Enter a public IP address or a fully qualified hostname.')
+        try:
+            records = socket.getaddrinfo(hostname + '.', None, type=socket.SOCK_STREAM)
+        except OSError:
+            raise HTTPException(422, 'The hostname could not be resolved.') from None
+        addresses = {address for record in records if (address := public_address(record[4][0]))}
+    else:
+        address = public_address(value)
+        addresses = {address} if address else set()
+    if not addresses:
+        raise HTTPException(422, 'No public IPv4 or IPv6 address was found.')
+    return {'addresses': [str(address) for address in sorted(addresses, key=lambda a: (a.version, int(a)))][:16]}

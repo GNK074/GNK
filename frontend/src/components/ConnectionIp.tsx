@@ -14,6 +14,9 @@ export function ConnectionIp({ notify }: { notify: (message: string) => void }) 
   const [source, setSource] = useState<"manual" | "connection">("connection");
   const [saving, setSaving] = useState(false);
   const [draftError, setDraftError] = useState("");
+  const [addresses, setAddresses] = useState<string[]>([]);
+  const [lookupError, setLookupError] = useState("");
+  const [checking, setChecking] = useState(false);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
@@ -30,7 +33,7 @@ export function ConnectionIp({ notify }: { notify: (message: string) => void }) 
   async function copyIp(address: string) {
     try {
       await navigator.clipboard.writeText(address);
-      notify("Connection IP copied");
+      notify("IP copied");
     } catch {
       notify("Clipboard unavailable. Select and copy the address.");
     }
@@ -55,6 +58,39 @@ export function ConnectionIp({ notify }: { notify: (message: string) => void }) 
       {connection.ip_version && <small>IPv{connection.ip_version} · </small>}
       <small>Checked <time dateTime={connection.detected_at}>{new Date(connection.detected_at).toLocaleString()}</time></small>
     </>}
+    <form onSubmit={async event => {
+      event.preventDefault();
+      if (checking) return;
+      const value = String(new FormData(event.currentTarget).get("address") ?? "").trim();
+      setChecking(true);
+      setLookupError("");
+      setAddresses([]);
+      try {
+        const result = await api("/ip-management/verify-address", "POST", { value });
+        setAddresses(result.addresses);
+      } catch (error) {
+        setLookupError((error as Error).message);
+      } finally {
+        setChecking(false);
+      }
+    }}>
+      <label>Enter hostname or public IP
+        <input name="address" placeholder="49.205.39.45 or example.com" required maxLength={253}
+          autoCapitalize="none" spellCheck={false} readOnly={checking} onChange={() => {
+            setAddresses([]);
+            setLookupError("");
+          }} />
+      </label>
+      <button type="submit" disabled={checking}>{checking ? "Checking…" : "Verify address"}</button>
+    </form>
+    {lookupError && <p role="alert">{lookupError}</p>}
+    {addresses.length > 0 && <div role="status">
+      <p>Public address lookup result</p>
+      {addresses.map(address => <div key={address} className="ip-address-row">
+        <code>{address}</code>
+        <button type="button" onClick={() => void copyIp(address)}>Copy IP</button>
+      </div>)}
+    </div>}
     </section>}
     {source === "manual" && <section className="settings-card ip-management-card" aria-labelledby="static-ip-heading">
     <h2 id="static-ip-heading">Static IP Registration</h2>
