@@ -1170,3 +1170,12 @@ body,
   cursor: pointer;
 }
 .profile-menu-links :is(a, button):is(:hover, :focus-visible) { background: color-mix(in srgb, CanvasText 12%, Canvas); }
+
+.appearance-menu summary {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: .4rem;
+}
+.appearance-menu .profile-menu-links button { display: flex; justify-content: space-between; align-items: center; gap: .6rem; }

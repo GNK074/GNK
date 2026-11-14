@@ -17,12 +17,14 @@ import {
   BarChart3,
   ChevronRight,
   CircleHelp,
+  Palette,
+  Check,
   Gauge,
   LayoutDashboard,
   ShieldCheck,
 } from "lucide-react";
 import { api, SESSION_ENDED_KEY } from "../services/api";
-import type { User } from "../store/session";
+import type { Theme, User } from "../store/session";
 import { Logo } from "../components/Logo";
 import { Landing } from "../pages/Landing";
 import { Auth } from "../pages/Auth";
@@ -34,6 +36,7 @@ export function App() {
     [loading, setLoading] = useState(true),
     [note, setNote] = useState("");
 
+  const [savingTheme, setSavingTheme] = useState(false);
   const profileMenu = useRef<HTMLDetailsElement>(null);
   const [signOutOpen, setSignOutOpen] = useState(false);
   useEffect(()=>{
@@ -85,6 +88,21 @@ export function App() {
     if (profileMenu.current) profileMenu.current.open = false;
   }, [loc.pathname]);
   const notify = (s: string) => setNote(s);
+  async function saveTheme(theme: Theme) {
+    if (!user || savingTheme || theme === (user.theme || "carbon_black")) return;
+    setSavingTheme(true);
+    applyTheme(theme);
+    try {
+      const result = await api("/users/me/preferences", "PUT", { theme });
+      updateUser(result.user);
+    } catch (error) {
+      applyTheme(user.theme || "carbon_black");
+      notify((error as Error).message);
+    } finally {
+      setSavingTheme(false);
+    }
+  }
+
   const isAuth = [
     "/login",
     "/register",
@@ -211,6 +229,26 @@ export function App() {
               <div>
                 <span className="status-dot" />
                 <CircleHelp size={18} />
+                <details className="profile-menu appearance-menu"
+                  onBlur={event => {
+                    if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false;
+                  }}
+                  onKeyDown={event => {
+                    if (event.key === "Escape" && event.currentTarget.open) {
+                      event.currentTarget.open = false;
+                      event.currentTarget.querySelector("summary")?.focus();
+                    }
+                  }}>
+                  <summary aria-label="Choose appearance" title="Appearance"><Palette size={18} /></summary>
+                  <div className="profile-menu-links" role="group" aria-label="Workspace theme">
+                    {([["light", "Light"], ["carbon_black", "Carbon Black"], ["royal_blue", "Royal Blue"]] as const)
+                      .map(([value, label]) => {
+                        const selected = (user.theme || "carbon_black") === value;
+                        return <button key={value} type="button" aria-pressed={selected} aria-disabled={savingTheme}
+                          onClick={() => void saveTheme(value)}>{label}{selected && <Check size={14} aria-hidden="true" />}</button>;
+                      })}
+                  </div>
+                </details>
                 <details className="profile-menu" ref={profileMenu}
                   onBlur={event => {
                     if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false;

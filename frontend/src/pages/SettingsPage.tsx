@@ -8,7 +8,6 @@ import {
   ShieldCheck,
   KeyRound,
   Monitor,
-  Palette,
   UserRound,
   LogOut,
   ChevronRight,
@@ -16,9 +15,8 @@ import {
   X,
 } from "lucide-react";
 import { api } from "../services/api";
-import { applyTheme } from "../services/theme";
 import { PasswordStrength } from "../components/PasswordStrength";
-import type { Theme, User } from "../store/session";
+import type { User } from "../store/session";
 type Device = {
   id: string;
   agent: string;
@@ -72,7 +70,6 @@ export function SettingsPage({
         if (live) {
           setUser(d.user);
           onUpdate(d.user);
-          applyTheme(d.user.theme || "carbon_black");
         }
       })
       .catch((e) => live && setError(e.message));
@@ -129,21 +126,6 @@ export function SettingsPage({
       setPhoto(undefined);
       update(d.user);
       notify(d.message);
-    });
-  }
-  async function theme(value: Theme) {
-    const before = user.theme || "carbon_black";
-    await action("theme", async () => {
-      applyTheme(value);
-      setUser({ ...user, theme: value });
-      try {
-        const d = await api("/users/me/preferences", "PUT", { theme: value });
-        update(d.user);
-      } catch (e) {
-        applyTheme(before);
-        setUser({ ...user, theme: before });
-        throw e;
-      }
     });
   }
   const date = new Date().toISOString().slice(0, 10);
@@ -663,55 +645,6 @@ export function SettingsPage({
               <MfaRecoveryCodes />
             </section>
           )}
-          <section className="settings-card">
-            <div className="card-heading">
-              <div className="section-icon">
-                <Palette size={19} />
-              </div>
-              <div>
-                <h2>Appearance</h2>
-                <p>Make this workspace feel like yours.</p>
-              </div>
-            </div>
-            <div
-              className="theme-options"
-              role="group"
-              aria-label="Workspace theme"
-            >
-              {(
-                [
-                  ["light", "Light"],
-                  ["carbon_black", "Carbon Black"],
-                  ["royal_blue", "Royal Blue"],
-                ] as [Theme, string][]
-              ).map(([value, label]) => (
-                <button
-                  key={value}
-                  disabled={!!busy}
-                  className={`theme-option ${user.theme === value ? "is-selected" : ""}`}
-                  aria-pressed={user.theme === value}
-                  onClick={() => theme(value)}
-                >
-                  <span className={`theme-preview preview-${value}`}>
-                    <i className="preview-nav" />
-                    <i className="preview-top" />
-                    <i className="preview-card" />
-                    <i className="preview-card second" />
-                    <i className="preview-line" />
-                  </span>
-                  <span className="theme-label">
-                    {label}
-                    <span className="theme-radio">
-                      {user.theme === value && <Check size={11} />}
-                    </span>
-                  </span>
-                </button>
-              ))}
-            </div>
-            <p className="theme-hint">
-              Applied instantly. Saved to your account for your next visit.
-            </p>
-          </section>
           <section className="settings-card">
             <div className="card-heading">
               <div className="section-icon">
