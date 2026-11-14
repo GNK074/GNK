@@ -50,6 +50,16 @@ export function SettingsPage({
     [devicesOpen, setDevicesOpen] = useState(false),
     [devices, setDevices] = useState<Device[]>([]),
     [deviceError, setDeviceError] = useState("");
+  const [photo, setPhoto] = useState<File>();
+  const [preview, setPreview] = useState("");
+  const [crop, setCrop] = useState({ zoom: 1, x: 50, y: 50 });
+  const previewImage = useRef<HTMLImageElement>(null);
+  useEffect(() => {
+    if (!photo) { setPreview(""); return; }
+    const url = URL.createObjectURL(photo);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [photo]);
   const photoInput = useRef<HTMLInputElement>(null);
   function update(u: User) {
     setUser(u);
@@ -91,16 +101,35 @@ export function SettingsPage({
       setDeviceError((e as Error).message);
     }
   }
-  async function upload(file?: File) {
+  function choosePhoto(file?: File) {
+    if (photoInput.current) photoInput.current.value = "";
     if (!file) return;
+    if (file.size > 2 * 1024 * 1024 || !["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      notify("Choose a JPEG, PNG or WebP image up to 2 MB.");
+      return;
+    }
+    setCrop({ zoom: 1, x: 50, y: 50 });
+    setPhoto(file);
+  }
+
+  async function upload() {
     await action("photo", async () => {
-      if (file.size > 2 * 1024 * 1024)
-        throw Error("Choose an image 2 MB or smaller.");
-      const d = await api("/users/me/avatar", "PUT", file);
+      const image = previewImage.current;
+      if (!image?.naturalWidth) throw Error("The image could not be read.");
+      const side = Math.min(image.naturalWidth, image.naturalHeight) / crop.zoom;
+      const canvas = document.createElement("canvas");
+      canvas.width = canvas.height = 512;
+      const context = canvas.getContext("2d");
+      if (!context) throw Error("Image editing is unavailable.");
+      context.drawImage(image, (image.naturalWidth - side) * crop.x / 100,
+        (image.naturalHeight - side) * crop.y / 100, side, side, 0, 0, 512, 512);
+      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/png"));
+      if (!blob) throw Error("Could not prepare the photo.");
+      const d = await api("/users/me/avatar", "PUT", new File([blob], "avatar.png", { type: blob.type }));
+      setPhoto(undefined);
       update(d.user);
       notify(d.message);
     });
-    if (photoInput.current) photoInput.current.value = "";
   }
   async function theme(value: Theme) {
     const before = user.theme || "carbon_black";
@@ -184,7 +213,7 @@ export function SettingsPage({
               type="file"
               accept="image/png,image/jpeg,image/webp"
               hidden
-              onChange={(e) => upload(e.target.files?.[0])}
+              onChange={(e) => choosePhoto(e.target.files?.[0])}
             />
             <div className="photo-actions">
               <button
@@ -207,6 +236,22 @@ export function SettingsPage({
               </button>
             </div>
             <small>JPG, PNG or WebP · Max 2 MB</small>
+            {preview && <section aria-label="Edit profile photo" className="avatar-editor">
+              <div className="avatar-crop-preview">
+                <img ref={previewImage} src={preview} alt="Profile photo preview"
+                  style={{ objectPosition: `${crop.x}% ${crop.y}%`, transformOrigin: `${crop.x}% ${crop.y}%`, transform: `scale(${crop.zoom})` }} />
+              </div>
+              {(["zoom", "x", "y"] as const).map(key => <label key={key}>
+                {key === "zoom" ? "Zoom" : key === "x" ? "Horizontal position" : "Vertical position"}
+                <input type="range" min={key === "zoom" ? 1 : 0} max={key === "zoom" ? 3 : 100}
+                  step={key === "zoom" ? .05 : 1} value={crop[key]}
+                  onChange={event => setCrop({ ...crop, [key]: Number(event.target.value) })} />
+              </label>)}
+              <div className="photo-actions">
+                <button type="button" disabled={!!busy} onClick={upload}>Save photo</button>
+                <button type="button" disabled={!!busy} onClick={() => setPhoto(undefined)}>Cancel</button>
+              </div>
+            </section>}
           </div>
           <div className="profile-meta">
             <span>USER ID</span>

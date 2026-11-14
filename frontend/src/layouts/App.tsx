@@ -1,3 +1,4 @@
+import { SettingsPage } from "../pages/SettingsPage";
 import { Portfolio } from "../portfolio/Portfolio";
 import { TradeDetails } from "../trade-details/TradeDetails";
 import { LiveExecutionAdmin } from "../admin/LiveExecutionAdmin";
@@ -9,7 +10,7 @@ import { DisclosureGate } from "../compliance/DisclosureGate";
 import { SignOutDialog } from "../components/SignOutDialog";
 import { applyTheme } from "../services/theme";
 import { MfaEnrollment } from "../pages/MfaEnrollment";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Navigate, Link, useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
@@ -33,6 +34,7 @@ export function App() {
     [loading, setLoading] = useState(true),
     [note, setNote] = useState("");
 
+  const profileMenu = useRef<HTMLDetailsElement>(null);
   const [signOutOpen, setSignOutOpen] = useState(false);
   useEffect(()=>{
     const ended=(event:StorageEvent)=>{
@@ -80,6 +82,7 @@ export function App() {
   }, [loc.pathname]);
   useEffect(() => {
     setNote("");
+    if (profileMenu.current) profileMenu.current.open = false;
   }, [loc.pathname]);
   const notify = (s: string) => setNote(s);
   const isAuth = [
@@ -201,24 +204,41 @@ export function App() {
                 <b>
                   {loc.pathname === "/tradedetails/client-trade-history" ? "Trade History"
                     : loc.pathname === "/user/portfolio" ? "Portfolio"
+                    : loc.pathname === "/user/profile" ? "Profile"
                     : loc.pathname === "/admin" ? "Administration" : "Overview"}
                 </b>
               </span>
               <div>
                 <span className="status-dot" />
                 <CircleHelp size={18} />
-                <span className="avatar">
-                  {user.avatar_url ? (
-                    <img src={user.avatar_url} alt="" />
-                  ) : (
-                    user.name[0]
-                  )}
-                </span>
+                <details className="profile-menu" ref={profileMenu}
+                  onBlur={event => {
+                    if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false;
+                  }}
+                  onKeyDown={event => {
+                    if (event.key === "Escape" && event.currentTarget.open) {
+                      event.currentTarget.open = false;
+                      event.currentTarget.querySelector("summary")?.focus();
+                    }
+                  }}>
+                  <summary className="avatar" aria-label="My profile">
+                    {user.avatar_url ? <img src={user.avatar_url} alt="" /> : user.name[0]}
+                  </summary>
+                  <div className="profile-menu-links">
+                    <Link to="/user/profile" onClick={() => { if (profileMenu.current) profileMenu.current.open = false; }}>Profile</Link>
+                    <button type="button" onClick={() => {
+                      if (profileMenu.current) profileMenu.current.open = false;
+                      setSignOutOpen(true);
+                    }}>Sign out</button>
+                  </div>
+                </details>
               </div>
             </header>
             <div className="content">
               {loc.pathname === "/tradedetails/client-trade-history" ? (
                 <TradeDetails key={loc.pathname} />
+              ) : loc.pathname === "/user/profile" ? (
+                <SettingsPage user={user} notify={notify} onUpdate={updateUser} onSignOut={() => setSignOutOpen(true)} />
               ) : loc.pathname === "/admin" ? (
                 <>
                   <Admin />

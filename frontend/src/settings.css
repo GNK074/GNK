@@ -1137,3 +1137,36 @@ body,
     margin-bottom: 30px;
   }
 }
+
+.avatar-editor { display: grid; gap: .6rem; margin-top: 1rem; }
+.avatar-editor label { display: grid; gap: .2rem; }
+.avatar-crop-preview { width: 8rem; aspect-ratio: 1; overflow: hidden; border-radius: .65rem; }
+.avatar-crop-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.profile-menu { position: relative; }
+.profile-menu summary { cursor: pointer; list-style: none; }
+.profile-menu summary::-webkit-details-marker { display: none; }
+.profile-menu-links {
+  position: absolute;
+  inset: calc(100% + .5rem) 0 auto auto;
+  z-index: 20;
+  display: grid;
+  min-width: 10rem;
+  padding: .4rem;
+  border: 1px solid currentColor;
+  border-radius: .65rem;
+  background: Canvas;
+  color: CanvasText;
+  box-shadow: 0 .5rem 1.5rem #0003;
+}
+.profile-menu-links a, .profile-menu-links button {
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-radius: .35rem;
+  text-align: left;
+  padding: .6rem .75rem;
+  font: inherit;
+  cursor: pointer;
+}
+.profile-menu-links :is(a, button):is(:hover, :focus-visible) { background: color-mix(in srgb, CanvasText 12%, Canvas); }
