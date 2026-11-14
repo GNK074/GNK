@@ -1216,3 +1216,6 @@ body,
 .ip-management-card .ip-address-row { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
 .ip-address-row code { overflow-wrap: anywhere; }
 .ip-management-card button { justify-self: start; padding: .45rem .75rem; border: 1px solid currentColor; border-radius: .45rem; }
+
+.ip-mode-picker { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .75rem 1.25rem; }
+.ip-management-grid > section { grid-column: 1 / -1; }
