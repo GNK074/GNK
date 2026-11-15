@@ -1,3 +1,4 @@
+import "./workspace.css";
 import { BROKER_SETUP_LABEL, BrokerDirectory } from "../brokers/BrokerDirectory";
 import { Notifications } from "../components/Notifications";
 import { MarketStatus } from "../components/MarketStatus";
@@ -21,6 +22,7 @@ import {
   ChevronRight,
   CircleHelp,
   Palette,
+  Menu,
   Check,
   Gauge,
   LayoutDashboard,
@@ -39,6 +41,7 @@ export function App() {
     [loading, setLoading] = useState(true),
     [note, setNote] = useState("");
 
+  const [navigationOpen, setNavigationOpen] = useState(false);
   const [savingTheme, setSavingTheme] = useState(false);
   const profileMenu = useRef<HTMLDetailsElement>(null);
   const [signOutOpen, setSignOutOpen] = useState(false);
@@ -97,6 +100,7 @@ export function App() {
   }, [loc.pathname]);
   useEffect(() => {
     setNote("");
+    setNavigationOpen(false);
     if (profileMenu.current) profileMenu.current.open = false;
   }, [loc.pathname]);
   const notify = (s: string) => setNote(s);
@@ -174,8 +178,8 @@ export function App() {
           </Link>
         </div>
       ) : (
-        <div className="app">
-          <aside>
+        <div className="app workspace-shell">
+          <aside id="workspace-navigation" className={navigationOpen ? "workspace-navigation-open" : ""}>
             <Logo signedIn />
             <div className="workspace">
               <span className="avatar">G</span>
@@ -185,7 +189,7 @@ export function App() {
               <span className="tag">FREE</span>
             </div>
             <div className="nav-label">WORKSPACE</div>
-            <nav>
+            <nav aria-label="Workspace">
               {[
                 [LayoutDashboard, "Dashboard", "/user/dashboard"],
                 [BarChart3, "Trade History", "/tradedetails/client-trade-history"],
@@ -197,6 +201,7 @@ export function App() {
               ].map(([Icon, title, path]: any) => (
                 <Link
                   className={loc.pathname === path ? "selected" : ""}
+                  aria-current={loc.pathname === path ? "page" : undefined}
                   to={path}
                   key={path}
                 >
@@ -235,6 +240,7 @@ export function App() {
           <main>
             <header>
               <span>
+                <button className="workspace-menu" type="button" aria-label="Toggle workspace navigation" aria-controls="workspace-navigation" aria-expanded={navigationOpen} onClick={() => setNavigationOpen(open => !open)}><Menu size={18} /></button>
                 Workspace <ChevronRight size={14} />{" "}
                 <b>
                   {loc.pathname === "/tradedetails/client-trade-history" ? "Trade History"

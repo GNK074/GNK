@@ -1,0 +1,46 @@
+.workspace-shell aside {
+  overflow-y: auto;
+}
+
+.workspace-shell aside nav {
+  margin-block: 1.5rem;
+}
+
+.workspace-menu {
+  background: var(--workspace-panel, #101a2b);
+  color: inherit;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  padding: 0.35rem;
+}
+
+.workspace-menu {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .workspace-shell .workspace-menu {
+    display: inline-flex;
+  }
+
+  .workspace-shell aside {
+    display: none;
+  }
+
+  .workspace-shell aside.workspace-navigation-open {
+    display: flex;
+    inset: 58px auto 0 0;
+    z-index: 15;
+    width: min(250px, 85vw);
+  }
+
+  .workspace-shell aside nav,
+  .workspace-shell aside .sidebar-bottom {
+    display: block;
+  }
+
+  .workspace-shell main {
+    margin-left: 0;
+    width: 100%;
+  }
+}
