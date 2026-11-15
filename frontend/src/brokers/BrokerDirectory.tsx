@@ -10,7 +10,7 @@ type Broker = {
   docs_url: string | null;
 };
 
-type Connection = { id: string; broker: string; status: string };
+type Connection = { id: string; broker: string };
 
 export function BrokerDirectory({ path }: { path: string }) {
   const [data, setData] = useState<{ brokers: Broker[]; connections: Connection[] }>();
