@@ -98,3 +98,5 @@ app.include_router(notification_router)
 
 from app.api.ip_management import router as ip_management_router
 app.include_router(ip_management_router)
+from app.brokers.dhan.pilot import router as dhan_pilot_router
+app.include_router(dhan_pilot_router)
