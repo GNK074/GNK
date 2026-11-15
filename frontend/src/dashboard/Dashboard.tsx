@@ -14,7 +14,8 @@ export function Dashboard({ user, notify }: { user: User; notify: (message: stri
       <div className="page-heading">
         <div>
           <p className="eyebrow">YOUR COMMAND CENTER</p>
-          <h1>Good to see you, {user.name.split(" ")[0]} <span className="wave">↗</span></h1>
+          <h1>Dashboard</h1>
+          <p>Good to see you, {user.name.split(" ")[0]} <span className="wave">↗</span></p>
           <p>A clear view of your trading workspace.</p>
         </div>
       </div>

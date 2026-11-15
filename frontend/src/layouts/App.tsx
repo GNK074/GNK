@@ -53,6 +53,15 @@ export function App() {
   }
   const loc = useLocation(),
     nav = useNavigate();
+
+  useEffect(() => {
+    if (!user || loc.pathname !== "/user/dashboard") return;
+    const previousTitle = document.title;
+    document.title = "Dashboard | GNK ALGO";
+    return () => {
+      document.title = previousTitle;
+    };
+  }, [user, loc.pathname]);
   useEffect(()=>{
     if(!user)return;
     let active=true,inFlight=false;
@@ -176,7 +185,7 @@ export function App() {
             <div className="nav-label">WORKSPACE</div>
             <nav>
               {[
-                [LayoutDashboard, "Overview", "/user/dashboard"],
+                [LayoutDashboard, "Dashboard", "/user/dashboard"],
                 [BarChart3, "Trade History", "/tradedetails/client-trade-history"],
                 [BarChart3, "Portfolio", "/user/portfolio"],
                 [BarChart3, "Broker Connections", "/user/brokers"],
@@ -227,7 +236,7 @@ export function App() {
                     : /^\/user\/brokers(?:\/|$)/.test(loc.pathname) ? "Broker Connections"
                     : loc.pathname === "/notification" ? "Notifications"
                     : loc.pathname === "/user/profile" ? "Profile"
-                    : loc.pathname === "/admin" ? "Administration" : "Overview"}
+                    : loc.pathname === "/admin" ? "Administration" : loc.pathname === "/user/dashboard" ? "Dashboard" : "Overview"}
                   {loc.pathname === "/user/dashboard" && <span className="workspace-spark workspace-spark-delayed" aria-hidden="true"> ✳</span>}
                 </b>
               </span>
