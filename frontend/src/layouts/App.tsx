@@ -1,3 +1,4 @@
+import { BrokerDirectory } from "../brokers/BrokerDirectory";
 import { Notifications } from "../components/Notifications";
 import { MarketStatus } from "../components/MarketStatus";
 import { SettingsPage } from "../pages/SettingsPage";
@@ -178,6 +179,7 @@ export function App() {
                 [LayoutDashboard, "Overview", "/user/dashboard"],
                 [BarChart3, "Trade History", "/tradedetails/client-trade-history"],
                 [BarChart3, "Portfolio", "/user/portfolio"],
+                [BarChart3, "Broker Connections", "/user/brokers"],
                 ...(user.role !== "USER"
                   ? [[Gauge, "Administration", "/admin"]]
                   : []),
@@ -222,6 +224,7 @@ export function App() {
                 <b>
                   {loc.pathname === "/tradedetails/client-trade-history" ? "Trade History"
                     : loc.pathname === "/user/portfolio" ? "Portfolio"
+                    : /^\/user\/brokers(?:\/|$)/.test(loc.pathname) ? "Broker Connections"
                     : loc.pathname === "/notification" ? "Notifications"
                     : loc.pathname === "/user/profile" ? "Profile"
                     : loc.pathname === "/admin" ? "Administration" : "Overview"}
@@ -298,6 +301,10 @@ export function App() {
                 </>
               ) : loc.pathname === "/user/portfolio" ? (
                 <Portfolio />
+              ) : /^\/user\/brokers(?:\/|$)/.test(loc.pathname) ? (
+                <DisclosureGate key={user.id}>
+                  <BrokerDirectory path={loc.pathname} />
+                </DisclosureGate>
               ) : (
                 <DisclosureGate key={user.id}>
                   <Dashboard user={user} notify={notify} />
