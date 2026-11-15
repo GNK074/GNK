@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { api } from "../services/api";
 import "./broker-directory.css";
 
-export const BROKER_SETUP_LABEL = "Broker_Stepup";
+export const BROKER_SETUP_LABEL = "Broker Setup";
 
 type Broker = {
   id: string;
