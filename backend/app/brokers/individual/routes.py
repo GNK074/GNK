@@ -12,6 +12,7 @@ from app.security.authentication import auth,limit
 from app.security.encryption import seal_credentials
 from app.services.accounts import audit
 from app.brokers.gateway import account_public
+from app.brokers.registry import BROKER_ALIASES, BROKER_NAMES
 from .catalog import SETUP
 from .verifiers import VERIFIERS,ValidationError
 router=APIRouter(prefix='/api/v1/brokers')
@@ -43,9 +44,9 @@ def setup_payload(s,broker):
 
 @router.get('/{broker}/setup')
 def setup(broker:str,u=Depends(auth),s:Session=Depends(db)):
-    from app.brokers.routes import BROKERS
-    candidates={b.lower().replace(' ','-') for b in BROKERS}|set(SETUP)
-    if broker not in candidates:raise HTTPException(404,'Unknown broker')
+    broker = BROKER_ALIASES.get(broker, broker)
+    if broker not in BROKER_NAMES:
+        raise HTTPException(404, 'Unknown broker')
     return setup_payload(s,broker)
 
 @router.post('/{broker}/individual',status_code=201)
