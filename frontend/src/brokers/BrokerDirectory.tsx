@@ -1,6 +1,10 @@
+import { BrainCircuit } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../services/api";
+import "./broker-directory.css";
+
+export const BROKER_SETUP_LABEL = "Broker_Stepup";
 
 type Broker = {
   id: string;
@@ -51,14 +55,19 @@ export function BrokerDirectory({ path }: { path: string }) {
     );
   }
 
-  if (path !== "/user/brokers") return <Link to="/user/brokers">Back to broker connections</Link>;
+  if (path !== "/user/brokers") return <Link to="/user/brokers">Back to {BROKER_SETUP_LABEL}</Link>;
 
   const visible = data.brokers.filter(broker =>
     broker.name.toLowerCase().includes(query.trim().toLowerCase())
   );
   return (
     <>
-      <div className="page-heading"><h1>Broker Connections</h1></div>
+      <div className="page-heading">
+        <h1 className="broker-setup-heading">
+          <BrainCircuit className="broker-setup-icon" size={28} aria-hidden="true" />
+          {BROKER_SETUP_LABEL}
+        </h1>
+      </div>
       <article className="panel">
         <h2>Available brokers</h2>
         <label htmlFor="broker-search">Search brokers</label>

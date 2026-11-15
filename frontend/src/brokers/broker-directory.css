@@ -1,0 +1,32 @@
+.broker-setup-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.broker-setup-icon {
+  flex-shrink: 0;
+  color: #8b5cf6;
+  border-radius: 0.35rem;
+  background: linear-gradient(135deg, #8b5cf63b, #22d3ee29);
+  filter: drop-shadow(0 0 0.25rem #8b5cf66b);
+}
+
+a:hover > .broker-setup-icon,
+a:focus-visible > .broker-setup-icon,
+.broker-setup-heading:hover > .broker-setup-icon {
+  filter: drop-shadow(0 0 0.45rem #22d3ee92);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:hover > .broker-setup-icon,
+  a:focus-visible > .broker-setup-icon,
+  .broker-setup-heading:hover > .broker-setup-icon {
+    animation: broker-setup-pulse 850ms ease-in-out;
+  }
+}
+
+@keyframes broker-setup-pulse {
+  0%, 100% { filter: drop-shadow(0 0 0.35rem #8b5cf66b); }
+  50% { filter: drop-shadow(0 0 0.65rem #22d3eea6); }
+}

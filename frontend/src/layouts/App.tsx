@@ -1,4 +1,4 @@
-import { BrokerDirectory } from "../brokers/BrokerDirectory";
+import { BROKER_SETUP_LABEL, BrokerDirectory } from "../brokers/BrokerDirectory";
 import { Notifications } from "../components/Notifications";
 import { MarketStatus } from "../components/MarketStatus";
 import { SettingsPage } from "../pages/SettingsPage";
@@ -16,6 +16,7 @@ import { Navigate, Link, useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   BarChart3,
+  BrainCircuit,
   ChevronRight,
   CircleHelp,
   Palette,
@@ -188,7 +189,7 @@ export function App() {
                 [LayoutDashboard, "Dashboard", "/user/dashboard"],
                 [BarChart3, "Trade History", "/tradedetails/client-trade-history"],
                 [BarChart3, "Portfolio", "/user/portfolio"],
-                [BarChart3, "Broker Connections", "/user/brokers"],
+                [BrainCircuit, BROKER_SETUP_LABEL, "/user/brokers"],
                 ...(user.role !== "USER"
                   ? [[Gauge, "Administration", "/admin"]]
                   : []),
@@ -198,7 +199,11 @@ export function App() {
                   to={path}
                   key={path}
                 >
-                  <Icon size={19} />
+                  <Icon
+                    size={19}
+                    aria-hidden="true"
+                    className={path === "/user/brokers" ? "broker-setup-icon" : undefined}
+                  />
                   {title}
                 </Link>
               ))}
@@ -233,7 +238,7 @@ export function App() {
                 <b>
                   {loc.pathname === "/tradedetails/client-trade-history" ? "Trade History"
                     : loc.pathname === "/user/portfolio" ? "Portfolio"
-                    : /^\/user\/brokers(?:\/|$)/.test(loc.pathname) ? "Broker Connections"
+                    : /^\/user\/brokers(?:\/|$)/.test(loc.pathname) ? BROKER_SETUP_LABEL
                     : loc.pathname === "/notification" ? "Notifications"
                     : loc.pathname === "/user/profile" ? "Profile"
                     : loc.pathname === "/admin" ? "Administration" : loc.pathname === "/user/dashboard" ? "Dashboard" : "Overview"}
