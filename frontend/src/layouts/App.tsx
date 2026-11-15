@@ -3,6 +3,7 @@ import { Notifications } from "../components/Notifications";
 import { MarketStatus } from "../components/MarketStatus";
 import { SettingsPage } from "../pages/SettingsPage";
 import { Portfolio } from "../portfolio/Portfolio";
+import { PortfolioIcon } from "../portfolio/PortfolioIcon";
 import { TradeDetails } from "../trade-details/TradeDetails";
 import { MfaRecoveryPage } from "../pages/MfaRecoveryPage";
 import { MfaRecoveryReview } from "../admin/MfaRecoveryReview";
@@ -188,7 +189,7 @@ export function App() {
               {[
                 [LayoutDashboard, "Dashboard", "/user/dashboard"],
                 [BarChart3, "Trade History", "/tradedetails/client-trade-history"],
-                [BarChart3, "Portfolio", "/user/portfolio"],
+                [PortfolioIcon, "Portfolio", "/user/portfolio"],
                 [BrainCircuit, BROKER_SETUP_LABEL, "/user/brokers"],
                 ...(user.role !== "USER"
                   ? [[Gauge, "Administration", "/admin"]]

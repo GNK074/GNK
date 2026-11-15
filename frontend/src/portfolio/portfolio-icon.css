@@ -1,0 +1,70 @@
+.portfolio-icon {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 1.48em;
+  height: 1.48em;
+  color: #a78bfa;
+  background: radial-gradient(ellipse at 85% 10%, #22d3ee24, transparent 65%), #111827;
+  border-radius: 0.38em;
+  box-shadow: 0 0 0.35em rgba(139, 92, 246, 0.25);
+  transition: box-shadow 220ms ease;
+}
+
+.portfolio-icon-growth,
+.portfolio-icon-sparkle {
+  position: absolute;
+  color: #22d3ee;
+  pointer-events: none;
+}
+
+.portfolio-icon-growth {
+  left: 0.12em;
+  top: 0.16em;
+  opacity: 0.7;
+}
+
+.portfolio-icon-sparkle {
+  right: 0.03em;
+  top: 0.03em;
+  filter: drop-shadow(0 0 0.13em #22d3ee);
+}
+
+.portfolio-icon-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.45em;
+}
+
+.portfolio-icon-heading:hover > .portfolio-icon,
+a:hover > .portfolio-icon,
+a:focus-visible > .portfolio-icon {
+  box-shadow: 0 0 0.55em #22d3ee55, 0 0 0.75em #8b5cf655;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .portfolio-icon-chart path:nth-child(4) {
+    stroke-dasharray: 32;
+    animation: portfolio-chart-draw 650ms ease-out both;
+  }
+
+  .portfolio-icon-heading:hover > .portfolio-icon .portfolio-icon-sparkle,
+  a:hover > .portfolio-icon .portfolio-icon-sparkle,
+  a:focus-visible > .portfolio-icon .portfolio-icon-sparkle {
+    animation: portfolio-sparkle-pulse 650ms ease-in-out;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portfolio-icon { transition: none; }
+}
+
+@keyframes portfolio-chart-draw {
+  from { stroke-dashoffset: 32; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes portfolio-sparkle-pulse {
+  50% { transform: scale(1.16); filter: drop-shadow(0 0 0.25em #22d3ee); }
+}
