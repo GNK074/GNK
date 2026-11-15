@@ -14,8 +14,8 @@ class DhanExecution:
     def verify_identity(self,expected):
         d=self.call(self.client.profile)
         if not isinstance(d,dict) or str(d.get('dhanClientId'))!=expected:raise ExecutionError('BROKER_IDENTITY_MISMATCH')
-        if not self.call(lambda: self.client.ip_whitelist_matches(settings.broker_egress_ip)):
-            raise ExecutionError('REGISTERED_EGRESS_IP_MISMATCH')
+        ips=self.call(lambda:self.client.unwrap(self.client.context.dhan_http.get('/ip/getIP')))
+        if not isinstance(ips,dict) or settings.broker_egress_ip not in (ips.get('primaryIP'),ips.get('secondaryIP')):raise ExecutionError('REGISTERED_EGRESS_IP_MISMATCH')
     def list(self,value):
         if not isinstance(value,list) or len(value)>10000 or any(not isinstance(r,dict) for r in value):raise ExecutionError('INVALID_BROKER_SNAPSHOT')
         return value

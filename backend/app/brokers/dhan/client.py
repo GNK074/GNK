@@ -78,9 +78,6 @@ class DhanClient:
     def read(self,kind):
         if kind not in self.READ_METHODS:raise DhanError('DHAN_OPERATION_NOT_ENABLED')
         return self.unwrap(getattr(self.sdk,self.READ_METHODS[kind])())
-    def ip_whitelist_matches(self, expected: str) -> bool:
-        ips = self.unwrap(self.context.dhan_http.get('/ip/getIP'))
-        return bool(expected and isinstance(ips, dict) and expected in (ips.get('primaryIP'), ips.get('secondaryIP')))
     def profile(self):return self.unwrap(self.context.dhan_http.get('/profile'))
     def renew(self):return self.unwrap(self.context.dhan_http.get('/RenewToken'))
     def market(self,result):

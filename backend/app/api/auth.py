@@ -165,8 +165,6 @@ def logout(request:Request,response:Response,s:Session=Depends(db)):
     else:session.revoked=True
     audit(s,session.user_id,'logout_all' if all_devices else 'logout')
     s.commit()
-    from app.brokers.dhan.pilot import revoke
-    revoke(session.user_id, None if all_devices else session.id)
     clear_auth_cookies(response)
     return {'message':'Signed out of all devices' if all_devices else 'Signed out of this device','all_devices':all_devices}
 

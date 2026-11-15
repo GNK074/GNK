@@ -1,4 +1,3 @@
-import { DhanPilot } from "../brokers/DhanPilot";
 import { Notifications } from "../components/Notifications";
 import { MarketStatus } from "../components/MarketStatus";
 import { SettingsPage } from "../pages/SettingsPage";
@@ -179,7 +178,6 @@ export function App() {
                 [LayoutDashboard, "Overview", "/user/dashboard"],
                 [BarChart3, "Trade History", "/tradedetails/client-trade-history"],
                 [BarChart3, "Portfolio", "/user/portfolio"],
-                [BarChart3, "Dhan pilot", "/user/brokers/dhan-pilot"],
                 ...(user.role !== "USER"
                   ? [[Gauge, "Administration", "/admin"]]
                   : []),
@@ -223,7 +221,6 @@ export function App() {
                 Workspace <ChevronRight size={14} />{" "}
                 <b>
                   {loc.pathname === "/tradedetails/client-trade-history" ? "Trade History"
-                    : loc.pathname === "/user/brokers/dhan-pilot" ? "Dhan pilot"
                     : loc.pathname === "/user/portfolio" ? "Portfolio"
                     : loc.pathname === "/notification" ? "Notifications"
                     : loc.pathname === "/user/profile" ? "Profile"
@@ -299,8 +296,6 @@ export function App() {
                   <Admin />
                   {user.role === "SUPER_ADMIN" && <MfaRecoveryReview />}
                 </>
-              ) : loc.pathname === "/user/brokers/dhan-pilot" ? (
-                <DhanPilot />
               ) : loc.pathname === "/user/portfolio" ? (
                 <Portfolio />
               ) : (
