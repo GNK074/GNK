@@ -7,7 +7,18 @@ from app.brokers.upstox.adapter import UpstoxAdapter
 def test_config_rejects_live_execution_and_bad_keys():
     with pytest.raises(ValueError):Settings(live_trading_enabled=True)
     with pytest.raises(ValueError):Settings(field_encryption_key='not-a-fernet-key')
-    with pytest.raises(ValueError):Settings(app_env='production',app_debug=True)
+
+def test_production_rejects_debug_mode():
+    with pytest.raises(ValueError, match='Production requires debug off'):
+        Settings(
+            APP_ENV='production',
+            app_debug=True,
+            secure_cookies=True,
+            https_only=True,
+            enable_mfa=True,
+            secret_key='local-test-secret-' * 3,
+            smtp_password='local-test-smtp-password',
+        )
 
 def test_field_encryption_is_randomized_and_authenticated():
     a=encrypt('private-data');b=encrypt('private-data')

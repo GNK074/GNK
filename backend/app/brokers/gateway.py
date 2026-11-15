@@ -2,7 +2,7 @@ from datetime import timedelta
 import secrets
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, SecretStr
 from sqlalchemy import select, update, delete
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -20,8 +20,8 @@ router = APIRouter(prefix='/api/v1/brokers')
 class ConnectInput(BaseModel):
     model_config = ConfigDict(extra='forbid')
     mode: str = Field(default='PLATFORM', pattern='^(PLATFORM|INDIVIDUAL)$')
-    client_id: str = Field(default='', max_length=200)
-    client_secret: str = Field(default='', max_length=1000)
+    client_id: SecretStr = Field(default=SecretStr(''), max_length=200)
+    client_secret: SecretStr = Field(default=SecretStr(''), max_length=1000)
 
 def integration(s, broker):
     config = s.get(BrokerIntegration, broker)
@@ -64,10 +64,10 @@ def connect(broker: str, data: ConnectInput, request: Request, u=Depends(auth), 
     if config.mode not in (data.mode, 'HYBRID'):
         raise HTTPException(409, 'Requested credential mode is not approved')
     if data.mode == 'INDIVIDUAL':
-        if not data.client_id or not data.client_secret:
+        cid = data.client_id.get_secret_value()
+        secret = data.client_secret.get_secret_value()
+        if not cid or not secret:
             raise HTTPException(422, 'Individual API application credentials are required')
-        cid = data.client_id
-        secret = data.client_secret
     else:
         if not config.client_id or not config.encrypted_client_secret:
             raise HTTPException(409, 'Platform application configuration incomplete')
@@ -86,17 +86,32 @@ def connect(broker: str, data: ConnectInput, request: Request, u=Depends(auth), 
     adapter = AUTH_ADAPTERS[broker](cid, secret, config.redirect_uri)
     return {'authorization_url': adapter.authorization_url(raw), 'account_id': account.id}
 
+CALLBACK_HEADERS = {'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer'}
+
+
 @router.get('/{broker}/callback')
 def callback(broker: str, request: Request, state: str='', code: str='', s: Session=Depends(db)):
     from app.database.tenancy import set_context
-    set_context(s, callback_hash=digest(state))
-    row = s.scalar(select(BrokerAuthState).where(BrokerAuthState.state_hash == digest(state), BrokerAuthState.broker == broker))
+    state_hash = digest(state)
+    set_context(s, callback_hash=state_hash)
+    row = s.scalar(select(BrokerAuthState).where(
+        BrokerAuthState.state_hash == state_hash, BrokerAuthState.broker == broker
+    ))
     if not row or expired(row.expires_at) or row.consumed:
-        raise HTTPException(400, 'Invalid or expired authorization state')
-    claim = s.execute(update(BrokerAuthState).where(BrokerAuthState.id == row.id, BrokerAuthState.consumed == False).values(consumed=True))
+        raise HTTPException(400, 'Invalid or expired authorization state', headers=CALLBACK_HEADERS)
+    claim = s.execute(
+        update(BrokerAuthState)
+        .where(
+            BrokerAuthState.id == row.id,
+            BrokerAuthState.consumed.is_(False),
+            BrokerAuthState.expires_at > now(),
+        )
+        .values(consumed=True)
+        .execution_options(synchronize_session=False)
+    )
     if claim.rowcount != 1:
         s.rollback()
-        raise HTTPException(400, 'Authorization state already consumed')
+        raise HTTPException(400, 'Invalid or expired authorization state', headers=CALLBACK_HEADERS)
     set_context(s, row.user_id)
     account = owned(s, BrokerAccount, row.account_id, row.user_id)
     s.commit()
@@ -142,8 +157,8 @@ def callback(broker: str, request: Request, state: str='', code: str='', s: Sess
             account.status = 'failed'
         audit(s, row.user_id, 'broker_auth_failed:' + broker)
         s.commit()
-        return RedirectResponse(settings.frontend_url + '/user/broker-and-exchanges?result=failed', status_code=303)
-    return RedirectResponse(settings.frontend_url + '/user/broker-and-exchanges?result=connected', status_code=303)
+        return RedirectResponse(settings.frontend_url + '/user/broker-and-exchanges?result=failed', status_code=303, headers=CALLBACK_HEADERS)
+    return RedirectResponse(settings.frontend_url + '/user/broker-and-exchanges?result=connected', status_code=303, headers=CALLBACK_HEADERS)
 
 @router.get('/{broker}/status')
 def status(broker: str, u=Depends(auth), s: Session=Depends(db)):
@@ -158,7 +173,8 @@ def disconnect(broker: str, account_id: str, u=Depends(auth), s: Session=Depends
     account.live_authorized = False
     account.kill_switch = True
     s.execute(delete(BrokerCredential).where(BrokerCredential.account_id == account.id, BrokerCredential.user_id == u.id))
-    s.execute(update(BrokerAuthState).where(BrokerAuthState.account_id == account.id).values(consumed=True))
+    s.execute(update(BrokerAuthState).where(BrokerAuthState.account_id == account.id).values(consumed=True)
+        .execution_options(synchronize_session=False))
     audit(s, u.id, 'broker_disconnected:' + broker)
     s.commit()
     return {'message': 'Local broker session disconnected. Provider-side revocation must be confirmed separately.'}
@@ -187,3 +203,10 @@ def public_configuration(broker:str,u=Depends(auth),s:Session=Depends(db)):
     if broker not in BROKER_IDS:raise HTTPException(404,'Unknown broker')
     config=s.get(BrokerIntegration,broker)
     return {'broker':broker,'mode':config.mode if config else 'DISABLED','auth_available':bool(config and config.auth_verified and broker in AUTH_ADAPTERS and config.mode!='DISABLED'),'redirect_uri':config.redirect_uri if config else None,'live_trading':False}
+
+
+@router.get('/{broker}')
+def detail(broker: str, u=Depends(auth), s: Session=Depends(db)):
+    from .routes import broker_detail
+
+    return broker_detail(s, broker)
