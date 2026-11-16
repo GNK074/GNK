@@ -65,6 +65,11 @@ export function BrokerDirectory({ path }: { path: string }) {
 
   if (path !== "/user/brokers") return <Link to="/user/brokers">Back to {BROKER_SETUP_LABEL}</Link>;
 
+  const visibleBrokers = data.filter(broker =>
+    broker.name.toLowerCase().includes(pickerQuery.trim().toLowerCase())
+  );
+  const selectedBroker = visibleBrokers.find(broker => broker.id === selection);
+
   return (
     <>
       <div className="page-heading">
@@ -81,9 +86,9 @@ export function BrokerDirectory({ path }: { path: string }) {
       <dialog ref={picker} className="panel broker-picker" aria-labelledby="broker-picker-title">
         <form onSubmit={event => {
           event.preventDefault();
-          if (!data.some(broker => broker.id === selection && broker.browser_consent_available)) return;
+          if (!selectedBroker) return;
           picker.current?.close();
-          navigate(`/user/brokers/setup/${selection}`);
+          navigate(`/user/brokers/setup/${selectedBroker.id}`);
         }}>
           <h2 id="broker-picker-title">Select a broker</h2>
           <label>Search brokers
@@ -91,17 +96,16 @@ export function BrokerDirectory({ path }: { path: string }) {
           </label>
           <fieldset>
             <legend>Broker availability</legend>
-            {data.filter(broker => broker.name.toLowerCase().includes(pickerQuery.trim().toLowerCase())).map(broker => (
+            {visibleBrokers.map(broker => (
               <label key={broker.id}>
                 <input type="radio" name="broker" value={broker.id} checked={selection === broker.id}
-                  disabled={!broker.browser_consent_available} onChange={() => setSelection(broker.id)} />
+                  onChange={() => setSelection(broker.id)} />
                 {broker.name} · {broker.browser_consent_available ? "Available" : broker.id === "dhan" ? "Authorization disabled" : "Coming soon"}
               </label>
             ))}
           </fieldset>
           <button type="button" onClick={() => picker.current?.close()}>Cancel</button>
-          <button type="submit" disabled={!data.some(broker => broker.id === selection &&
-            broker.name.toLowerCase().includes(pickerQuery.trim().toLowerCase()))}>Continue</button>
+          <button type="submit" disabled={!selectedBroker}>Continue</button>
         </form>
       </dialog>
       {params.get("oauth") === "failed" && <p role="alert">Dhan authorization did not complete. Check your app details and try again.</p>}
