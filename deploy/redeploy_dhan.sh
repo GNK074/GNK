@@ -16,4 +16,4 @@ source "$(dirname -- "${BASH_SOURCE[0]}")/common.sh"
 GNK_ENV=production "$ROOT/deploy/gnk-service.sh" health
 "${COMPOSE[@]}" exec -T backend python -c \
   'from importlib.metadata import version; assert version("dhanhq")=="2.3.0"; print("DhanHQ SDK 2.3.0 installed.")'
-printf '\nOpen /user/dhan and /user/portfolio, then verify your own Dhan account reads.\n'
+printf '\nDeployment health checks passed.\n'
