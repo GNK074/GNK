@@ -1,4 +1,4 @@
-import { Activity, Bell, Cable, ChartNoAxesCombined, CircleStop, ClipboardList, Gauge, KeyRound, Layers, Settings, ShieldCheck, Workflow } from "lucide-react";
+import { Workflow } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Logo } from "../components/Logo";
 import "./api-trading.css";
@@ -10,21 +10,6 @@ const brokers = [
   ["Zerodha", "Planned", "Broker Setup onboarding is pending.", ""],
   ["Angel One", "Planned", "Broker Setup onboarding is pending.", ""],
   ["Alice Blue", "Planned", "Broker Setup onboarding is pending.", ""],
-] as const;
-
-const features = [
-  [Cable, "Broker API connectivity", "Use documented broker APIs where the integration is enabled."],
-  [KeyRound, "Secure authorization", "Approve supported connections through the broker’s official flow."],
-  [Workflow, "Automated strategy execution", "Conditional live capability. Requires broker, account and strategy approval."],
-  [Activity, "Order monitoring", "Review broker-reported order status. Live updates depend on an enabled stream."],
-  [Layers, "Portfolio synchronization", "See broker snapshots and their last successful refresh."],
-  [ChartNoAxesCombined, "Position monitoring", "Review positions and broker-reported exposure."],
-  [ShieldCheck, "Risk management", "Configured limits can reject ineligible orders before submission."],
-  [Settings, "Strategy configuration", "Configure rules and review eligible strategies in your workspace."],
-  [Bell, "Notifications", "Review supported account events in the notification inbox."],
-  [ClipboardList, "Execution history", "Review order and trade records in the workspace."],
-  [Gauge, "Connection health", "Check session availability and reconnect when required."],
-  [CircleStop, "Emergency controls", "An execution stop blocks new eligible submissions when applied."],
 ] as const;
 
 const steps = ["Register with GnKAlgo", "Select a supported broker", "Authorize with the broker", "Verify the account", "Configure an eligible strategy", "Validate risk controls", "Authorize execution", "Submit eligible instructions to the broker", "Monitor orders and portfolio"];
@@ -63,9 +48,6 @@ export function ApiTradingPage() {
         <section><h2>What is API trading?</h2><p>API trading connects an authorized platform to a supported broker through documented interfaces. Research signals can inform a strategy. User authorization and risk checks govern whether strategy instructions can be sent for broker-side execution. Review broker responses, positions and execution history in your workspace.</p></section>
         <section id="brokers"><h2>Broker integrations</h2><div className="api-trading-grid">
           {brokers.map(([name, status, summary, docs]) => <article key={name}><h3>{name}</h3><strong>{status}</strong><p>{summary}</p>{docs && <a href={docs}>Official documentation</a>}</article>)}
-        </div></section>
-        <section><h2>API trading features</h2><div className="api-trading-grid">
-          {features.map(([Icon, name, summary]) => <article key={name}><Icon aria-hidden="true" /><h3>{name}</h3><p>{summary}</p></article>)}
         </div></section>
         <section id="how-it-works"><h2>How it works</h2><ol className="api-trading-flow">{steps.map(step => <li key={step}>{step}</li>)}</ol></section>
         <section><h2>Trading modes</h2><div className="api-trading-grid">
