@@ -17,12 +17,9 @@ type Broker = {
   browser_callback_url: string | null;
 };
 
-type Connection = { id: string; broker: string };
-
 export function BrokerDirectory({ path }: { path: string }) {
-  const [data, setData] = useState<{ brokers: Broker[]; connections: Connection[] }>();
+  const [data, setData] = useState<Broker[]>();
   const [failed, setFailed] = useState(false);
-  const [query, setQuery] = useState("");
   const [params] = useSearchParams();
   const picker = useRef<HTMLDialogElement>(null);
   const [pickerQuery, setPickerQuery] = useState("");
@@ -30,9 +27,9 @@ export function BrokerDirectory({ path }: { path: string }) {
   const navigate = useNavigate();
   useEffect(() => {
     let active = true;
-    Promise.all([api("/brokers"), api("/broker-connections")])
-      .then(([brokers, connections]) => {
-        if (active) setData({ brokers, connections });
+    api("/brokers")
+      .then(brokers => {
+        if (active) setData(brokers);
       })
       .catch(() => {
         if (active) setFailed(true);
@@ -45,7 +42,7 @@ export function BrokerDirectory({ path }: { path: string }) {
 
   const detail = /^\/user\/brokers\/(setup|help)\/([a-z0-9-]+)$/.exec(path);
   if (detail) {
-    const broker = data.brokers.find(({ id }) => id === detail[2]);
+    const broker = data.find(({ id }) => id === detail[2]);
     return (
       <>
         <Link to="/user/brokers">Change broker</Link>
@@ -68,9 +65,6 @@ export function BrokerDirectory({ path }: { path: string }) {
 
   if (path !== "/user/brokers") return <Link to="/user/brokers">Back to {BROKER_SETUP_LABEL}</Link>;
 
-  const visible = data.brokers.filter(broker =>
-    broker.name.toLowerCase().includes(query.trim().toLowerCase())
-  );
   return (
     <>
       <div className="page-heading">
@@ -87,7 +81,7 @@ export function BrokerDirectory({ path }: { path: string }) {
       <dialog ref={picker} className="panel broker-picker" aria-labelledby="broker-picker-title">
         <form onSubmit={event => {
           event.preventDefault();
-          if (!data.brokers.some(broker => broker.id === selection && broker.browser_consent_available)) return;
+          if (!data.some(broker => broker.id === selection && broker.browser_consent_available)) return;
           picker.current?.close();
           navigate(`/user/brokers/setup/${selection}`);
         }}>
@@ -97,7 +91,7 @@ export function BrokerDirectory({ path }: { path: string }) {
           </label>
           <fieldset>
             <legend>Broker availability</legend>
-            {data.brokers.filter(broker => broker.name.toLowerCase().includes(pickerQuery.trim().toLowerCase())).map(broker => (
+            {data.filter(broker => broker.name.toLowerCase().includes(pickerQuery.trim().toLowerCase())).map(broker => (
               <label key={broker.id}>
                 <input type="radio" name="broker" value={broker.id} checked={selection === broker.id}
                   disabled={!broker.browser_consent_available} onChange={() => setSelection(broker.id)} />
@@ -106,26 +100,11 @@ export function BrokerDirectory({ path }: { path: string }) {
             ))}
           </fieldset>
           <button type="button" onClick={() => picker.current?.close()}>Cancel</button>
-          <button type="submit" disabled={!data.brokers.some(broker => broker.id === selection &&
+          <button type="submit" disabled={!data.some(broker => broker.id === selection &&
             broker.name.toLowerCase().includes(pickerQuery.trim().toLowerCase()))}>Continue</button>
         </form>
       </dialog>
       {params.get("oauth") === "failed" && <p role="alert">Dhan authorization did not complete. Check your app details and try again.</p>}
-      <article className="panel">
-        <h2>Available brokers</h2>
-        <label htmlFor="broker-search">Search brokers</label>
-        <input id="broker-search" type="search" placeholder="Search or Select Broker"
-          value={query} onChange={event => setQuery(event.target.value)} />
-        {visible.length === 0 && <p role="status">No matching brokers.</p>}
-        {visible.map(broker => (
-          <div className="market" key={broker.id}>
-            <strong>{broker.name}</strong>
-            <span>{data.connections.filter(connection => connection.broker === broker.id).length} accounts</span>
-            <span>{broker.id !== "dhan" ? "Coming soon" : broker.browser_consent_available ? "Available" : "Authorization disabled"}</span>
-            <Link to={`/user/brokers/setup/${broker.id}`}>{broker.browser_consent_available ? "Configure" : "Setup guide"}</Link>
-          </div>
-        ))}
-      </article>
     </>
   );
 }
