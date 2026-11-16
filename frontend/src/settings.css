@@ -1217,16 +1217,8 @@ body,
 .ip-address-row code { overflow-wrap: anywhere; }
 .ip-management-card button { justify-self: start; padding: .45rem .75rem; border: 1px solid currentColor; border-radius: .45rem; }
 
-.ip-mode-picker { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .75rem 1.25rem; }
 .ip-management-grid > section { grid-column: 1 / -1; }
 
-.profile-settings .ip-mode-picker label {
-  display: inline-flex;
-  align-items: center;
-  gap: .4rem;
-  padding: .4rem .65rem;
-}
-.profile-settings .ip-mode-picker label input { flex: none; margin: 0; }
 .ip-management-card .ip-lookup {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
