@@ -7,8 +7,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import ORIGIN, PROD, settings
 from app.core.lifespan import lifespan
 from app.models import trading
-from app.brokers.gateway import router as broker_gateway
-from app.brokers.individual.routes import router as individual_brokers
 from app.brokers.approval.routes import router as approvals
 from app.execution.routes import router as execution
 from app.security.mfa import router as mfa
@@ -20,7 +18,6 @@ from app.schemas.identity import Register
 from app.api.health import router as router_0
 from app.api.auth import router as router_1
 from app.api.users import router as router_2
-from app.brokers.routes import router as router_3
 from app.dashboard.routes import router as router_4
 from app.risk.routes import router as router_5
 from app.admin.routes import router as router_6
@@ -29,7 +26,6 @@ app.add_middleware(CORSMiddleware, allow_origins=settings.origins, allow_credent
 app.include_router(router_0)
 app.include_router(router_1)
 app.include_router(router_2)
-app.include_router(router_3)
 app.include_router(router_4)
 app.include_router(router_5)
 app.include_router(router_6)
@@ -41,12 +37,10 @@ async def headers(request, call_next):
     if PROD:
         response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
     return response
-app.include_router(broker_gateway)
 app.include_router(approvals)
 app.include_router(execution)
 app.include_router(mfa)
 
-app.include_router(individual_brokers)
 
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -73,9 +67,8 @@ app.include_router(market_router)
 app.include_router(market_admin_router)
 app.include_router(market_ws_router)
 
-from app.execution.live_routes import router as live_router,admin_router as live_admin_router
+from app.execution.live_routes import router as live_router
 app.include_router(live_router)
-app.include_router(live_admin_router)
 
 from app.trade_details.routes import router as trade_details_router
 app.include_router(trade_details_router)
@@ -84,14 +77,8 @@ from app.portfolio.routes import router as portfolio_router
 from app.portfolio import bridge as portfolio_bridge
 app.include_router(portfolio_router)
 
-from app.brokers.dhan.routes import router as dhan_router
-app.include_router(dhan_router)
 
-from app.brokers.dhan.stream_routes import router as dhan_stream_router
-app.include_router(dhan_stream_router)
 
-from app.brokers.dhan.authentication import router as dhan_consent_router
-app.include_router(dhan_consent_router)
 
 from app.notifications.inbox import router as notification_router
 app.include_router(notification_router)

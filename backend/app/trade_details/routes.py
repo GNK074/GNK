@@ -37,14 +37,6 @@ def options(u=Depends(auth),s:Session=Depends(db)):
     scripts={x.underlying or x.symbol for x in instruments}|{'BANKNIFTY','NIFTY','MIDCPNIFTY','FINNIFTY','SENSEX'}
     return {'brokers':sorted({a.broker for a in accounts.values()}),'accounts':[{'id':a.id,'broker':a.broker,'status':a.status} for a in accounts.values()],'strategies':[{'id':x.id,'name':x.name} for x in strategies.values()],'scripts':sorted(scripts),'timezone':'Asia/Kolkata','execution_mode':'LIVE'}
 
-@router.get('/orders')
-def orders(filters:Filters=Depends(),bucket:Literal['ACTIVE','PENDING','CLOSED','FAILED','ALL']='ACTIVE',page:int=Query(1,ge=1),page_size:int=Query(10,ge=1,le=100),sort:str='entry_time',direction:Literal['asc','desc']='desc',u=Depends(auth),s:Session=Depends(db)):
-    rows,_,summary=projections(s,u)
-    filtered=filter_rows(rows,**filters.values,bucket=bucket)
-    context=filter_rows(rows,**filters.values)
-    summary=running_summary(context)
-    counts={key:sum(r['bucket']==key for r in context) for key in ('ACTIVE','PENDING','CLOSED','FAILED')}
-    return json({**paginate(filtered,page,page_size,sort,direction),'summary':summary,'counts':counts,'scope':'OWN_RECORDED_LIVE_ORDERS','protective_orders':'SL and TP are unavailable; this table does not create protective orders.'})
 
 @router.get('/client-trade-history/export')
 def export_history(filters:Filters=Depends(),u=Depends(auth),s:Session=Depends(db)):
@@ -61,11 +53,6 @@ def history(filters:Filters=Depends(),page:int=Query(1,ge=1),page_size:int=Query
     filtered=filter_rows(rows,**filters.values);summary=running_summary(filtered,True)
     return json({**paginate(filtered,page,page_size,sort,direction),'summary':summary,'basis':'Gross FIFO from reconciled GNK fills only; fees and taxes excluded. Missing fill time or entry basis produces unknown P&L.'})
 
-@router.get('/orders/{order_id}')
-def detail(order_id:str,u=Depends(auth),s:Session=Depends(db)):
-    row=owned(s,LiveOrder,order_id,u.id)
-    orders,history,_=projections(s,u)
-    return json({'order':order_public(row),'report':next(x for x in orders if x['id']==row.id),'trade_history':[x for x in history if x['id']==row.id or row.id in x['exit_order_ids']]})
 
 class SignalInput(BaseModel):
     model_config=ConfigDict(extra='forbid')

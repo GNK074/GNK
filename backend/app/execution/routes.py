@@ -27,24 +27,8 @@ def risk_for(s, uid):
         s.flush()
     return r
 
-@router.get('/strategies')
-def strategies(u=Depends(auth), s: Session=Depends(db)):
-    return [dict(id=x.id, name=x.name, approved=x.approved) for x in s.scalars(select(Strategy).where(Strategy.user_id == u.id))]
 
-@router.post('/strategies', status_code=201)
-def create_strategy(data: StrategyInput, u=Depends(auth), s: Session=Depends(db)):
-    x = Strategy(user_id=u.id, name=data.name.strip())
-    s.add(x)
-    audit(s, u.id, 'strategy_created')
-    s.commit()
-    return dict(id=x.id, name=x.name, approved=x.approved)
 
-@router.put('/strategies/{record_id}')
-def update_strategy(record_id: str, data: StrategyInput, u=Depends(auth), s: Session=Depends(db)):
-    x = owned(s, Strategy, record_id, u.id, lock=True)
-    x.name = data.name.strip()
-    s.commit()
-    return dict(id=x.id, name=x.name)
 
 @router.get('/risk/configuration')
 def get_risk(u=Depends(auth), s: Session=Depends(db)):
@@ -78,64 +62,7 @@ def position(record_id: str, u=Depends(auth), s: Session=Depends(db)):
     x = owned(s, Position, record_id, u.id)
     return dict(id=x.id, symbol=x.symbol, quantity=x.quantity)
 
-@router.post('/paper/orders', status_code=201)
-def paper_order(data: PaperOrderInput, u=Depends(require_disclosure), s: Session=Depends(db)):
-    if not settings.paper_trading_enabled:
-        raise HTTPException(409, 'Paper trading disabled')
-    r = risk_for(s, u.id)
-    request_hash = digest(json.dumps(data.model_dump(mode='json'), sort_keys=True))
-    previous = s.scalar(select(Order).where(Order.user_id == u.id, Order.idempotency_key == data.idempotency_key))
-    if previous:
-        if previous.request_hash != request_hash:
-            raise HTTPException(409, 'Idempotency key reused with different request')
-        return order_public(previous)
-    owned(s, Strategy, data.strategy_id, u.id)
-    platform = s.get(PlatformControl, 'global')
-    if r.kill_switch or (platform and platform.kill_switch):
-        raise HTTPException(409, 'Emergency stop active')
-    if data.quantity > r.max_quantity or data.price * data.quantity > r.max_order_value:
-        raise HTTPException(422, 'Order exceeds personal risk limits')
-    midnight = now().replace(hour=0, minute=0, second=0, microsecond=0)
-    count = s.scalar(select(func.count(Order.id)).where(Order.user_id == u.id, Order.created_at >= midnight))
-    if count >= r.max_daily_orders:
-        raise HTTPException(422, 'Daily order limit reached')
-    all_positions = list(s.scalars(select(Position).where(Position.user_id == u.id)))
-    daily_pnl = s.scalar(select(func.coalesce(func.sum(Order.realized_pnl), 0)).where(Order.user_id == u.id, Order.created_at >= midnight))
-    if -daily_pnl >= r.max_daily_loss:
-        raise HTTPException(422, 'Realized loss limit reached')
-    p = next((x for x in all_positions if x.symbol == data.symbol), None)
-    if data.side == 'SELL' and (not p or p.quantity < data.quantity):
-        raise HTTPException(422, 'Paper simulator does not support short selling')
-    if data.side == 'BUY' and (not p or p.quantity == 0) and (sum((x.quantity > 0 for x in all_positions)) >= r.max_positions):
-        raise HTTPException(422, 'Position limit reached')
-    if not p:
-        p = Position(user_id=u.id, symbol=data.symbol, quantity=0, average_price=0, realized_pnl=0)
-        s.add(p)
-    realized = Decimal(0)
-    if data.side == 'BUY':
-        p.average_price = (p.average_price * p.quantity + data.price * data.quantity) / (p.quantity + data.quantity)
-        p.quantity += data.quantity
-    else:
-        realized = (data.price - p.average_price) * data.quantity
-        p.realized_pnl += realized
-        p.quantity -= data.quantity
-        if p.quantity == 0:
-            p.average_price = 0
-    o = Order(realized_pnl=realized, user_id=u.id, strategy_id=data.strategy_id, symbol=data.symbol, side=data.side, quantity=data.quantity, price=data.price, idempotency_key=data.idempotency_key, request_hash=request_hash)
-    s.add(o)
-    audit(s, u.id, 'paper_order_filled')
-    s.commit()
-    return order_public(o)
 
-@router.post('/live/orders')
-def live_order(data: LiveOrderInput, u=Depends(require_disclosure), s: Session=Depends(db)):
-    account = owned(s, BrokerAccount, data.broker_account_id, u.id)
-    strategy = owned(s, Strategy, data.strategy_id, u.id)
-    from app.execution.live_service import submit,public
-    from app.execution.upstox import ExecutionError
-    from app.market_data.providers.base import ProviderError
-    try:return public(submit(s,u,data))
-    except (ExecutionError,ProviderError) as error:raise HTTPException(409,error.code) from None
 
 @router.post('/risk/emergency-stop')
 def user_switch(data: SwitchInput, u=Depends(auth), s: Session=Depends(db)):
