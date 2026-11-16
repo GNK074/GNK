@@ -30,3 +30,24 @@ a:focus-visible > .broker-setup-icon,
   0%, 100% { filter: drop-shadow(0 0 0.35rem #8b5cf66b); }
   50% { filter: drop-shadow(0 0 0.65rem #22d3eea6); }
 }
+
+.broker-picker {
+  width: min(30rem, calc(100% - 2rem));
+  max-height: 85vh;
+  overflow: auto;
+}
+
+.broker-picker fieldset {
+  margin-block: 1rem;
+}
+
+.broker-picker fieldset label {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding-block: 0.25rem;
+}
+
+.broker-picker input[type="radio"] {
+  width: auto;
+}

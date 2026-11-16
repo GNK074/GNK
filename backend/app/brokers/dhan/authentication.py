@@ -109,6 +109,6 @@ def callback(request:Request,tokenId:str='',s=Depends(db)):
         if uid:
             try:audit(s,uid,'broker_consent_failed');s.commit()
             except Exception:s.rollback()
-    response=RedirectResponse(settings.frontend_url.rstrip('/')+'/user/dhan?oauth='+result,status_code=303)
+    response=RedirectResponse(settings.frontend_url.rstrip('/')+'/user/brokers?oauth='+result,status_code=303)
     response.delete_cookie(COOKIE,path='/api/v1/dhan/oauth');response.headers['Referrer-Policy']='no-referrer';response.headers['Cache-Control']='no-store'
     return response

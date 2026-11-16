@@ -1,6 +1,7 @@
 from fastapi import Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from app.core.config import settings
 from app.database.session import db
 from app.models.trading import BrokerAccount, BrokerIntegration
 from app.brokers.registry import AUTH_ADAPTERS, BROKER_ALIASES, BROKER_NAMES
@@ -29,6 +30,11 @@ def broker_summary(s: Session, key: str) -> dict:
         'status': status,
         'supported': False,
         'auth_available': oauth_available,
+        'browser_consent_available': key == 'dhan' and settings.dhan_oauth_enabled and individual_available,
+        'browser_callback_url': (
+            settings.frontend_url.rstrip('/') + '/api/v1/dhan/oauth/callback'
+            if key == 'dhan' else None
+        ),
         'mode': config.mode if config else ('INDIVIDUAL' if individual_available else 'DISABLED'),
     }
 

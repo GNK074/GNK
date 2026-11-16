@@ -162,7 +162,7 @@ def test_consent_encrypted_one_time_session_bound(private,monkeypatch):
   attempt=s.scalar(select(ConsentAttempt));assert 'secret-fixture' not in attempt.secret_ciphertext
   assert open_credentials(ids[0],aids[0],attempt.secret_ciphertext)['app_secret']=='secret-fixture'
  callback=c.get('/api/v1/dhan/oauth/callback?tokenId=broker-one-time-code',follow_redirects=False)
- assert callback.status_code==303 and callback.headers['location'].endswith('/user/dhan?oauth=connected') and 'broker-token' not in callback.text
+ assert callback.status_code==303 and callback.headers['location'].endswith('/user/brokers?oauth=connected') and 'broker-token' not in callback.text
  with m.DB() as s:
   attempt=s.scalar(select(ConsentAttempt));assert attempt.consumed and attempt.secret_ciphertext==''
  c.cookies.set(consent.COOKIE,cookie)

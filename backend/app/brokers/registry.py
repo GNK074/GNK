@@ -17,6 +17,10 @@ BROKER_NAMES = {
     'shoonya': 'Shoonya',
     'motilal-oswal': 'Motilal Oswal',
     'sharekhan': 'Sharekhan',
+    'groww': 'Groww',
+    'hdfc-securities': 'HDFC Securities',
+    'share-market': 'Share.Market',
+    'indmoney': 'INDmoney',
 }
 
 BROKER_ALIASES = {'angel-one': 'angelone', 'icici-direct': 'icici'}
