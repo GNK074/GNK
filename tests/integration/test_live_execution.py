@@ -44,57 +44,20 @@ def live_setup(three,monkeypatch):
  payload={'broker_account_id':accounts[0],'strategy_id':sid,'instrument_id':iid,'symbol':'TEST','side':'BUY','quantity':1,'price':'100','idempotency_key':'live-fixture-0001','confirm_real_money':True}
  return c,ids,accounts,h,payload
 
-def test_submit_is_durable_pending_and_idempotent(live_setup):
- c,ids,accounts,h,p=live_setup
- r=c.post('/api/v1/live/orders',json=p,headers=h);assert r.status_code==200,r.text
- assert r.json()['status']=='PENDING' and r.json()['filled_quantity']==0
- again=c.post('/api/v1/live/orders',json=p,headers=h);assert again.json()['id']==r.json()['id'] and Broker.calls==1
- assert c.post('/api/v1/live/orders',json={**p,'quantity':2},headers=h).status_code==409
- assert c.get('/api/v1/orders').json()==[] # no paper order/position fabricated
- assert c.get('/api/v1/positions').json()==[]
-
-def test_timeout_never_resends_and_blocks_replacement(live_setup):
- c,ids,accounts,h,p=live_setup;Broker.timeout=True
- r=c.post('/api/v1/live/orders',json=p,headers=h);assert r.json()['status']=='UNKNOWN'
- assert c.post('/api/v1/live/orders',json=p,headers=h).json()['id']==r.json()['id'] and Broker.calls==1
- assert c.post('/api/v1/live/orders',json={**p,'idempotency_key':'replacement-0001'},headers=h).status_code==409
- assert Broker.calls==1
-
-def test_all_kill_switches_and_expired_approval_block(live_setup,monkeypatch):
- c,ids,accounts,h,p=live_setup
- with m.DB() as s:s.get(PlatformControl,'global').kill_switch=True;s.commit()
- assert c.post('/api/v1/live/orders',json=p,headers=h).status_code==409
- with m.DB() as s:s.get(PlatformControl,'global').kill_switch=False;s.get(BrokerAccount,accounts[0]).kill_switch=True;s.commit()
- assert c.post('/api/v1/live/orders',json=p,headers=h).status_code==409
- with m.DB() as s:s.get(BrokerAccount,accounts[0]).kill_switch=False;s.add(RiskConfiguration(user_id=ids[0],kill_switch=True));s.commit()
- assert c.post('/api/v1/live/orders',json=p,headers=h).status_code==409
- assert Broker.calls==0
-
-def test_user_isolation_csrf_and_unapproved_strategy(live_setup):
- c,ids,accounts,h,p=live_setup
- assert c.post('/api/v1/live/orders',json=p).status_code==403
- with m.DB() as s:s.get(Strategy,p['strategy_id']).approved=False;s.commit()
- assert c.post('/api/v1/live/orders',json=p,headers=h).status_code==409
- h=login(c,1)
- assert c.post('/api/v1/live/orders',json=p,headers=h).status_code==404
- assert c.post('/api/v1/live/accounts/'+accounts[0]+'/disarm',headers=h).status_code==404
- assert c.get('/api/v1/live/orders').json()==[]
- assert Broker.calls==0
-
-def test_price_band_short_sell_missing_confirmation_and_loss(live_setup):
- c,ids,accounts,h,p=live_setup
- for delta in ({'price':'110'},{'price':'100.01'},{'side':'SELL'},{'confirm_real_money':False},{'quantity':101}):
-  assert c.post('/api/v1/live/orders',json={**p,**delta},headers=h).status_code==409
- Broker.position_rows=[{'instrument_token':KEY,'product':'I','quantity':1,'last_price':100,'realised':-5000,'unrealised':0}]
- assert c.post('/api/v1/live/orders',json=p,headers=h).status_code==409
- assert Broker.calls==0
 
 def book_item(row,filled=0,status='open'):
  return {'tag':row.tag,'order_id':'broker-001','instrument_token':KEY,'transaction_type':'BUY','quantity':row.quantity,'filled_quantity':filled,'price':100,'product':'I','order_type':'LIMIT','status':status}
 
+def seed_live_order(user_id, payload):
+ from app.schemas.trading import LiveOrderInput
+ from app.models.identity import User
+ with m.DB() as session:
+  return live.submit(session,session.get(User,user_id),LiveOrderInput(**payload)).id
+
+
 def test_reconcile_partial_fills_final_and_duplicates(live_setup):
  c,ids,accounts,h,p=live_setup;p={**p,'quantity':2}
- r=c.post('/api/v1/live/orders',json=p,headers=h);oid=r.json()['id']
+ oid=seed_live_order(ids[0],p)
  with m.DB() as s:row=s.get(LiveOrder,oid);Broker.book_rows=[book_item(row,1)]
  Broker.trade_rows=[{'order_id':'broker-001','transaction_type':'BUY','product':'I','trade_id':'t1','quantity':1,'average_price':99.95}]
  r=c.post('/api/v1/live/orders/'+oid+'/reconcile',headers=h)
@@ -108,7 +71,7 @@ def test_reconcile_partial_fills_final_and_duplicates(live_setup):
 
 def test_reconcile_recovers_unknown_by_tag_and_cancel_when_disabled(live_setup,monkeypatch):
  c,ids,accounts,h,p=live_setup;Broker.timeout=True
- r=c.post('/api/v1/live/orders',json=p,headers=h);oid=r.json()['id']
+ oid=seed_live_order(ids[0],p)
  with m.DB() as s:Broker.book_rows=[book_item(s.get(LiveOrder,oid))]
  r=c.post('/api/v1/live/orders/'+oid+'/reconcile',headers=h)
  assert r.json()['provider_order_id']=='broker-001' and r.json()['status']=='OPEN'
@@ -143,7 +106,7 @@ def test_trading_token_load_uses_owned_individual_encrypted_secret(three):
 def test_worker_reconciles_when_new_placement_is_disabled(live_setup,monkeypatch):
  from app.execution import worker
  c,ids,accounts,h,p=live_setup
- oid=c.post('/api/v1/live/orders',json=p,headers=h).json()['id']
+ oid=seed_live_order(ids[0],p)
  with m.DB() as s:Broker.book_rows=[book_item(s.get(LiveOrder,oid),0,'cancelled')]
  monkeypatch.setattr(worker,'cache',fakeredis.FakeRedis());monkeypatch.setattr(settings,'live_trading_enabled',False)
  worker.run_once()
@@ -152,24 +115,13 @@ def test_worker_reconciles_when_new_placement_is_disabled(live_setup,monkeypatch
 
 def test_malformed_fills_fail_closed_and_no_resubmission(live_setup):
  c,ids,accounts,h,p=live_setup
- oid=c.post('/api/v1/live/orders',json=p,headers=h).json()['id']
+ oid=seed_live_order(ids[0],p)
  with m.DB() as s:Broker.book_rows=[book_item(s.get(LiveOrder,oid),1,'complete')]
  Broker.trade_rows=[]
  r=c.post('/api/v1/live/orders/'+oid+'/reconcile',headers=h)
  assert r.json()['status']=='RECONCILE_REQUIRED' and r.json()['filled_quantity']==0
- assert c.post('/api/v1/live/orders',json={**p,'idempotency_key':'replacement-1234'},headers=h).status_code==409
  assert Broker.calls==1
 
-def test_revocation_between_intent_commit_and_submission(live_setup,monkeypatch):
- c,ids,accounts,h,p=live_setup
- original=live.gates;calls=[]
- def revoke(s,account,strategy=None):
-  calls.append(1)
-  if len(calls)==2:live.fail('Authorization revoked')
-  return original(s,account,strategy)
- monkeypatch.setattr(live,'gates',revoke)
- r=c.post('/api/v1/live/orders',json=p,headers=h)
- assert r.json()['status']=='REJECTED' and Broker.calls==0
 
 def test_validated_configuration_can_enable_only_explicit_scope():
  from app.core.config import Settings

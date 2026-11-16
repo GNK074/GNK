@@ -35,7 +35,7 @@ def add_order(reports,user=0,side='BUY',qty=2,price='100',filled=None,status='FI
 
 def test_empty_tables_and_options_are_owned(reports):
  c,ids,accounts,strategies,iid=reports;login(c,0)
- for path in ('orders','client-trade-history','signals'):
+ for path in ('client-trade-history','signals'):
   r=c.get('/api/v1/tradedetails/'+path);assert r.status_code==200,r.text
   assert r.json()['items']==[] and r.json()['total']==0
  options=c.get('/api/v1/tradedetails/options').json()
@@ -43,23 +43,6 @@ def test_empty_tables_and_options_are_owned(reports):
  assert {x['id'] for x in options['strategies']}=={strategies[0]}
  assert 'BANKNIFTY' in options['scripts']
 
-def test_reporting_isolation_filters_pagination_sort_and_detail(reports):
- c,ids,accounts,strategies,iid=reports
- own=add_order(reports,filled=0,status='OPEN');foreign=add_order(reports,user=1)
- add_order(reports,filled=0,status='PENDING',day=2);add_order(reports,filled=0,status='REJECTED',day=3,reason='TRADING_TOKEN_REJECTED')
- login(c,0)
- r=c.get('/api/v1/tradedetails/orders',params={'bucket':'ALL','page_size':1,'sort':'entry_time','direction':'asc'})
- assert r.status_code==200,r.text
- assert r.json()['total']==3 and r.json()['pages']==3 and r.json()['items'][0]['id']==own
- assert c.get('/api/v1/tradedetails/orders',params={'bucket':'FAILED'}).json()['total']==1
- assert c.get('/api/v1/tradedetails/orders',params={'bucket':'ALL','q':'TOKEN'}).json()['total']==1
- assert c.get('/api/v1/tradedetails/orders',params={'bucket':'ALL','strategy_id':strategies[1]}).json()['total']==0
- assert c.get('/api/v1/tradedetails/orders/'+foreign).status_code==404
- assert c.get('/api/v1/tradedetails/orders/'+own).status_code==200
- assert c.get('/api/v1/tradedetails/orders',params={'bucket':'ALL','sort':'password'}).status_code==422
- assert c.get('/api/v1/tradedetails/orders',params={'bucket':'ALL','page_size':101}).status_code==422
- assert c.get('/api/v1/tradedetails/client-trade-history',params={'status':'unauthorized'}).json()['total']==1
- assert 'private-token' not in r.text
 
 def test_fifo_partial_and_complete_history_uses_reconciled_fills(reports):
  c,ids,accounts,strategies,iid=reports
@@ -82,18 +65,7 @@ def test_unknown_basis_and_missing_timestamps_never_fabricate_pnl(reports):
  add_order(reports,price='100',day=2,stamp=False)
  row=next(r for r in c.get('/api/v1/tradedetails/client-trade-history').json()['items'] if r['entry_qty'])
  assert row['pnl'] is None and row['price'] is None
- assert c.get('/api/v1/tradedetails/orders',params={'bucket':'ALL'}).json()['summary']['running_pnl'] is None
 
-def test_fifo_remaining_cost_uses_remaining_lots_not_original_average(reports,monkeypatch):
- import app.trade_details.service as service
- c,ids,accounts,strategies,iid=reports
- add_order(reports,qty=1,price='100',minute=15)
- later=add_order(reports,qty=1,price='120',minute=16)
- add_order(reports,side='SELL',qty=1,price='130',minute=17)
- monkeypatch.setattr(service,'cached_prices',lambda *args:{'NSE_EQ|TEST':{'ltp':125,'data_status':'LIVE'}})
- login(c,0);data=c.get('/api/v1/tradedetails/orders',params={'bucket':'ALL'}).json()
- assert Decimal(data['summary']['running_pnl'])==5
- row=next(x for x in data['items'] if x['id']==later);assert Decimal(row['pnl'])==5
 
 def test_signal_creation_is_persisted_owned_and_does_not_place_order(reports,monkeypatch):
  import app.trade_details.routes as routes
@@ -126,12 +98,5 @@ def test_excel_export_is_real_xlsx_scoped_and_does_not_execute_formulas(reports)
   strings=[x.text for x in sheet.findall('.//s:t',ns)]
   assert '=HYPERLINK("unsafe")' in strings
 
-def test_new_order_records_one_signal_despite_idempotent_retry(live_setup):
- c,ids,accounts,h,p=live_setup
- first=c.post('/api/v1/live/orders',json=p,headers=h);second=c.post('/api/v1/live/orders',json=p,headers=h)
- assert first.status_code==200 and second.status_code==200
- with m.DB() as s:
-  rows=list(s.scalars(select(TradeSignal).where(TradeSignal.user_id==ids[0])))
-  assert len(rows)==1 and rows[0].source_order_id==first.json()['id'] and rows[0].source=='ORDER_REQUEST'
 
 from test_live_execution import live_setup

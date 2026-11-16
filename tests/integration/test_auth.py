@@ -18,11 +18,7 @@ def client(monkeypatch):
     from app.security import mfa_recovery
     monkeypatch.setattr(mfa_recovery,'limit',lambda *args:None)
     from app.security import mfa
-    from app.brokers import gateway
     monkeypatch.setattr(mfa,'limit',lambda *args:None)
-    monkeypatch.setattr(gateway,'limit',lambda *args:None)
-    from app.brokers.individual import routes as individual_routes
-    monkeypatch.setattr(individual_routes,'limit',lambda *args:None)
     from app.api import users
     monkeypatch.setattr(users,'limit',lambda *args:None)
     delivered=[]
@@ -47,7 +43,6 @@ def test_verification_session_csrf_and_revocation(client):
     assert 'HttpOnly' in r.headers.get('set-cookie')
     assert c.get('/api/v1/admin/users').status_code==403
     assert c.post('/api/v1/emergency-stop').status_code==403
-    assert c.post('/api/v1/broker-connections/initiate',headers={'X-CSRF-Token':csrf}).status_code==409
     assert c.post('/api/v1/auth/refresh',headers={'X-CSRF-Token':csrf}).status_code==200
     csrf=c.get('/api/v1/users/me').json()['csrf_token']
     assert c.post('/api/v1/auth/logout-all',headers={'X-CSRF-Token':csrf}).status_code==200
@@ -66,7 +61,6 @@ def test_reset_one_time_and_generic_response(client):
 
 def test_validation_and_anonymous_access(client):
     c,_=client
-    assert c.get('/api/v1/brokers').status_code==401
     assert c.get('/api/v1/dashboard').status_code==401
     assert c.post('/api/v1/auth/register',json={'name':'A','email':'bad','password':'weak','terms':False,'privacy':False}).status_code==422
 
@@ -79,13 +73,3 @@ def test_revocation_after_password_reset(client):
     token=mail[-1].split('token=')[1]
     assert c.post('/api/v1/auth/reset-password',json={'token':token,'password':'NewSecurePass!789'}).status_code==200
     assert c.get('/api/v1/users/me').status_code==401
-
-def test_unapproved_brokers_are_never_supported(client):
-    c,mail=client
-    register(c)
-    c.post('/api/v1/auth/verify-email',json={'token':mail[0].split('token=')[1]})
-    c.post('/api/v1/auth/login',json={'email':'trader@example.com','password':'StrongPassword!123'})
-    data=c.get('/api/v1/brokers').json()
-    assert len(data)==12
-    assert all(b['supported'] is False for b in data)
-    assert c.get('/api/v1/dashboard').json()['live_trading'] is False

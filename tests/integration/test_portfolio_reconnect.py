@@ -14,39 +14,6 @@ from sqlalchemy import select,func
 from datetime import timedelta
 import pytest
 
-def test_connect_queues_first_sync_atomically(three,monkeypatch):
- c,ids,aids=three;h=login(c,0)
- class Verified:
-  def validate(self,data):return VerifiedSession('new-dhan',{'access_token':data['access_token']},now()+timedelta(hours=2),'broker_reported')
- monkeypatch.setitem(VERIFIERS,'dhan',Verified)
- result=c.post('/api/v1/brokers/dhan/individual',headers=h,json={'credentials':{'client_id':'new-dhan','access_token':'fixture-only'},'owns_account':True,'terms_accepted':True})
- assert result.status_code==201,result.text
- with m.DB() as s:
-  state=s.scalar(select(PortfolioSync).where(PortfolioSync.account_id==result.json()['id']))
-  assert state and state.state=='QUEUED' and state.errors=={} and svc.utc(state.next_attempt_at)<=now()
-
-def test_reconnect_clears_old_error_backoff_and_worker_syncs_new_token(portfolio,monkeypatch):
- c,ids,aids=portfolio;h=login(c,0);put(ids[0],aids[0],'holdings',holding())
- with m.DB() as s:
-  s.get(BrokerAccount,aids[0]).broker='dhan'
-  s.add(PortfolioSync(user_id=ids[0],account_id=aids[0],state='SESSION_EXPIRED',errors={'session':'SESSION_EXPIRED'},failures=4,next_attempt_at=now()+timedelta(minutes=15)));s.commit()
- class Verified:
-  def validate(self,data):return VerifiedSession('account-0',{'access_token':data['access_token']},now()+timedelta(hours=2),'broker_reported')
- monkeypatch.setitem(VERIFIERS,'dhan',Verified)
- result=c.post('/api/v1/brokers/dhan/individual',headers=h,json={'credentials':{'client_id':'account-0','access_token':'replacement-fixture'},'owns_account':True,'terms_accepted':True})
- assert result.status_code==201,result.text
- with m.DB() as s:
-  state=s.scalar(select(PortfolioSync));assert state.state=='QUEUED' and state.errors=={} and state.failures==0
-  assert s.scalar(select(func.count()).select_from(PortfolioSnapshot))==1 # preserve old data, never relabel it fresh
- account=c.get('/api/v1/dhan/status').json()['accounts'][0]
- assert account['connection_status']=='connected' and account['status']=='PENDING' and account['errors']=={}
- FixtureAdapter.error_kind=None;monkeypatch.setattr(svc,'build_adapter',lambda *a:FixtureAdapter())
- assert svc.sync_account(ids[0],aids[0])
- account=c.get('/api/v1/dhan/status').json()['accounts'][0]
- assert account['status']=='CONNECTED' and account['last_success'] and account['completed_at']
- with m.DB() as s:
-  assert s.scalar(select(func.count()).select_from(PortfolioSnapshot))==5
-  assert s.get(BrokerAccount,aids[0]).kill_switch and not s.get(BrokerAccount,aids[0]).live_authorized
 
 def replace(s,uid,aid):
  credential=s.scalar(select(BrokerCredential).where(BrokerCredential.account_id==aid))

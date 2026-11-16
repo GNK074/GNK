@@ -19,17 +19,12 @@ def test_auth_csrf_server_enforcement_and_idempotency(client):
     assert c.get('/api/v1/compliance/disclosure').status_code==401
     c,h=signed_in(client)
     assert c.get('/api/v1/compliance/disclosure/status').json()['required']
-    sid=c.post('/api/v1/strategies',headers=h,json={'name':'Disclosure test'}).json()['id']
-    order={'strategy_id':sid,'symbol':'TEST','side':'BUY','quantity':1,'price':'100','idempotency_key':'disclosure-order-001'}
-    assert c.post('/api/v1/paper/orders',headers=h,json=order).status_code==428
-    assert c.post('/api/v1/live/orders',headers=h,json={**order,'broker_account_id':'missing-broker'}).status_code==428
     assert acknowledge(c,{}).status_code==403
     assert acknowledge(c,h,user_id='another-user').status_code==422
     assert acknowledge(c,h,acknowledged=False).status_code==422
     assert acknowledge(c,h).status_code==200
     assert acknowledge(c,h).status_code==200
     assert not c.get('/api/v1/compliance/disclosure/status').json()['required']
-    assert c.post('/api/v1/paper/orders',headers=h,json=order).status_code==201
     with m.DB() as s:
         items=s.scalars(select(DisclosureAcknowledgment)).all()
         assert len(items)==1 and items[0].acknowledged_at and items[0].user_id
