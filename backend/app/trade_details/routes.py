@@ -1,7 +1,7 @@
-from datetime import date
+from datetime import timezone
 from decimal import Decimal
 from typing import Literal
-from fastapi import APIRouter,Depends,Query,HTTPException,Response
+from fastapi import APIRouter,Depends,Query,HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel,ConfigDict,Field
@@ -12,47 +12,13 @@ from app.core.config import now
 from app.security.authentication import auth
 from app.security.ownership import owned
 from app.models.trading import BrokerAccount,Strategy
-from app.execution.models import LiveOrder
-from app.execution.live_service import public as order_public
 from app.market_data.models import MarketInstrument
 from app.market_data.subscription_manager import available_instrument
 from app.services.accounts import audit
 from .models import TradeSignal
-from .service import projections,filter_rows,paginate,metadata,ledger,running_summary
-from .accounting import utc,IST
-from .export import workbook
 router=APIRouter(prefix='/api/v1/tradedetails')
 
 def json(value,status=200):return JSONResponse(jsonable_encoder(value,custom_encoder={Decimal:str}),status_code=status)
-
-class Filters:
-    def __init__(self,broker:str=Query('',max_length=30),script:str=Query('',max_length=150),strategy_id:str=Query('',max_length=36),q:str=Query('',max_length=100),status:str=Query('',max_length=30),from_date:date|None=None,to_date:date|None=None):
-        self.values=dict(broker=broker,script=script,strategy_id=strategy_id,q=q,status=status,from_date=from_date,to_date=to_date)
-
-@router.get('/options')
-def options(u=Depends(auth),s:Session=Depends(db)):
-    accounts,strategies=metadata(s,u.id);orders=ledger(s,u.id)
-    ids={o.instrument_id for o in orders}
-    instruments=list(s.scalars(select(MarketInstrument).where(MarketInstrument.id.in_(ids)))) if ids else []
-    scripts={x.underlying or x.symbol for x in instruments}|{'BANKNIFTY','NIFTY','MIDCPNIFTY','FINNIFTY','SENSEX'}
-    return {'brokers':sorted({a.broker for a in accounts.values()}),'accounts':[{'id':a.id,'broker':a.broker,'status':a.status} for a in accounts.values()],'strategies':[{'id':x.id,'name':x.name} for x in strategies.values()],'scripts':sorted(scripts),'timezone':'Asia/Kolkata','execution_mode':'LIVE'}
-
-
-@router.get('/client-trade-history/export')
-def export_history(filters:Filters=Depends(),u=Depends(auth),s:Session=Depends(db)):
-    _,rows,_=projections(s,u);rows=filter_rows(rows,**filters.values)
-    rows.sort(key=lambda x:x.get('signal_entry_time') or x['signal_exit_time'],reverse=True)
-    def ist(value):return value.astimezone(IST).strftime('%Y-%m-%d %H:%M:%S IST') if value else ''
-    headers=['S.No.','Signal Entry Time','Signal Exit Time','Trading Symbol','Group Service','Broker','Entry Qty','Exit Qty','Entry Price','Exit Price','Gross Realized P&L','Price','Price Status','Order Status','Trade Status','Response']
-    values=[[i,ist(r['signal_entry_time']),ist(r['signal_exit_time']),r['trading_symbol'],r['group_service'],r['broker'],r['entry_qty'],r['exit_qty'],r['entry_price'],r['exit_price'],r['pnl'],r['price'],r['price_status'],r['order_status'],r['trade_status'],r['response']] for i,r in enumerate(rows,1)]
-    return Response(workbook(headers,values),media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',headers={'Content-Disposition':'attachment; filename="gnk-trade-history.xlsx"'})
-
-@router.get('/client-trade-history')
-def history(filters:Filters=Depends(),page:int=Query(1,ge=1),page_size:int=Query(10,ge=1,le=100),sort:str='signal_entry_time',direction:Literal['asc','desc']='desc',u=Depends(auth),s:Session=Depends(db)):
-    _,rows,summary=projections(s,u)
-    filtered=filter_rows(rows,**filters.values);summary=running_summary(filtered,True)
-    return json({**paginate(filtered,page,page_size,sort,direction),'summary':summary,'basis':'Gross FIFO from reconciled GNK fills only; fees and taxes excluded. Missing fill time or entry basis produces unknown P&L.'})
-
 
 class SignalInput(BaseModel):
     model_config=ConfigDict(extra='forbid')
@@ -66,7 +32,7 @@ class SignalInput(BaseModel):
     note:str=Field(default='',max_length=500)
 
 def signal_public(row,strategy=None):
-    return {'id':row.id,'signal_time':utc(row.signal_time),'symbol':row.symbol,'strike_price':row.strike_price,'order_type':row.order_type,'side':row.side,'quantity':row.quantity,'reference_price':row.reference_price,'strategy_id':row.strategy_id,'group_service':strategy.name if strategy else None,'account_id':row.account_id,'source':row.source,'source_order_id':row.source_order_id,'note':row.note,'execution':'SIGNAL_ONLY_NO_ORDER_SUBMITTED' if row.source=='MANUAL' else 'RECORDED_ORDER_REQUEST_NOT_A_FILL'}
+    return {'id':row.id,'signal_time':(row.signal_time.astimezone(timezone.utc) if row.signal_time.tzinfo else row.signal_time.replace(tzinfo=timezone.utc)),'symbol':row.symbol,'strike_price':row.strike_price,'order_type':row.order_type,'side':row.side,'quantity':row.quantity,'reference_price':row.reference_price,'strategy_id':row.strategy_id,'group_service':strategy.name if strategy else None,'account_id':row.account_id,'source':row.source,'source_order_id':row.source_order_id,'note':row.note,'execution':'SIGNAL_ONLY_NO_ORDER_SUBMITTED' if row.source=='MANUAL' else 'RECORDED_ORDER_REQUEST_NOT_A_FILL'}
 
 @router.get('/signals')
 def signals(q:str=Query('',max_length=100),page:int=Query(1,ge=1),page_size:int=Query(10,ge=1,le=100),sort:Literal['signal_time','symbol','strike_price','order_type']='signal_time',direction:Literal['asc','desc']='desc',u=Depends(auth),s:Session=Depends(db)):

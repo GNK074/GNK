@@ -3,9 +3,6 @@ import "./workspace.css";
 import { Notifications } from "../components/Notifications";
 import { MarketStatus } from "../components/MarketStatus";
 import { SettingsPage } from "../pages/SettingsPage";
-import { Portfolio } from "../portfolio/Portfolio";
-import { PortfolioIcon } from "../portfolio/PortfolioIcon";
-import { TradeDetails } from "../trade-details/TradeDetails";
 import { MfaRecoveryPage } from "../pages/MfaRecoveryPage";
 import { MfaRecoveryReview } from "../admin/MfaRecoveryReview";
 import { ContactUsPage } from "../pages/ContactUsPage";
@@ -17,7 +14,6 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Navigate, Link, useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
-  BarChart3,
   ChevronRight,
   CircleHelp,
   Palette,
@@ -132,8 +128,8 @@ export function App() {
   if (loading)
     return <div className="loading">GNK ALGO · Loading workspace…</div>;
   if (/^\/markets(?:\/|$)/.test(loc.pathname) ||
-      /^\/user\/(broker-and-exchanges|brokers|dhan|strategies|security|settings|live-orders)(?:\/|$)/.test(loc.pathname) ||
-      (loc.pathname.startsWith("/tradedetails/") && loc.pathname !== "/tradedetails/client-trade-history")) {
+      /^\/user\/(broker-and-exchanges|brokers|dhan|strategies|security|settings|live-orders|portfolio)(?:\/|$)/.test(loc.pathname) ||
+      loc.pathname.startsWith("/tradedetails/")) {
     return <Navigate to={user ? "/user/dashboard" : "/login"} replace />;
   }
   return (
@@ -193,8 +189,6 @@ export function App() {
             <nav aria-label="Workspace">
               {[
                 [LayoutDashboard, "Dashboard", "/user/dashboard"],
-                [BarChart3, "Trade History", "/tradedetails/client-trade-history"],
-                [PortfolioIcon, "Portfolio", "/user/portfolio"],
                 ...(user.role !== "USER"
                   ? [[Gauge, "Administration", "/admin"]]
                   : []),
@@ -242,9 +236,7 @@ export function App() {
                 <button className="workspace-menu" type="button" aria-label="Toggle workspace navigation" aria-controls="workspace-navigation" aria-expanded={navigationOpen} onClick={() => setNavigationOpen(open => !open)}><Menu size={18} /></button>
                 Workspace <ChevronRight size={14} />{" "}
                 <b>
-                  {loc.pathname === "/tradedetails/client-trade-history" ? "Trade History"
-                    : loc.pathname === "/user/portfolio" ? "Portfolio"
-                    : loc.pathname === "/notification" ? "Notifications"
+                  {loc.pathname === "/notification" ? "Notifications"
                     : loc.pathname === "/user/profile" ? "Profile"
                     : loc.pathname === "/admin" ? "Administration" : loc.pathname === "/user/dashboard" ? "Dashboard" : "Overview"}
                   {loc.pathname === "/user/dashboard" && <span className="workspace-spark workspace-spark-delayed" aria-hidden="true"> ✳</span>}
@@ -307,9 +299,7 @@ export function App() {
               </div>
             </header>
             <div className="content">
-              {loc.pathname === "/tradedetails/client-trade-history" ? (
-                <TradeDetails key={loc.pathname} />
-              ) : loc.pathname === "/notification" ? (
+              {loc.pathname === "/notification" ? (
                 <Notifications />
               ) : loc.pathname === "/user/profile" ? (
                 <SettingsPage user={user} notify={notify} onUpdate={updateUser} onSignOut={() => setSignOutOpen(true)} />
@@ -318,8 +308,6 @@ export function App() {
                   <Admin />
                   {user.role === "SUPER_ADMIN" && <MfaRecoveryReview />}
                 </>
-              ) : loc.pathname === "/user/portfolio" ? (
-                <Portfolio />
               ) : (
                 <DisclosureGate key={user.id}>
                   <Dashboard user={user} notify={notify} />

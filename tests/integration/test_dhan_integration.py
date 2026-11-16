@@ -1,7 +1,6 @@
 """GNK workflows use fake broker HTTP/socket transports; never real orders."""
 from test_auth import client
 from test_multi_user import three,login
-from test_portfolio import portfolio
 from test_live_execution import live_setup,Broker
 from app import main as m
 from app.core.config import settings,now
@@ -16,7 +15,6 @@ from app.models.identity import User,LoginSession
 from app.brokers.dhan.models import ConsentAttempt
 from app.market_data.models import MarketInstrument
 from app.security.encryption import seal_credentials,open_credentials
-from app.portfolio.service import version
 from sqlalchemy import select
 from datetime import datetime,timedelta,timezone
 from decimal import Decimal

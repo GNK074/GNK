@@ -1,12 +1,10 @@
 from test_auth import client
 from test_multi_user import three,login
-from test_portfolio import portfolio
 from app import main as m
 from app.core.config import now
 from app.brokers.dhan.client import DhanClient,DhanError,SDK_VERSION
 from app.brokers.dhan.analytics import candles,aggregate,indicators
 from app.models.trading import BrokerAccount,BrokerCredential
-from app.portfolio.models import PortfolioSnapshot
 from sqlalchemy import select,func
 from datetime import timedelta,datetime,timezone
 from decimal import Decimal

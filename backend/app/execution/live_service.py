@@ -45,8 +45,7 @@ def client(s,account):
     except Exception:fail('Reconnect using verified individual broker trading credentials')
     if account.broker=='dhan':
         from app.brokers.dhan.execution import DhanExecution
-        from app.portfolio.service import version
-        return DhanExecution(account.account_identifier,token,account.id,account.user_id,credential_version=version(credential))
+        return DhanExecution(account.account_identifier,token,account.id,account.user_id,credential_version=digest(credential.ciphertext))
     return UpstoxExecution(token,account.id)
 
 def gates(s,account,strategy=None):
@@ -65,8 +64,7 @@ def quote_for(s,uid,account,instrument):
     if account.broker!='dhan':return MarketDataService(s,uid).require_live_quote(instrument.instrument_key)
     from app.brokers.dhan import streams
     credential=s.scalar(select(BrokerCredential).where(BrokerCredential.user_id==uid,BrokerCredential.account_id==account.id))
-    from app.portfolio.service import version
-    try:tick=streams.latest(uid,account.id,version(credential),instrument.instrument_key)
+    try:tick=streams.latest(uid,account.id,digest(credential.ciphertext),instrument.instrument_key)
     except Exception:fail('Private Dhan quote service is unavailable')
     if tick.get('data_status')!='LIVE':fail('Subscribe to a fresh private Dhan quote before live placement')
     return tick

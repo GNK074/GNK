@@ -6,13 +6,12 @@ from urllib.parse import urlencode
 import websockets
 from dhanhq import MarketFeed,OrderUpdate
 from sqlalchemy import select,delete
-from app.core.config import now,expired,settings
+from app.core.config import now,expired,settings,digest
 from app.database.session import DB
 from app.database.tenancy import set_context
 from app.models.identity import User,LoginSession
 from app.models.trading import BrokerAccount,BrokerCredential
 from app.execution.models import LiveOrder
-from app.portfolio.service import version,serialized
 from app.security.encryption import open_credentials
 from app.security.authentication import cache
 from .client import DhanClient,DhanError
@@ -43,7 +42,7 @@ def packet(raw,parsed):
     fields={k:parsed[k] for k in ('open','high','low','close','volume','OI','depth','avg_price','total_sell_quantity','total_buy_quantity') if k in parsed}
     return dict(instrument_key=key(segment,sid),segment=segment,security_id=sid,ltp=str(price),exchange_timestamp=stamp,received_at=time.time(),source='DHAN_PRIVATE_WEBSOCKET',**fields)
 def publish(uid,aid,owner,value):
-    return fenced(uid,aid,owner,"redis.call('SET',ARGV[2],ARGV[3],'EX',60);return 1",prefix(uid,aid)+':tick:'+value['instrument_key'],json.dumps(serialized(dict(value,_owner=owner))))
+    return fenced(uid,aid,owner,"redis.call('SET',ARGV[2],ARGV[3],'EX',60);return 1",prefix(uid,aid)+':tick:'+value['instrument_key'],json.dumps(dict(value,_owner=owner), default=str))
 def latest(uid,aid,fingerprint,instrument_key):
     raw=cache.get(prefix(uid,aid)+':tick:'+instrument_key)
     if not raw:return {'instrument_key':instrument_key,'data_status':'UNAVAILABLE'}
@@ -147,7 +146,7 @@ def desired():
                 try:data=open_credentials(uid,a.id,c.ciphertext);token=data.get('credentials',data)['access_token']
                 except Exception:continue
                 instruments=watch.get('instruments',[]) if watch else []
-                result[(uid,a.id)]={'fingerprint':version(c),'client_id':a.account_identifier,'token':token,'instruments':instruments,'watch_version':json.dumps(instruments,sort_keys=True)}
+                result[(uid,a.id)]={'fingerprint':digest(c.ciphertext),'client_id':a.account_identifier,'token':token,'instruments':instruments,'watch_version':json.dumps(instruments,sort_keys=True)}
     return dict(list(result.items())[:32])
 
 async def worker():

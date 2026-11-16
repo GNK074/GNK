@@ -73,9 +73,6 @@ app.include_router(live_router)
 from app.trade_details.routes import router as trade_details_router
 app.include_router(trade_details_router)
 
-from app.portfolio.routes import router as portfolio_router
-from app.portfolio import bridge as portfolio_bridge
-app.include_router(portfolio_router)
 
 
 
