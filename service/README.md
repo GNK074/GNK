@@ -4,7 +4,7 @@ Run these commands on Ubuntu from the project root:
 
 ```bash
 chmod +x deploy/gnk-service.sh service/gnk-service.sh
-cp .env.example .env
+cp infrastructure/env/development.conf.example .env
 # Edit .env: configure independent random JWT_SECRET and POSTGRES_PASSWORD.
 ./deploy/gnk-service.sh build
 ./deploy/gnk-service.sh start

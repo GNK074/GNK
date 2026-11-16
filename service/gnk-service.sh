@@ -89,7 +89,7 @@ if [[ "$COMMAND" == urls ]]; then urls; exit 0; fi
 command -v docker >/dev/null 2>&1 || die 'Docker is not installed or not on PATH.'
 docker compose version >/dev/null 2>&1 || die 'Docker Compose v2 is required (v2.24.4+ for production).'
 docker info >/dev/null 2>&1 || die 'Docker daemon is unavailable or your account lacks Docker access.'
-[[ -f "$ROOT/.env" ]] || die 'Missing .env. Copy .env.example to .env and configure secrets first.'
+[[ -f "$ROOT/.env" ]] || die 'Missing .env. Copy infrastructure/env/development.conf.example to .env and configure secrets first.'
 COMPOSE=(docker compose --project-directory "$ROOT" --env-file "$ROOT/.env" -f "$ROOT/docker-compose.yml")
 if [[ "$MODE" == production ]]; then COMPOSE+=(-f "$ROOT/docker-compose.prod.yml"); fi
 "${COMPOSE[@]}" config --quiet

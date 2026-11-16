@@ -17,7 +17,7 @@ def main():
     target = (ROOT / args.output).resolve()
     if target.exists():
         raise SystemExit('Output already exists; no files changed.')
-    template = (ROOT / ('.env.production.example' if args.production else '.env.example')).read_text()
+    template = (ROOT / 'infrastructure/env' / ('production.conf.example' if args.production else 'development.conf.example')).read_text()
     replacements = {'JWT_SECRET': secrets.token_urlsafe(48), 'SECRET_KEY': secrets.token_urlsafe(48), 'FIELD_ENCRYPTION_KEY': base64.urlsafe_b64encode(secrets.token_bytes(32)).decode(), 'POSTGRES_PASSWORD': secrets.token_urlsafe(32)}
     result = []
     for line in template.splitlines():

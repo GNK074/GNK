@@ -72,7 +72,7 @@ class ServiceScriptTests(unittest.TestCase):
         self.calls = Path(self.temp.name) / 'calls.jsonl'
         self.env = os.environ.copy()
         for key in list(self.env):
-            if key.startswith('GNK_') or key in ('ENVIRONMENT','FRONTEND_URL','JWT_SECRET','POSTGRES_PASSWORD'):
+            if key.startswith('GNK_') or key in ('APP_ENV','ENVIRONMENT','FRONTEND_URL','JWT_SECRET','POSTGRES_PASSWORD'):
                 self.env.pop(key)
         self.env.update(PATH=str(self.bin) + os.pathsep + self.env['PATH'], GNK_TEST_CALLS=str(self.calls))
 

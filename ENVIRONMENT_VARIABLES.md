@@ -1,6 +1,6 @@
 # Environment configuration
 
-Use .env.example for development and .env.production.example for reviewed production setup. Never commit real .env profiles. APP_ENV is canonical; legacy ENVIRONMENT is accepted. JWT_SECRET_KEY is canonical; legacy JWT_SECRET is accepted. Keep aliases consistent. The synchronous SQLAlchemy stack intentionally uses postgresql+psycopg, not asyncpg.
+Use infrastructure/env/development.conf.example for development and infrastructure/env/production.conf.example for reviewed production setup. Never commit real .env profiles. APP_ENV is canonical; legacy ENVIRONMENT is accepted. JWT_SECRET_KEY is canonical; legacy JWT_SECRET is accepted. Keep aliases consistent. The synchronous SQLAlchemy stack intentionally uses postgresql+psycopg, not asyncpg.
 
 Required: an independent 32+ character JWT secret and a valid FIELD_ENCRYPTION_KEY. Production also requires independent SECRET_KEY, HTTPS origins, debug=false, secure cookies, MFA, startup connectivity checks, real TLS SMTP credentials and authenticated Redis. LIVE_TRADING_ENABLED=true is rejected during configuration loading because no live execution implementation is shipped. Paper trading defaults true. CORS defaults to FRONTEND_URL and accepts an explicit comma-separated allowlist.
 
