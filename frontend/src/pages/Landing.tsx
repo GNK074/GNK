@@ -35,7 +35,6 @@ export function Landing() {
       <div className="topnav">
         <Logo />
         <div>
-          <a href="#features">Features</a>
           <a href="#about">About</a>
           <a href="/services/api-trading">API Trading</a>
           <Link to="/contact-us">Contact</Link>
