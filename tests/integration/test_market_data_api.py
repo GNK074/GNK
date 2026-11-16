@@ -35,7 +35,7 @@ def test_owned_subscriptions_permissions_and_no_token_leak(market,monkeypatch):
  assert c.post('/api/v1/admin/marketdata/provider/enable',headers=h).status_code==403
  monkeypatch.setattr(cfg,'marketdata_distribution_approved',False)
  assert c.get('/api/v1/marketdata/quotes',params={'instrument_keys':KEY}).status_code==403
- assert c.get('/api/v1/marketdata/status').json()['distribution_approved'] is False
+ assert c.get('/api/v1/marketdata/providers').json()[0]['distribution_approved'] is False
 
 def test_missing_quotes_no_fabricated_prices_and_invalid_history(market,monkeypatch):
  c,ids,store=market;login(c,0)

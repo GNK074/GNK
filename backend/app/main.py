@@ -70,8 +70,6 @@ app.include_router(market_ws_router)
 from app.execution.live_routes import router as live_router
 app.include_router(live_router)
 
-from app.trade_details.routes import router as trade_details_router
-app.include_router(trade_details_router)
 
 
 

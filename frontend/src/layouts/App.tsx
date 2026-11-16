@@ -1,7 +1,6 @@
 import { ApiTradingPage } from "../pages/ApiTradingPage";
 import "./workspace.css";
 import { Notifications } from "../components/Notifications";
-import { MarketStatus } from "../components/MarketStatus";
 import { SettingsPage } from "../pages/SettingsPage";
 import { MfaRecoveryPage } from "../pages/MfaRecoveryPage";
 import { MfaRecoveryReview } from "../admin/MfaRecoveryReview";
@@ -253,7 +252,6 @@ export function App() {
                     <Link to="/notification">Open notification inbox</Link>
                   </div>
                 </details>
-                <MarketStatus />
                 <CircleHelp size={18} />
                 <details className="profile-menu appearance-menu"
                   onBlur={event => {

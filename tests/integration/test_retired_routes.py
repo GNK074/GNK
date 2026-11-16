@@ -14,6 +14,13 @@ def test_retired_routes_return_not_found(client):
         '/api/v1/tradedetails/client-trade-history/export',
         '/api/v1/portfolio/summary',
         '/api/v1/portfolio/accounts',
+        '/api/v1/tradedetails/signals',
+        '/api/v1/marketdata/status',
+        '/api/v1/marketdata/health',
+        '/api/v1/marketdata/sync-status',
+        '/api/v1/marketdata/session-schedule',
+        '/api/v1/orders',
+        '/api/v1/positions',
     )
     for path in paths:
         assert http.get(path).status_code == 404, path

@@ -1,22 +1,14 @@
-import json
-from datetime import datetime, timezone
-from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.orm import Session
-from app.core.config import settings, digest, now
 from app.database.session import db
 from app.models.identity import User
-from app.models.trading import Strategy, RiskConfiguration, Order, Position, PlatformControl, BrokerAccount, BrokerCredential
-from app.schemas.trading import StrategyInput, RiskInput, PaperOrderInput, LiveOrderInput, SwitchInput
+from app.models.trading import RiskConfiguration, PlatformControl
+from app.schemas.trading import RiskInput, SwitchInput
 from app.security.authentication import auth, admin
-from app.compliance.service import require_disclosure
-from app.security.ownership import owned
 from app.services.accounts import audit
 router = APIRouter(prefix='/api/v1')
 
-def order_public(o):
-    return dict(id=o.id, strategy_id=o.strategy_id, symbol=o.symbol, side=o.side, quantity=o.quantity, price=str(o.price), mode=o.mode, status=o.status, created_at=o.created_at)
 
 def risk_for(s, uid):
     s.scalar(select(User).where(User.id == uid).with_for_update())
@@ -26,8 +18,6 @@ def risk_for(s, uid):
         s.add(r)
         s.flush()
     return r
-
-
 
 
 @router.get('/risk/configuration')
@@ -44,24 +34,6 @@ def set_risk(data: RiskInput, u=Depends(auth), s: Session=Depends(db)):
     audit(s, u.id, 'risk_updated')
     s.commit()
     return {'message': 'Risk limits saved'}
-
-@router.get('/orders')
-def orders(u=Depends(auth), s: Session=Depends(db)):
-    return [order_public(x) for x in s.scalars(select(Order).where(Order.user_id == u.id).order_by(Order.created_at.desc()).limit(200))]
-
-@router.get('/orders/{record_id}')
-def get_order(record_id: str, u=Depends(auth), s: Session=Depends(db)):
-    return order_public(owned(s, Order, record_id, u.id))
-
-@router.get('/positions')
-def positions(u=Depends(auth), s: Session=Depends(db)):
-    return [dict(id=x.id, symbol=x.symbol, quantity=x.quantity, average_price=str(x.average_price), realized_pnl=str(x.realized_pnl)) for x in s.scalars(select(Position).where(Position.user_id == u.id))]
-
-@router.get('/positions/{record_id}')
-def position(record_id: str, u=Depends(auth), s: Session=Depends(db)):
-    x = owned(s, Position, record_id, u.id)
-    return dict(id=x.id, symbol=x.symbol, quantity=x.quantity)
-
 
 
 @router.post('/risk/emergency-stop')

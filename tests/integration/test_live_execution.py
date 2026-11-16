@@ -68,7 +68,6 @@ def test_reconcile_partial_fills_final_and_duplicates(live_setup):
  Broker.trade_rows.append({**Broker.trade_rows[0],'trade_id':'t2','average_price':100})
  r=c.post('/api/v1/live/orders/'+oid+'/reconcile',headers=h)
  assert r.json()['status']=='FILLED' and len(r.json()['fills'])==2
- assert c.get('/api/v1/positions').json()==[]
 
 def test_reconcile_recovers_unknown_by_tag_and_cancel_when_disabled(live_setup,monkeypatch):
  c,ids,accounts,h,p=live_setup;Broker.timeout=True

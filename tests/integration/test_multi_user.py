@@ -70,11 +70,11 @@ def test_mfa_enrollment_and_code_replay(three,monkeypatch):
     c,_,_=three
     monkeypatch.setattr(settings,'enable_mfa',True)
     h=login(c,0)
-    assert c.get('/api/v1/orders').status_code==403
+    assert c.get('/api/v1/live/orders').status_code==403
     setup=c.post('/api/v1/auth/mfa/setup',headers=h);assert setup.status_code==200
     secret=setup.json()['secret'];code=totp(secret,int(time.time()//30))
     assert c.post('/api/v1/auth/mfa/confirm',json={'code':code},headers=h).status_code==200
-    assert c.get('/api/v1/orders').status_code==200
+    assert c.get('/api/v1/live/orders').status_code==200
     assert c.post('/api/v1/auth/login',json={'email':'user0@example.com','password':'StrongPassword!123','totp_code':code}).status_code==401
 
 def test_each_users_risk_settings_are_independent(three):

@@ -12,7 +12,7 @@ from app.security.authentication import auth,admin
 from app.services.accounts import audit
 from app.api.users import session_id
 from app.market_data.config import market_settings as cfg
-from app.market_data.models import MarketInstrument,MarketSubscription,MarketEntitlement,MarketCandle,MarketSyncJob,MarketProviderSecret
+from app.market_data.models import MarketInstrument,MarketSubscription,MarketEntitlement,MarketCandle,MarketProviderSecret
 from app.market_data.service import get_store,MarketDataService,instrument_public,provider
 from app.market_data.subscription_manager import entitlement,available_instrument,subscribe,provider_status
 from app.market_data.schemas import SubscribeInput,HistoryInput,EntitlementInput,INTERVALS
@@ -44,15 +44,8 @@ def status_payload(s):
     if not state['enabled']:state['state']='DISABLED'
     return state
 
-@router.get('/status')
-def status(u=Depends(auth),s:Session=Depends(db)):return status_payload(s)
 @router.get('/providers')
 def providers(u=Depends(auth),s:Session=Depends(db)):return [status_payload(s)]
-@router.get('/health')
-def health(u=Depends(auth),s:Session=Depends(db)):
-    state=status_payload(s)
-    if state['enabled'] and state['state'] not in ('CONNECTED',):raise HTTPException(503,{'code':'MARKET_DATA_UNAVAILABLE','state':state['state']})
-    return state
 
 @router.get('/instruments')
 @router.get('/instruments/search')
@@ -133,11 +126,6 @@ def remove_subscription(subscription_id:str,u=Depends(auth),s:Session=Depends(db
     if not row:raise HTTPException(404,'Subscription not found')
     s.delete(row);audit(s,u.id,'market_subscription_deleted');s.commit();return {'message':'Subscription removed'}
 
-@router.get('/sync-status')
-def sync_status(u=Depends(auth),s:Session=Depends(db)):
-    query=select(MarketSyncJob)
-    if u.role not in ('ADMIN','SUPER_ADMIN'):query=query.where(MarketSyncJob.requested_by==u.id)
-    return [{k:getattr(row,k) for k in ('id','kind','state','processed','error_code','created','started','finished')} for row in s.scalars(query.order_by(MarketSyncJob.created.desc()).limit(30))]
 
 @router.post('/ws-ticket')
 def ticket(request:Request,u=Depends(auth),s:Session=Depends(db)):
@@ -182,8 +170,3 @@ def set_access(user_id:str,data:EntitlementInput,u=Depends(admin),s:Session=Depe
     if not row:row=MarketEntitlement(user_id=user_id);s.add(row)
     for key,value in data.model_dump().items():setattr(row,key,value)
     audit(s,u.id,'market_access_changed:'+user_id);s.commit();return {'user_id':row.user_id,'enabled':row.enabled,'segments':row.segments,'modes':row.modes,'max_instruments':row.max_instruments,'expires_at':row.expires_at}
-
-@router.get('/session-schedule')
-def session_schedule(u=Depends(auth)):
-    from app.market_data.market_calendar import market_session
-    return market_session('NSE_EQ')
