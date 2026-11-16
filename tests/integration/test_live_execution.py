@@ -31,6 +31,7 @@ def live_setup(three,monkeypatch):
  c,ids,accounts=three
  for name,value in [('trading_enabled',True),('live_trading_enabled',True),('upstox_execution_enabled',True),('live_tick_size_multiplier',Decimal('.01'))]:monkeypatch.setattr(settings,name,value)
  monkeypatch.setattr(live,'worker_ready',lambda:True);monkeypatch.setattr(live,'broker_approved',lambda s:True)
+ monkeypatch.setattr(live,'require_verified_execution_ip',lambda:None)
  monkeypatch.setattr(live,'client',lambda s,a:Broker())
  monkeypatch.setattr(live.MarketDataService,'require_live_quote',lambda self,key:{'ltp':100,'data_status':'LIVE'})
  Broker.calls=0;Broker.cancel_calls=0;Broker.timeout=False;Broker.book_rows=[];Broker.position_rows=[];Broker.trade_rows=[]
