@@ -36,7 +36,6 @@ export function Landing() {
         <Logo />
         <div>
           <a href="#about">About</a>
-          <a href="/services/api-trading">API Trading</a>
           <Link to="/contact-us">Contact</Link>
           <Link to="/login">Sign in</Link>
           <Link className="button" to="/register">

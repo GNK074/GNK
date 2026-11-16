@@ -1,4 +1,3 @@
-import { ApiTradingPage } from "../pages/ApiTradingPage";
 import "./workspace.css";
 import { Notifications } from "../components/Notifications";
 import { SettingsPage } from "../pages/SettingsPage";
@@ -160,8 +159,6 @@ export function App() {
         />
       ) : ["/contact", "/contact-us", "/contact-us/"].includes(loc.pathname) ? (
         <ContactUsPage signedIn={!!user} />
-      ) : ["/services/api-trading", "/services/api-trading/"].includes(loc.pathname) ? (
-        <ApiTradingPage />
       ) : loc.pathname === "/" ? (
         user ? <Navigate to="/user/dashboard" replace /> : <Landing />
       ) : !user ? (

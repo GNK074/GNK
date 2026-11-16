@@ -15,7 +15,6 @@ import {
   Twitter,
   ArrowRight,
   FileText,
-  ChartNoAxesCombined,
   Headphones,
 } from "lucide-react";
 import { Logo } from "../components/Logo";
@@ -36,7 +35,6 @@ type Contact = {
   office_hours: string;
   location: string;
   maps_address: string | null;
-  services: Item[];
   quick_links: Item[];
   socials: Item[];
   security_policy: string;
@@ -178,21 +176,6 @@ export function ContactUsPage({ signedIn }: { signedIn: boolean }) {
                     Our technology.
                   </span>
                 </div>
-              </section>
-              <section>
-                <span className="contact-section-icon">
-                  <ChartNoAxesCombined size={19} />
-                </span>
-                <h2>Our Services</h2>
-                <div className="contact-link-list">
-                  {data.services.map((item) => (
-                    <ExternalLink key={item.href} item={item} />
-                  ))}
-                </div>
-                <small>
-                  Contact us to confirm availability and the applicable service
-                  provider.
-                </small>
               </section>
               <section>
                 <span className="contact-section-icon">
