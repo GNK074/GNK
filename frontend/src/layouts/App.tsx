@@ -1,6 +1,5 @@
 import { ApiTradingPage } from "../pages/ApiTradingPage";
 import "./workspace.css";
-import { BROKER_SETUP_LABEL, BrokerDirectory } from "../brokers/BrokerDirectory";
 import { Notifications } from "../components/Notifications";
 import { MarketStatus } from "../components/MarketStatus";
 import { SettingsPage } from "../pages/SettingsPage";
@@ -19,7 +18,6 @@ import { Navigate, Link, useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   BarChart3,
-  BrainCircuit,
   ChevronRight,
   CircleHelp,
   Palette,
@@ -134,7 +132,7 @@ export function App() {
   if (loading)
     return <div className="loading">GNK ALGO · Loading workspace…</div>;
   if (/^\/markets(?:\/|$)/.test(loc.pathname) ||
-      /^\/user\/(broker-and-exchanges|dhan|strategies|security|settings|live-orders)(?:\/|$)/.test(loc.pathname) ||
+      /^\/user\/(broker-and-exchanges|brokers|dhan|strategies|security|settings|live-orders)(?:\/|$)/.test(loc.pathname) ||
       (loc.pathname.startsWith("/tradedetails/") && loc.pathname !== "/tradedetails/client-trade-history")) {
     return <Navigate to={user ? "/user/dashboard" : "/login"} replace />;
   }
@@ -197,7 +195,6 @@ export function App() {
                 [LayoutDashboard, "Dashboard", "/user/dashboard"],
                 [BarChart3, "Trade History", "/tradedetails/client-trade-history"],
                 [PortfolioIcon, "Portfolio", "/user/portfolio"],
-                [BrainCircuit, BROKER_SETUP_LABEL, "/user/brokers"],
                 ...(user.role !== "USER"
                   ? [[Gauge, "Administration", "/admin"]]
                   : []),
@@ -211,7 +208,6 @@ export function App() {
                   <Icon
                     size={19}
                     aria-hidden="true"
-                    className={path === "/user/brokers" ? "broker-setup-icon" : undefined}
                   />
                   {title}
                 </Link>
@@ -248,7 +244,6 @@ export function App() {
                 <b>
                   {loc.pathname === "/tradedetails/client-trade-history" ? "Trade History"
                     : loc.pathname === "/user/portfolio" ? "Portfolio"
-                    : /^\/user\/brokers(?:\/|$)/.test(loc.pathname) ? BROKER_SETUP_LABEL
                     : loc.pathname === "/notification" ? "Notifications"
                     : loc.pathname === "/user/profile" ? "Profile"
                     : loc.pathname === "/admin" ? "Administration" : loc.pathname === "/user/dashboard" ? "Dashboard" : "Overview"}
@@ -325,10 +320,6 @@ export function App() {
                 </>
               ) : loc.pathname === "/user/portfolio" ? (
                 <Portfolio />
-              ) : /^\/user\/brokers(?:\/|$)/.test(loc.pathname) ? (
-                <DisclosureGate key={user.id}>
-                  <BrokerDirectory path={loc.pathname} />
-                </DisclosureGate>
               ) : (
                 <DisclosureGate key={user.id}>
                   <Dashboard user={user} notify={notify} />

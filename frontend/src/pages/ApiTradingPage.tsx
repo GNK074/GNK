@@ -31,7 +31,7 @@ const steps = ["Register with GnKAlgo", "Select a supported broker", "Authorize 
 const architecture = ["Customer", "GnKAlgo platform", "Strategy engine", "Risk validation", "Broker adapter", "Supported broker", "Orders and portfolio", "GnKAlgo dashboard"];
 const faq = [
   ["What is API trading?", "An authorized platform uses a broker’s documented interfaces to exchange account data or submit eligible instructions."],
-  ["How does GnKAlgo connect to brokers?", "Broker Setup directs you through each available broker’s supported authorization and account verification process."],
+  ["How does GnKAlgo connect to brokers?", "When onboarding is available, authorization and account verification follow the broker’s supported process."],
   ["Which brokers are supported?", "See the integration status above. Production connectivity depends on broker and account enablement."],
   ["Do I need to provide my broker password?", "Enter your trading password or OTP only on the broker’s own website."],
   ["Can I use paper trading?", "Paper trading simulates execution in an eligible workspace without sending live orders."],
@@ -52,7 +52,7 @@ export function ApiTradingPage() {
         <section className="api-trading-hero">
           <div><h1>Intelligent API Trading.<br />Built for Precision and Control.</h1>
             <p>Connect a supported broker account and manage strategy configuration, execution monitoring and risk controls in one workspace.</p>
-            <div className="api-trading-actions"><a className="button" href="#how-it-works">Explore API Trading</a><Link to="/user/brokers">Connect Your Broker</Link></div>
+            <div className="api-trading-actions"><a className="button" href="#how-it-works">Explore API Trading</a><Link to="/contact-us">Ask about broker availability</Link></div>
           </div>
           <div className="api-trading-diagram" aria-label="Illustrative view of strategy and broker checks">
             <Workflow size={42} aria-hidden="true" /><strong>Strategy workspace</strong>
