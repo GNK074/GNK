@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 from app.database.session import db
 from app.models.identity import User
@@ -11,7 +11,11 @@ router = APIRouter(prefix='/api/v1')
 
 
 def risk_for(s, uid):
-    s.scalar(select(User).where(User.id == uid).with_for_update())
+    if s.get_bind().dialect.name == 'sqlite':
+        # SQLite ignores FOR UPDATE. Acquire the write lock before reading risk state.
+        s.execute(update(User).where(User.id == uid).values(id=User.id))
+    else:
+        s.scalar(select(User).where(User.id == uid).with_for_update())
     r = s.scalar(select(RiskConfiguration).where(RiskConfiguration.user_id == uid).with_for_update())
     if not r:
         r = RiskConfiguration(user_id=uid)

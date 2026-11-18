@@ -9,6 +9,7 @@ from app.core.lifespan import lifespan
 from app.models import trading
 from app.brokers.approval.routes import router as approvals
 from app.execution.routes import router as execution
+from app.execution.paper import router as paper
 from app.security.mfa import router as mfa
 from app.database.session import Base, engine, DB
 from app.models.identity import User, Token, LoginSession, Audit
@@ -39,6 +40,7 @@ async def headers(request, call_next):
     return response
 app.include_router(approvals)
 app.include_router(execution)
+app.include_router(paper)
 app.include_router(mfa)
 
 
@@ -68,7 +70,9 @@ app.include_router(market_admin_router)
 app.include_router(market_ws_router)
 
 from app.execution.live_routes import router as live_router
+from app.execution.gnk_live import router as gnk_live_router
 app.include_router(live_router)
+app.include_router(gnk_live_router)
 
 
 

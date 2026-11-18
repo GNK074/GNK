@@ -58,6 +58,7 @@ class RiskConfiguration(Owned, Base):
     max_order_value: Mapped[Decimal] = mapped_column(Numeric(20, 4), default=100000)
     max_daily_orders: Mapped[int] = mapped_column(Integer, default=50)
     max_daily_loss: Mapped[Decimal] = mapped_column(Numeric(20, 4), default=5000)
+    paper_collateral: Mapped[Decimal] = mapped_column(Numeric(20, 4), default=100000, server_default='100000')
     max_positions: Mapped[int] = mapped_column(Integer, default=3)
     kill_switch: Mapped[bool] = mapped_column(Boolean, default=False)
 
@@ -75,6 +76,21 @@ class Order(Owned, Base):
     request_hash: Mapped[str] = mapped_column(String(64))
     realized_pnl: Mapped[Decimal] = mapped_column(Numeric(20, 4), default=0)
 
+    executed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    execution_price: Mapped[Decimal | None] = mapped_column(Numeric(20, 4))
+    execution_reason: Mapped[str | None] = mapped_column(String(20))
+    version: Mapped[int] = mapped_column(Integer, default=1, server_default='1')
+
+
+class PaperMark(Base):
+    __tablename__ = 'paper_marks'
+
+    user_id: Mapped[str] = mapped_column(ForeignKey('users.id'), primary_key=True)
+    symbol: Mapped[str] = mapped_column(String(40), primary_key=True)
+    price: Mapped[Decimal] = mapped_column(Numeric(20, 4))
+    sequence: Mapped[int]
+
+
 class Position(Owned, Base):
     __tablename__ = 'positions'
     __table_args__ = (UniqueConstraint('user_id', 'symbol'),)
@@ -82,6 +98,11 @@ class Position(Owned, Base):
     quantity: Mapped[int] = mapped_column(Integer, default=0)
     average_price: Mapped[Decimal] = mapped_column(Numeric(20, 4), default=0)
     realized_pnl: Mapped[Decimal] = mapped_column(Numeric(20, 4), default=0)
+
+    product: Mapped[str] = mapped_column(String(10), default='DELIVERY', server_default='DELIVERY')
+    stop_loss: Mapped[Decimal | None] = mapped_column(Numeric(20, 4))
+    target: Mapped[Decimal | None] = mapped_column(Numeric(20, 4))
+
 
 class PlatformControl(Base):
     __tablename__ = 'platform_controls'

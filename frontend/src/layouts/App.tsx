@@ -26,6 +26,7 @@ import type { Theme, User } from "../store/session";
 import { Logo } from "../components/Logo";
 import { Landing } from "../pages/Landing";
 import { Auth } from "../pages/Auth";
+import { LiveTrading } from "../strategies/LiveTrading";
 import { Dashboard } from "../dashboard/Dashboard";
 import { Admin } from "../admin/Admin";
 
@@ -185,6 +186,7 @@ export function App() {
             <nav aria-label="Workspace">
               {[
                 [LayoutDashboard, "Dashboard", "/user/dashboard"],
+                [Gauge, "Trading", "/user/trading"],
                 ...(user.role !== "USER"
                   ? [[Gauge, "Administration", "/admin"]]
                   : []),
@@ -234,6 +236,7 @@ export function App() {
                 <b>
                   {loc.pathname === "/notification" ? "Notifications"
                     : loc.pathname === "/user/profile" ? "Profile"
+                    : loc.pathname === "/user/trading" ? "Trading"
                     : loc.pathname === "/admin" ? "Administration" : loc.pathname === "/user/dashboard" ? "Dashboard" : "Overview"}
                   {loc.pathname === "/user/dashboard" && <span className="workspace-spark workspace-spark-delayed" aria-hidden="true"> ✳</span>}
                 </b>
@@ -305,7 +308,7 @@ export function App() {
                 </>
               ) : (
                 <DisclosureGate key={user.id}>
-                  <Dashboard user={user} notify={notify} />
+                  {loc.pathname === "/user/trading" ? <LiveTrading /> : <Dashboard user={user} notify={notify} />}
                 </DisclosureGate>
               )}
             </div>
