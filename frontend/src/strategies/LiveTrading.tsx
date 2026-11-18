@@ -1,7 +1,28 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
+import { BrainCircuit, ChartNoAxesCombined, RefreshCw, ShieldCheck } from "lucide-react";
 import { api } from "../services/api";
 import "./live-trading.css";
+
+export const tradingModules = [
+  {
+    path: "/user/trading/orders", title: "Orders", heading: "AI Orders",
+    description: "Place, modify, and track paper orders and fills.",
+    icon: BrainCircuit, tone: "orders",
+  },
+  {
+    path: "/user/trading/positions", title: "Positions", heading: "AI Positions",
+    description: "Monitor open and closed positions and review P&L.",
+    icon: ChartNoAxesCombined, tone: "positions",
+  },
+  {
+    path: "/user/trading/risk-controls", title: "Risk Controls", heading: "AI Risk Controls",
+    description: "Manage collateral, stop-loss, targets, and exposure.",
+    icon: ShieldCheck, tone: "risk",
+  },
+] as const;
+
+type TradingModule = (typeof tradingModules)[number];
 
 const base = "/gnk/paper";
 type Strategy = { id: string; name: string };
@@ -19,7 +40,8 @@ type Workspace = {
   strategies: Strategy[]; orders: Order[]; positions: Position[]; margin: Margin;
 };
 
-export function LiveTrading() {
+export function LiveTrading({ module }: { module: TradingModule }) {
+  const ModuleIcon = module.icon;
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [live, setLive] = useState("");
   const [message, setMessage] = useState("");
@@ -83,12 +105,25 @@ export function LiveTrading() {
   return (
     <section className="gnk-live" aria-labelledby="trading-title">
       <div className="gnk-live-heading">
-        <div><h1 id="trading-title">GNK Trading</h1><p>Paper trading workspace</p></div>
-        <button type="button" disabled={busy} onClick={() => setRevision(value => value + 1)}>Refresh</button>
+        <div>
+          <h1 id="trading-title">GNK ALGO AI Trading Dashboard</h1>
+          <span className="gnk-trading-mode">Paper trading</span>
+        </div>
+        <button type="button" className="gnk-trading-refresh" disabled={busy}
+          onClick={() => setRevision(value => value + 1)}>
+          <RefreshCw size={16} aria-hidden="true" /> Refresh
+        </button>
+      </div>
+      <div className="gnk-module-intro" data-tone={module.tone}>
+        <span className="gnk-module-icon"><ModuleIcon size={30} strokeWidth={1.7} aria-hidden="true" /></span>
+        <div>
+          <h2>{module.heading}</h2>
+          <p>{module.description}</p>
+        </div>
       </div>
       {live && <p className="gnk-live-blocker" role="status">{live}</p>}
       {message && <p role="status">{message}</p>}
-      {workspace && <>
+      {workspace && module.tone === "orders" && <>
         <section className="gnk-live-panel">
           <h2>Order entry</h2>
           <form className="gnk-live-form" onSubmit={event => {
@@ -149,8 +184,10 @@ export function LiveTrading() {
             </tr>)}</tbody>
           </table></div> : <p>No paper orders.</p>}
         </section>
+      </>}
+      {workspace && module.tone === "positions" && (
         <section className="gnk-live-panel">
-          <h2>Positions</h2>
+          <h2>Position book</h2>
           {workspace.positions.length ? <div className="gnk-live-scroll"><table>
             <thead><tr><th>Symbol</th><th>Qty</th><th>Product</th><th>Realized P&amp;L</th><th>Unrealized P&amp;L</th><th>Actions</th></tr></thead>
             <tbody>{workspace.positions.map(position => <tr key={position.id}>
@@ -169,6 +206,38 @@ export function LiveTrading() {
                     }
                   }}>Square off</button>
                 </div>
+              </details>}</td>
+            </tr>)}</tbody>
+          </table></div> : <p>No paper positions.</p>}
+        </section>
+      )}
+      {workspace && module.tone === "risk" && (
+        <section className="gnk-live-panel">
+          <h2>Margin and emergency controls</h2>
+          <dl className="gnk-margin-grid">
+            {[
+              ["Collateral", workspace.margin.collateral],
+              ["Used", workspace.margin.used],
+              ["Reserved", workspace.margin.reserved],
+              ["Available", workspace.margin.available],
+            ].map(([label, value]) => (
+              <div key={label}><dt>{label}</dt><dd>{value}</dd></div>
+            ))}
+          </dl>
+          <form className="gnk-live-form" onSubmit={event => {
+            event.preventDefault();
+            const fields = new FormData(event.currentTarget);
+            void update("/risk/margin", "PUT", { amount: fields.get("amount") });
+          }}>
+            <label>Paper collateral<input name="amount" type="number" min=".0001" step=".0001" required /></label>
+            <button disabled={busy}>Update collateral</button>
+          </form>
+          <div className="gnk-protection">
+            <h3>Position protection</h3>
+            {workspace.positions.some(position => position.state === "open") ? (
+              workspace.positions.filter(position => position.state === "open").map(position => (
+                <details key={position.id}>
+                  <summary>{position.symbol}</summary>
                 <form className="gnk-live-form" onSubmit={event => {
                   event.preventDefault();
                   const fields = new FormData(event.currentTarget);
@@ -180,21 +249,10 @@ export function LiveTrading() {
                   <label>Target<input name="target" type="number" min=".0001" step=".0001" defaultValue={position.target ?? ""} /></label>
                   <button disabled={busy}>Save protection</button>
                 </form>
-              </details>}</td>
-            </tr>)}</tbody>
-          </table></div> : <p>No paper positions.</p>}
-        </section>
-        <section className="gnk-live-panel">
-          <h2>Risk controls</h2>
-          <p>Collateral {workspace.margin.collateral} · Used {workspace.margin.used} · Reserved {workspace.margin.reserved} · Available {workspace.margin.available}</p>
-          <form className="gnk-live-form" onSubmit={event => {
-            event.preventDefault();
-            const fields = new FormData(event.currentTarget);
-            void update("/risk/margin", "PUT", { amount: fields.get("amount") });
-          }}>
-            <label>Paper collateral<input name="amount" type="number" min=".0001" step=".0001" required /></label>
-            <button disabled={busy}>Update collateral</button>
-          </form>
+                </details>
+              ))
+            ) : <p>No open positions to protect.</p>}
+          </div>
           <p>{workspace.margin.stopped ? "GNK emergency stop is active." : "GNK emergency stop is inactive."}</p>
           <button disabled={busy} onClick={() => {
             if (window.confirm("Activate the GNK emergency stop, cancel paper orders, and close priced paper positions?")) {
@@ -202,7 +260,7 @@ export function LiveTrading() {
             }
           }}>Paper emergency exit</button>
         </section>
-      </>}
+      )}
     </section>
   );
 }

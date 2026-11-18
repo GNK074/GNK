@@ -20,13 +20,14 @@ import {
   Gauge,
   LayoutDashboard,
   ShieldCheck,
+  Activity,
 } from "lucide-react";
 import { api, SESSION_ENDED_KEY } from "../services/api";
 import type { Theme, User } from "../store/session";
 import { Logo } from "../components/Logo";
 import { Landing } from "../pages/Landing";
 import { Auth } from "../pages/Auth";
-import { LiveTrading } from "../strategies/LiveTrading";
+import { LiveTrading, tradingModules } from "../strategies/LiveTrading";
 import { Dashboard } from "../dashboard/Dashboard";
 import { Admin } from "../admin/Admin";
 
@@ -52,6 +53,10 @@ export function App() {
   }
   const loc = useLocation(),
     nav = useNavigate();
+  const tradingRoot = loc.pathname === "/user/trading";
+  const tradingModule = tradingRoot
+    ? tradingModules[0]
+    : tradingModules.find(module => module.path === loc.pathname);
 
   useEffect(() => {
     if (!user || loc.pathname !== "/user/dashboard") return;
@@ -184,26 +189,29 @@ export function App() {
             </div>
             <div className="nav-label">WORKSPACE</div>
             <nav aria-label="Workspace">
-              {[
-                [LayoutDashboard, "Dashboard", "/user/dashboard"],
-                [Gauge, "Trading", "/user/trading"],
-                ...(user.role !== "USER"
-                  ? [[Gauge, "Administration", "/admin"]]
-                  : []),
-              ].map(([Icon, title, path]: any) => (
-                <Link
-                  className={loc.pathname === path ? "selected" : ""}
-                  aria-current={loc.pathname === path ? "page" : undefined}
-                  to={path}
-                  key={path}
-                >
-                  <Icon
-                    size={19}
-                    aria-hidden="true"
-                  />
-                  {title}
-                </Link>
-              ))}
+              <Link to="/user/dashboard"
+                className={loc.pathname === "/user/dashboard" ? "selected" : ""}
+                aria-current={loc.pathname === "/user/dashboard" ? "page" : undefined}>
+                <LayoutDashboard size={19} aria-hidden="true" /> Dashboard
+              </Link>
+              <Link to="/user/trading" className={tradingModule ? "trading-parent is-active" : "trading-parent"}>
+                <Activity size={19} aria-hidden="true" /> Trading
+              </Link>
+              <div className="gnk-trading-subnav" role="group" aria-label="Trading modules">
+                {tradingModules.map(module => {
+                  const Icon = module.icon;
+                  const active = tradingModule === module;
+                  return <Link to={module.path} key={module.path} data-tone={module.tone}
+                    className={active ? "selected" : undefined} aria-current={active ? "page" : undefined}>
+                    <Icon size={17} aria-hidden="true" /> {module.title}
+                  </Link>;
+                })}
+              </div>
+              {user.role !== "USER" && <Link to="/admin"
+                className={loc.pathname === "/admin" ? "selected" : ""}
+                aria-current={loc.pathname === "/admin" ? "page" : undefined}>
+                <Gauge size={19} aria-hidden="true" /> Administration
+              </Link>}
             </nav>
             <div className="sidebar-bottom">
               <div className="secure">
@@ -236,7 +244,7 @@ export function App() {
                 <b>
                   {loc.pathname === "/notification" ? "Notifications"
                     : loc.pathname === "/user/profile" ? "Profile"
-                    : loc.pathname === "/user/trading" ? "Trading"
+                    : tradingModule ? "Trading / " + tradingModule.title
                     : loc.pathname === "/admin" ? "Administration" : loc.pathname === "/user/dashboard" ? "Dashboard" : "Overview"}
                   {loc.pathname === "/user/dashboard" && <span className="workspace-spark workspace-spark-delayed" aria-hidden="true"> ✳</span>}
                 </b>
@@ -308,7 +316,7 @@ export function App() {
                 </>
               ) : (
                 <DisclosureGate key={user.id}>
-                  {loc.pathname === "/user/trading" ? <LiveTrading /> : <Dashboard user={user} notify={notify} />}
+                  {tradingModule ? <LiveTrading module={tradingModule} /> : <Dashboard user={user} notify={notify} />}
                 </DisclosureGate>
               )}
             </div>
