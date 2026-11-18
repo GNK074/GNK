@@ -3,9 +3,12 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy.orm import Session
 
 from app.compliance.service import require_disclosure
+from app.database.session import db
 from app.execution.connection import LiveOrderIntent
+from app.execution.live_risk import LiveRiskSource, validate_live_order
 from app.execution.paper import Price, Quantity
 from app.security.authentication import auth
 
@@ -33,11 +36,15 @@ def status(user=Depends(auth)):
     return {'mode': 'LIVE', 'enabled': False, 'blocker': BLOCKER}
 
 
-def require_execution_connection(intent: LiveOrderIntent):
-    # No real-money execution connection is delivered with GNK core.
-    raise HTTPException(503, BLOCKER)
+def live_risk_source() -> LiveRiskSource | None:
+    # A trusted live account snapshot provider belongs to the separate execution connection.
+    return None
 
 
 @router.post('/orders', status_code=503)
-def submit(data: LiveOrderRequest, user=Depends(require_disclosure)):
-    return require_execution_connection(data.intent())
+def submit(data: LiveOrderRequest, user=Depends(require_disclosure),
+           s: Session = Depends(db), source: LiveRiskSource | None = Depends(live_risk_source)):
+    if source is not None:
+        validate_live_order(s, user.id, data.intent(), source)
+    # Risk approval alone cannot submit an order or write a synthetic fill.
+    raise HTTPException(503, BLOCKER)

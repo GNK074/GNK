@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.compliance.service import require_disclosure
 from app.core.config import digest, ident, now, settings
 from app.database.session import db
+from app.execution.paper_risk import OrderExposure, PositionExposure, RiskSnapshot, rejection_reason
 from app.execution.routes import risk_for
 from app.models.trading import Order, PaperMark, PlatformControl, Position, Strategy
 from app.security.authentication import auth
@@ -119,33 +120,33 @@ def daily_loss(s, uid):
 def validate_order(s, uid, risk, order, *, new=False, exclude=None):
     if stopped(s, risk):
         raise HTTPException(409, 'Emergency stop active')
-    if order.quantity > risk.max_quantity or order.quantity * order.price > risk.max_order_value:
-        raise HTTPException(422, 'Order exceeds personal risk limits')
+    count = None
     if new:
         count = s.scalar(select(func.count()).select_from(
             paper_orders(uid).where(Order.created_at >= trading_day_start()).subquery()
         ))
-        if count >= risk.max_daily_orders:
-            raise HTTPException(422, 'Daily order limit reached')
-
-    positions = account_positions(s, uid)
-    pending = pending_orders(s, uid, exclude)
-    position = positions.get(order.symbol)
-    if order.side == 'SELL':
-        reserved = sum(o.quantity for o in pending if o.side == 'SELL' and o.symbol == order.symbol)
-        if not position or position.quantity - reserved < order.quantity:
-            raise HTTPException(422, 'Insufficient unreserved position quantity')
-        return
-
-    if daily_loss(s, uid) >= risk.max_daily_loss:
-        raise HTTPException(422, 'Realized loss limit reached')
-    symbols = {p.symbol for p in positions.values() if p.quantity}
-    symbols.update(o.symbol for o in pending if o.side == 'BUY')
-    if len(symbols | {order.symbol}) > risk.max_positions:
-        raise HTTPException(422, 'Position limit reached')
-    used, reserved = margin(positions, pending)
-    if used + reserved + order.quantity * order.price > risk.paper_collateral:
-        raise HTTPException(422, 'Insufficient paper collateral')
+    snapshot = RiskSnapshot(
+        order=OrderExposure(order.symbol, order.side, order.quantity, order.price),
+        positions=tuple(
+            PositionExposure(p.symbol, p.quantity, p.average_price)
+            for p in account_positions(s, uid).values()
+        ),
+        pending=tuple(
+            OrderExposure(o.symbol, o.side, o.quantity, o.price)
+            for o in pending_orders(s, uid, exclude)
+        ),
+        daily_order_count=count,
+        daily_loss=daily_loss(s, uid) if order.side == 'BUY' else None,
+        max_quantity=risk.max_quantity,
+        max_order_value=risk.max_order_value,
+        max_daily_orders=risk.max_daily_orders,
+        max_daily_loss=risk.max_daily_loss,
+        max_positions=risk.max_positions,
+        paper_collateral=risk.paper_collateral,
+    )
+    reason = rejection_reason(snapshot)
+    if reason is not None:
+        raise HTTPException(422, reason)
 
 
 def apply_fill(s, order, price, reason):
