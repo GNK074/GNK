@@ -312,11 +312,10 @@ def cancel_order(order_id: str, version: int = Query(ge=1), u=Depends(auth), s: 
     return paper_order_public(order)
 
 
-@router.get('/positions')
-def positions(state: Literal['open', 'closed', 'all'] = 'all', u=Depends(auth), s: Session = Depends(db)):
-    marks = {m.symbol: m.price for m in s.scalars(select(PaperMark).where(PaperMark.user_id == u.id))}
+def position_rows(s, uid, positions, state='all'):
+    marks = {m.symbol: m.price for m in s.scalars(select(PaperMark).where(PaperMark.user_id == uid))}
     result = []
-    for p in sorted(account_positions(s, u.id).values(), key=lambda p: p.symbol):
+    for p in sorted(positions.values(), key=lambda p: p.symbol):
         current_state = 'open' if p.quantity else 'closed'
         if state not in ('all', current_state):
             continue
@@ -333,6 +332,48 @@ def positions(state: Literal['open', 'closed', 'all'] = 'all', u=Depends(auth), 
             'stop_loss': str(p.stop_loss) if p.stop_loss is not None else None,
             'target': str(p.target) if p.target is not None else None,
         })
+    return result
+
+
+
+@router.get('/positions')
+def positions(state: Literal['open', 'closed', 'all'] = 'all', u=Depends(auth), s: Session = Depends(db)):
+    return position_rows(s, u.id, account_positions(s, u.id), state)
+
+
+@router.get('/portfolio')
+def portfolio(u=Depends(auth), s: Session = Depends(db)):
+    # Use the paper ledger's user lock to keep positions, reservations, and fills consistent.
+    risk = risk_for(s, u.id)
+    balances = account_positions(s, u.id)
+    rows = position_rows(s, u.id, balances)
+    holdings = [row for row in rows if row['state'] == 'open']
+    used, reserved = margin(balances, pending_orders(s, u.id))
+    realized = sum((p.realized_pnl for p in balances.values()), ZERO)
+    marked = [row for row in holdings if row['mark'] is not None]
+    unrealized = sum((Decimal(row['unrealized_pnl']) for row in marked), ZERO)
+    unpriced = len(holdings) - len(marked)
+    marked_value = sum((Decimal(row['mark']) * row['quantity'] for row in marked), ZERO)
+    recent = list(s.scalars(paper_orders(u.id).order_by(Order.created_at.desc(), Order.id).limit(25)))
+    result = {
+        'mode': 'PAPER',
+        'as_of': now(),
+        'holdings': holdings,
+        'orders': [paper_order_public(order) for order in recent],
+        'funds': {
+            'collateral': str(risk.paper_collateral), 'used': str(used), 'reserved': str(reserved),
+            'available': str(risk.paper_collateral - used - reserved),
+        },
+        'pnl': {
+            'realized': str(realized),
+            'unrealized': str(unrealized) if not unpriced else None,
+            'total': str(realized + unrealized) if not unpriced else None,
+            'marked_value': str(marked_value) if not unpriced else None,
+            'unpriced_holdings': unpriced,
+            'by_symbol': rows,
+        },
+    }
+    s.commit()
     return result
 
 

@@ -21,12 +21,14 @@ import {
   LayoutDashboard,
   ShieldCheck,
   Activity,
+  BriefcaseBusiness,
 } from "lucide-react";
 import { api, SESSION_ENDED_KEY } from "../services/api";
 import type { Theme, User } from "../store/session";
 import { Logo } from "../components/Logo";
 import { Landing } from "../pages/Landing";
 import { Auth } from "../pages/Auth";
+import { NativePortfolio } from "../portfolio/NativePortfolio";
 import { LiveTrading, tradingModules } from "../strategies/LiveTrading";
 import { Dashboard } from "../dashboard/Dashboard";
 import { Admin } from "../admin/Admin";
@@ -53,6 +55,7 @@ export function App() {
   }
   const loc = useLocation(),
     nav = useNavigate();
+  const portfolio = loc.pathname === "/user/portfolio";
   const tradingRoot = loc.pathname === "/user/trading";
   const tradingModule = tradingRoot
     ? tradingModules[0]
@@ -132,7 +135,7 @@ export function App() {
   if (loading)
     return <div className="loading">GNK ALGO · Loading workspace…</div>;
   if (/^\/markets(?:\/|$)/.test(loc.pathname) ||
-      /^\/user\/(broker-and-exchanges|brokers|dhan|strategies|security|settings|live-orders|portfolio)(?:\/|$)/.test(loc.pathname) ||
+      /^\/user\/(broker-and-exchanges|brokers|dhan|strategies|security|settings|live-orders)(?:\/|$)/.test(loc.pathname) ||
       loc.pathname.startsWith("/tradedetails/")) {
     return <Navigate to={user ? "/user/dashboard" : "/login"} replace />;
   }
@@ -207,6 +210,10 @@ export function App() {
                   </Link>;
                 })}
               </div>
+              <Link to="/user/portfolio" className={portfolio ? "selected" : undefined}
+                aria-current={portfolio ? "page" : undefined}>
+                <BriefcaseBusiness size={19} aria-hidden="true" /> Portfolio
+              </Link>
               {user.role !== "USER" && <Link to="/admin"
                 className={loc.pathname === "/admin" ? "selected" : ""}
                 aria-current={loc.pathname === "/admin" ? "page" : undefined}>
@@ -244,6 +251,7 @@ export function App() {
                 <b>
                   {loc.pathname === "/notification" ? "Notifications"
                     : loc.pathname === "/user/profile" ? "Profile"
+                    : portfolio ? "Portfolio"
                     : tradingModule ? "Trading / " + tradingModule.title
                     : loc.pathname === "/admin" ? "Administration" : loc.pathname === "/user/dashboard" ? "Dashboard" : "Overview"}
                   {loc.pathname === "/user/dashboard" && <span className="workspace-spark workspace-spark-delayed" aria-hidden="true"> ✳</span>}
@@ -316,7 +324,7 @@ export function App() {
                 </>
               ) : (
                 <DisclosureGate key={user.id}>
-                  {tradingModule ? <LiveTrading module={tradingModule} /> : <Dashboard user={user} notify={notify} />}
+                  {portfolio ? <NativePortfolio /> : tradingModule ? <LiveTrading module={tradingModule} /> : <Dashboard user={user} notify={notify} />}
                 </DisclosureGate>
               )}
             </div>

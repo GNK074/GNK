@@ -1,0 +1,19 @@
+.gnk-portfolio { display: grid; gap: 1rem; max-width: 90rem; margin-inline: auto; }
+.gnk-portfolio-header, .gnk-portfolio-title, .gnk-portfolio-sections { display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; }
+.gnk-portfolio-header { justify-content: space-between; }
+.gnk-portfolio-header h1, .gnk-portfolio-header p { margin: 0; }
+.gnk-portfolio-icon { display: grid; place-items: center; width: 3.2rem; height: 3.2rem; border-radius: .8rem; background: color-mix(in srgb, #645bf2 20%, transparent); }
+.gnk-portfolio-header button, .gnk-portfolio-sections button { display: inline-flex; align-items: center; gap: .45rem; }
+.gnk-portfolio-sections button { border: 1px solid color-mix(in srgb, currentColor 24%, transparent); background: transparent; color: inherit; padding: .55rem .8rem; border-radius: .55rem; }
+.gnk-portfolio-sections button[aria-pressed="true"] { border-color: #8078ff; background: color-mix(in srgb, #645bf2 18%, transparent); font-weight: 700; }
+.gnk-portfolio-panel { min-width: 0; padding: clamp(.9rem, 2vw, 1.25rem); border: 1px solid color-mix(in srgb, currentColor 18%, transparent); border-radius: .8rem; }
+.gnk-portfolio-panel h2 { margin: 0 0 .6rem; }
+.gnk-portfolio-panel a { display: inline-block; margin-top: .6rem; text-decoration: underline; }
+.gnk-portfolio-scroll { overflow-x: auto; }
+.gnk-portfolio table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.gnk-portfolio th, .gnk-portfolio td { text-align: left; padding: .65rem .6rem; white-space: nowrap; border-bottom: 1px solid color-mix(in srgb, currentColor 14%, transparent); }
+.gnk-portfolio-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); gap: .7rem; margin: .8rem 0; }
+.gnk-portfolio-metrics > div { min-width: 0; border: 1px solid color-mix(in srgb, currentColor 16%, transparent); border-radius: .65rem; padding: .8rem; }
+.gnk-portfolio-metrics dd { margin: .3rem 0 0; font-size: 1.2rem; font-weight: 650; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.gnk-portfolio [data-pnl="gain"] { color: color-mix(in srgb, #13a777 58%, currentColor); font-weight: 700; }
+.gnk-portfolio [data-pnl="loss"] { color: color-mix(in srgb, #df4d6a 62%, currentColor); font-weight: 700; }
