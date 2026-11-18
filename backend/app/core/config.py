@@ -48,7 +48,7 @@ class Settings(BaseSettings):
     enable_mfa: bool = False
     secure_cookies: bool = False
     https_only: bool = False
-    individual_broker_setup_enabled: bool = True
+    individual_broker_setup_enabled: bool = False
     broker_egress_ip: str = ''
     trading_enabled: bool = False
     paper_trading_enabled: bool = True
@@ -57,7 +57,7 @@ class Settings(BaseSettings):
     dhan_execution_enabled: bool = False
     dhan_execution_reference: str = ""
     dhan_tick_size_multiplier: Decimal = Field(default=0,ge=0,le=1)
-    dhan_stream_enabled: bool = True
+    dhan_stream_enabled: bool = False
     dhan_oauth_enabled: bool = False
     live_execution_reference: str = ''
     upstox_algo_name: str = ''
